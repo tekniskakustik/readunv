@@ -149,6 +149,19 @@ C       RECORD 7
 1517    FORMAT(A10,A10)
 
 
+C       fix text alignment
+        ID1 = ADJUSTL(ID1)
+        ID2 = ADJUSTL(ID2)
+        ID3 = ADJUSTL(ID3)
+        ID4 = ADJUSTL(ID4)
+        DS151F41 = ADJUSTL(DS151F41)
+        DS151F42 = ADJUSTL(DS151F42)
+        DS151F51 = ADJUSTL(DS151F51)
+        DS151F52 = ADJUSTL(DS151F52)
+        DS151F71 = ADJUSTL(DS151F71)
+        DS151F72 = ADJUSTL(DS151F72)
+
+
         fieldnames(1) = 'datasetType'
         fieldnames(2) = 'modelFilename'
         fieldnames(3) = 'modelDescription'
@@ -232,6 +245,7 @@ C       RECORD 2
         ELSE
           UNITSSTR = 'Unknown units'
         END IF
+        
     
     
         fieldnames(1) = 'datasetType'
@@ -337,6 +351,28 @@ C       RECORD 11
         IF (ORDDATATYPE == 4 .OR. ORDDATATYPE == 6) THEN ! = double
           CASENUM = CASENUM + 4
         END IF
+        
+        
+        
+C       fix text alignment
+        ID1 = ADJUSTL(ID1)
+        ID2 = ADJUSTL(ID2)
+        ID3 = ADJUSTL(ID3)
+        ID4 = ADJUSTL(ID4)
+        ID5 = ADJUSTL(ID5)
+        F65 = ADJUSTL(F65)
+        F68 = ADJUSTL(F68)
+        F85 = ADJUSTL(F85)
+        F86 = ADJUSTL(F86)
+        F95 = ADJUSTL(F95)
+        F86 = ADJUSTL(F86)
+        F96 = ADJUSTL(F96)
+        F105 = ADJUSTL(F105)
+        F106 = ADJUSTL(F106)
+        F115 = ADJUSTL(F115)
+        F116 = ADJUSTL(F116)
+        
+
         
         
         IF (F02 == 'b' .OR. F02 == 'B') THEN ! binary format
