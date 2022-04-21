@@ -1,0 +1,103 @@
+Universal Dataset
+Number: 1858
+Name:   Dataset 58 qualifiers
+Status: Current
+Owner:  Test
+Revision Date: 18-Nov-2002
+----------------------------------------------------------------------------
+ 
+Record 1:     FORMAT(6I12)
+              Field 1       - Set record number
+              Field 2       - Octave format
+                              0 - not in octave format (default)
+                              1 - octave
+                              3 - one third octave
+                              n - 1/n octave
+              Field 3       - Measurement run number
+              Fields 4-6    - Not used (fill with zeros)
+
+Record 2:     FORMAT(12I6)
+              Field 1       - Weighting Type
+                              0 - No weighting or Unknown (default)
+                              1 - A weighting
+                              2 - B weighting
+                              3 - C weighting
+                              4 - D weighting (not yet implemented)
+              Field 2       - Window Type
+                              0 - No window or unknown (default) 
+                              1 - Hanning Narrow
+                              2 - Hanning Broad
+                              3 - Flattop
+                              4 - Exponential
+                              5 - Impact
+                              6 - Impact and Exponential 
+              Field 3       - Amplitude units
+                              0 - unknown (default)
+                              1 - Half-peak scale
+                              2 - Peak scale
+                              3 - RMS
+              Field 4       - Normalization Method
+                              0 - unknown (default)
+                              1 - Units squared
+                              2 - Units squared per Hz (PSD)
+                              3 - Units squared seconds per Hz (ESD)
+              Field 5       - Abscissa Data Type Qualifier
+                              0 - Translation
+                              1 - Rotation
+                              2 - Translation Squared
+                              3 - Rotation Squared
+              Field 6       - Ordinate Numerator Data Type Qualifier
+                              0 - Translation
+                              1 - Rotation
+                              2 - Translation Squared
+                              3 - Rotation Squared
+              Field 7       - Ordinate Denominator Data Type Qualifier
+                              0 - Translation
+                              1 - Rotation
+                              2 - Translation Squared
+                              3 - Rotation Squared
+              Field 8       - Z-axis Data Type Qualifier
+                              0 - Translation
+                              1 - Rotation
+                              2 - Translation Squared
+                              3 - Rotation Squared
+              Field 9       - Sampling Type
+                              0 - Dynamic
+                              1 - Static
+                              2 - RPM from Tach
+                              3 - Frequency from tach
+                              4 - Octave
+              Field 10      - Time Average
+                              0 - None
+                              1 - Fast
+                              2 - Slow
+                              3 - Impulse
+                              4 - Linear
+              Fields 11-12  - not used (fill with zeros)
+         
+Record 3:     FORMAT  (1P5E15.7)
+              Field 1       - Z RPM value
+              Field 2       - Z Time value
+              Field 3       - Z Order value
+              Field 4       - Number of samples
+              Field 5       - Not used
+      
+Record 4:     FORMAT  (1P5E15.7)
+              Field 1       - User value 1
+              Field 2       - User value 2
+              Field 3       - User value 3
+              Field 4       - User value 4
+              Field 5       - Exponential window damping factor
+
+Record 5:     FORMAT  (1P5E15.7)
+              Field 1       - Overall RMS
+              Field 2       - Weighted RMS
+              Fields 3-5    - not used (fill with zeros)
+
+Record 6:     FORMAT  (2A2,2X,2A2)
+              Field 1       - Response direction
+              Field 2       - Reference direction
+ 
+Record 7:     FORMAT  (40A2)
+              Field 1       - Time Stamp
+----------------------------------------------------------------------------
