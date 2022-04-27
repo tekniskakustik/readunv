@@ -60,11 +60,10 @@ C     mexFunction arguments:
       REAL*8 :: DS164F21, DS164F22, DS164F23, DS164F24
       REAL*4 :: F74, F75,F76
       REAL*8 :: ISEVEN, ABSCNUM, ABSC0, ABSCINCR, ORDDATATYPE
-      REAL*8 :: UNITSCODE
+      REAL*8 :: UNITSCODE, S(1)
       INTEGER*4 :: STATUS_INT, OK, DATASETNUM, CASENUM, LUN, STEP
-      INTEGER*8 :: N, I, J, K, FIELDSTOUSE
+      INTEGER*8 :: N, I, K, FIELDSTOUSE
       LOGICAL :: STATUS_BOOL
-      REAL*8 :: Y_PART(2,2), S(1)
       CHARACTER(LEN=:), ALLOCATABLE :: FILEPATH
       REAL*4, DIMENSION(:), ALLOCATABLE :: Y_RS, XDATA
       REAL*8, DIMENSION(:), ALLOCATABLE :: Y_RD
@@ -397,8 +396,7 @@ C         SKIP FOR NOW
 
 C       RECORD 12 - ASCII
 C       READ DATA ACCORDING TO THE EIGHT CASES
-C       NVAL = NUMBER OF POINTS TO READ
-        N = 0 ! NUMBER OF READ POINTS
+        N = 0 ! INITIALISE NUMBER OF READ POINTS
 
 C       CASE 1, 58
         IF (CASENUM == 1) THEN ! REAL, SINGLE, EVEN SPACING
@@ -406,12 +404,9 @@ C       CASE 1, 58
           ALLOCATE(Y_RS(NVAL))
 
 1001      FORMAT(6E13.5)
-          DO WHILE (N < NVAL)
-            STEP = MIN(6, NVAL-N)
-            READ(LUN,1001,END=10,ERR=9)(Y_RS(I+N),I=1,STEP)
-            N = N + STEP
-          END DO
-
+          READ(LUN,1001,ERR=9)(Y_RS(I),I=1,NVAL)
+          N = NVAL
+          
           classid = mxClassIDFromClassName('single')
           complexflag = 0
           YPTR = mxCreateNumericMatrix(NVAL, N1, classid, complexflag)
@@ -429,11 +424,11 @@ C       CASE 2, 58
 1002      FORMAT(6E13.5)
           DO WHILE (N < NVAL)
             STEP = MIN(3, NVAL-N)
-            READ(LUN,1002,END=10,ERR=9)(XDATA(I+N),Y_RS(I+N),I=1,STEP)
+            READ(LUN,1002,END=202,ERR=9)(XDATA(I+N),Y_RS(I+N),I=1,STEP)
             N = N + STEP
           END DO
 
-          classid = mxClassIDFromClassName('single')
+202       classid = mxClassIDFromClassName('single')
           complexflag = 0
           YPTR = mxCreateNumericMatrix(NVAL, N1, classid, complexflag)
           CALL mxCopyReal4ToPtr(Y_RS, mxGetSingles(YPTR), NVAL)
@@ -448,11 +443,8 @@ C       CASE 3, 58
           ALLOCATE(Y_CS(NVAL))
 
 1003      FORMAT(6E13.5)
-          DO WHILE (N < NVAL)
-            STEP = MIN(3, NVAL-N)
-            READ(LUN,1003,END=10,ERR=9)(Y_CS(I+N),I=1,STEP)
-            N = N + STEP
-          END DO
+          READ(LUN,1003,ERR=9)(Y_CS(I),I=1,NVAL)
+          N = NVAL
 
           classid = mxClassIDFromClassName('single')
           complexflag = 1
@@ -471,11 +463,11 @@ C       CASE 4, 58
 1004      FORMAT(6E13.5)
           DO WHILE (N < NVAL)
             STEP = MIN(2, NVAL-N)
-            READ(LUN,1004,END=10,ERR=9)(XDATA(I+N),Y_CS(I+N),I=1,STEP)
+            READ(LUN,1004,END=204,ERR=9)(XDATA(I+N),Y_CS(I+N),I=1,STEP)
             N = N + STEP
           END DO
 
-          classid = mxClassIDFromClassName('single')
+204       classid = mxClassIDFromClassName('single')
           complexflag = 1
           YPTR = mxCreateNumericMatrix(NVAL, N1, classid, complexflag)
           CALL mxCopyComplex8ToPtr(Y_CS, mxGetComplexSingles(YPTR),NVAL)
@@ -490,11 +482,7 @@ C       CASE 5, 58
           ALLOCATE(Y_RD(NVAL))
 
 1005      FORMAT(4E20.12)
-          DO WHILE (N < NVAL)
-            STEP = MIN(4, NVAL-N)
-            READ(LUN,1005,END=10,ERR=9)(Y_RD(I+N),I=1,STEP)
-            N = N + STEP
-          END DO
+          READ(LUN,1005,ERR=9)(Y_RD(I),I=1,NVAL)
 
           classid = mxClassIDFromClassName('double')
           complexflag = 0
@@ -513,11 +501,11 @@ C       CASE 6, 58
 1006      FORMAT(2(E13.5,E20.12))
           DO WHILE (N < NVAL)
             STEP = MIN(2, NVAL-N)
-            READ(LUN,1006,END=10,ERR=9)(XDATA(I+N),Y_RD(I+N),I=1,STEP)
+            READ(LUN,1006,END=206,ERR=9)(XDATA(I+N),Y_RD(I+N),I=1,STEP)
             N = N + STEP
           END DO
 
-          classid = mxClassIDFromClassName('double')
+206       classid = mxClassIDFromClassName('double')
           complexflag = 0
           YPTR = mxCreateNumericMatrix(NVAL, N1, classid, complexflag)
           CALL mxCopyReal8ToPtr(Y_RD, mxGetDoubles(YPTR), NVAL)
@@ -532,14 +520,8 @@ C       CASE 7, 58
           ALLOCATE(Y_CD(NVAL))
 
 1007      FORMAT(4E20.12)
-          DO WHILE (N < NVAL)
-            STEP = MIN(2, NVAL-N)
-            READ(LUN,1007,END=10,ERR=9)((Y_PART(I,J),I=1,STEP),J=1,STEP)
-            DO K=1,STEP
-              Y_CD(N+K) = CMPLX(Y_PART(1, K), Y_PART(2, K))
-            END DO
-            N = N + STEP
-          END DO
+          READ(LUN,1007,ERR=9)(Y_CD(I),I=1,NVAL)
+          N = NVAL
 
           classid = mxClassIDFromClassName('double')
           complexflag = 1
@@ -557,12 +539,11 @@ C       CASE 8, 58
 
 1008      FORMAT(E13.5,2E20.12)
           DO WHILE (N < NVAL)
-            READ(LUN,1008,END=10,ERR=9)(XDATA(I+N),Y_PART(I,1),I=1,2)
-            Y_CD(N+1) = CMPLX(Y_PART(1, 1), Y_PART(2, 1))
+            READ(LUN,1008,END=208,ERR=9)(XDATA(N+1),Y_CD(N+1))
             N = N + 1
           END DO
 
-          classid = mxClassIDFromClassName('double')
+208       classid = mxClassIDFromClassName('double')
           complexflag = 1
           YPTR = mxCreateNumericMatrix(NVAL, N1, classid, complexflag)
           CALL mxCopyComplex16ToPtr(Y_CD,mxGetComplexDoubles(YPTR),NVAL)
