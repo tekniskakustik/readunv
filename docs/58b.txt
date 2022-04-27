@@ -1,0 +1,97 @@
+The Binary 58 Universal File Format (UFF):
+
+The basic (ASCII) universal file format for data is universal file format
+58.  This format is completely documented by SDRC and a copy of that
+documentation is on the UC-SDRL web site (58.asc). The
+universal file format always begins with two records that are prior to the
+information defined by each universal file format and ends with a record
+that is placed after the information defined by the format.   First of
+all, all records are 80 character ASCII records for the basic universal
+file format. The first and last record are start/stop records and are
+always -1 in the first six columns, right justified (Fortran I6 field
+with -1 in the field).  The second record (Identifier Record) always
+contains the universal file format number in the first 6 columns, right
+justified.
+
+This gives a file structure as follows (where b represent a blank
+character):
+
+bbbb-1
+bbbb58
+...
+...
+...
+bbbb-1
+
+The Binary 58 universal file format was originally developed by UC-SDRL 
+in order to eliminate the need to compress the UFF 58 records and to reduce
+the time required to load the UFF 58 data records.  The Binary 58 universal file
+format yields files that are comparable to compressed files (approximately 3 to
+4 times smaller than the equivalent UFF 58 file).  The Binary 58 universal file 
+format loads approximately 30 to 40 times faster than the equivalent UFF 58 
+file, depending upon the computing environment.  This new format was 
+submitted to SDRC and subsequently adopted as a supported format.
+
+The Binary 58 universal file format uses the same ASCII records at the
+start of each data file as the ASCII dataset 58 but, beginning with
+record 12, the data is stored in binary form rather than the specified
+ASCII format.  The identifier record has the same 58 identifier in the
+first six columns, right justified, but has additional information in
+the rest of the 80 character record that identifies the binary format
+(the size of the binary record, the format of the binary structure, etc.).
+
+    -1
+    58b     x     y          11        zzzz     0     0           0           0
+...
+... (11 ASCII header lines)
+...
+...
+... (zzzz BINARY bytes of data, in format specifed by x and y, above)
+... (interleaved as specified by the ASCII dataset 58)
+...
+    -1
+
+
+When reading or writing a dataset 58b, care must be taken that the
+binary data immediately follows the ASCII header lines and the closing
+'    -1' immediately follows the binary data.  The binary data content
+is written in the same sequence as the ASCII dataset 58 (ie. field
+order sequence).  The field size is NOT used, however the data type
+(int/float/double) content is.  Note: there are no CR/LF characters
+embedded in or following the binary data.
+
+
+=====================================================================
+The Format of 58b ID-Line:
+----------------------------
+
+For the traditional dataset 58 (Function at Nodal DOF), the dataset
+id-line is composed of four spaces followed by "58". This line has been
+enhanced to contain additional information for the binary version of
+dataset 58.
+
+    -1
+    58b     2     2          11        4096     0     0           0           0
+
+     Format (I6,1A1,I6,I6,I12,I12,I6,I6,I12,I12)
+
+              Field 1       - 58  [I6]
+              Field 2       - lowercase b [1A1]
+              Field 3       - Byte Ordering Method [I6]
+                              1 - Little Endian (DEC VMS & ULTRIX, WIN NT)
+                              2 - Big Endian (most UNIX)
+              Field 4       - Floating Point Format [I6]
+                              1 - DEC VMS
+                              2 - IEEE 754 (UNIX)
+                              3 - IBM 5/370
+              Field 5       - number of ASCII lines following  [I12]
+                              11 - for dataset 58
+              Field 6       - number of bytes following ASCII lines  [I12]
+              Fields 7-10   - Not used (fill with zeros)
+
+
+The format of this line should remain constant for any other dataset
+that takes on a binary format in the future.
+
+=====================================================================
+
