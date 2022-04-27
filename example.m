@@ -4,6 +4,7 @@
 [success, datacell] = readunv(['.', filesep, 'testdata', filesep, 'test3.unv']); %#ok<ASGLU> 
 
 
+
 % write all data to new file
 for setCount = 1:length(datacell)
     if setCount == 1
@@ -14,6 +15,7 @@ for setCount = 1:length(datacell)
     success = writeunv(['.', filesep, 'example1.unv'], datacell{setCount}, writeAction);
     if ~success
         fprintf('1: set %i failed\n', setCount)
+        fprintf('1: error code %i\n', success)
         break
     end
 end
@@ -22,6 +24,7 @@ end
 
 % write all data to new file, but keep file open between calls
 idx = 3; % index number to use between calls, in order to keep multiple files open simultaneously, any number between 1 and 512 (MAXIDX)
+         % include idx to keep file open
 for setCount = 1:length(datacell)
     if setCount == 1
         writeAction = 1; % replace file on first call
@@ -36,6 +39,7 @@ for setCount = 1:length(datacell)
     end
 end
 writeunv(); % close all files
+
 
 
 % write header data to new file, but keep file open between calls
@@ -56,5 +60,6 @@ for ii = 1:floor(L/stp)
     writeunv(casenum, dataToWrite, 3, idx, 58);
 end
 writeunv(-1, [], 3, idx, 58); % terminate file
+% close all files is not needed here
 
 
