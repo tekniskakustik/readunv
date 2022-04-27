@@ -11,5 +11,6 @@ See example.m
 
 License:
 BSD 3-Clause, see LICENSE for details
+
 Copyright (c) 2022, Wolkesson & Hansson Teknisk Akustik AB
 All rights reserved.
