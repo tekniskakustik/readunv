@@ -59,7 +59,7 @@ C     mexFunction arguments:
       REAL*4 :: F74, F75,F76
       REAL*8 :: ISEVEN, ABSCNUM, ABSC0, ABSCINCR, ORDDATATYPE
       REAL*8 :: UNITSCODE
-      INTEGER*4 :: STATUS_INT, DATASETNUM, CASENUM, LUN, STEP
+      INTEGER*4 :: STATUS_INT, OK, DATASETNUM, CASENUM, LUN, STEP
       INTEGER*8 :: NVAL, CELLCOUNT, N, I, J, K, FIELDSTOUSE
       LOGICAL :: STATUS_BOOL
       REAL*8 :: Y_PART(2,2), S(1)
@@ -93,7 +93,7 @@ C     mexFunction arguments:
       LUN = 2
 
       OPEN (UNIT=LUN, FILE=FILEPATH, STATUS='OLD', IOSTAT=STATUS_INT,
-     & POSITION='REWIND', ACTION='READ', FORM='FORMATTED', RECL=80)
+     & POSITION='REWIND', ACTION='READ', FORM='FORMATTED')
 
       IF (STATUS_INT /= 0) THEN
         S = STATUS_INT
@@ -769,8 +769,8 @@ C     create and assign cell matrix
 
 
       IF (LUN /= 0) THEN
-        INQUIRE(UNIT=LUN, OPENED=STATUS_INT)
-        IF (STATUS_INT > 0) THEN
+        INQUIRE(UNIT=LUN, OPENED=OK)
+        IF (OK) THEN
           CLOSE(LUN, STATUS='KEEP')
         END IF
         LUN = 0
