@@ -1,5 +1,6 @@
 
 
+
 % read data from a test file
 [success, datacell] = readunv(['.', filesep, 'testdata', filesep, 'test3.unv']); %#ok<ASGLU> 
 
@@ -55,7 +56,7 @@ S = rmfield(S, 'data'); % remove data
 [success, casenum] = writeunv([], S, 2, idx); % 58 header
 L = size(data, 1);
 stp = 10;
-for ii = 1:floor(L/stp)
+for ii = 1:ceil(L/stp)
     dataToWrite = data(1+(ii-1)*stp:min(ii*stp, end));
     writeunv(casenum, dataToWrite, 3, idx, 58);
 end
