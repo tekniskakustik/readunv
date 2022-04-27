@@ -560,8 +560,8 @@ C --- GET DATASET TYPE TO WRITE
 C --- 151
       IF (DATASETNUM == 151) THEN
 
-C       REQUIRED NUMBER OF FIELDS
-        FIELDSTOUSE = 14
+C       MIN. REQUIRED NUMBER OF FIELDS
+        FIELDSTOUSE = 6
 
         S = -8.0 ! DEFAULT ERROR STATE UNTIL ALL DATA EXTRACTED
 
@@ -570,18 +570,30 @@ C       REQUIRED NUMBER OF FIELDS
 
 C       RECORD 1, ID LINE 1, model file name
         PTR = mxGetField(prhs(2), 1, 'modelName')
-        IF (PTR == 0) GO TO 10
-        OK = mxGetString(PTR, ID1, 80)
+        IF (PTR == 0) THEN
+          ID1 = 'NONE'
+        ELSE
+          OK = mxGetString(PTR, ID1, 80)
+          IF (ADJUSTL(ID1)==' ') ID1 = 'NONE'
+        END IF
 
 C       RECORD 2, ID LINE 2, model file description
         PTR = mxGetField(prhs(2), 1, 'modelDescription')
-        IF (PTR == 0) GO TO 10
-        OK = mxGetString(PTR, ID2, 80)
+        IF (PTR == 0) THEN
+          ID2 = 'NONE'
+        ELSE
+          OK = mxGetString(PTR, ID2, 80)
+          IF (ADJUSTL(ID2)==' ') ID2 = 'NONE'
+        END IF
 
 C       RECORD 3, ID LINE 3, program which created DB
         PTR = mxGetField(prhs(2), 1, 'databaseProgram')
-        IF (PTR == 0) GO TO 10
-        OK = mxGetString(PTR, ID3, 80)
+        IF (PTR == 0) THEN
+          ID3 = 'WHTA WRITEUNV'
+        ELSE
+          OK = mxGetString(PTR, ID3, 80)
+          IF (ADJUSTL(ID3)==' ') ID3 = 'WHTA WRITEUNV'
+        END IF
 
 C       RECORD 4
 C       4.1
@@ -594,44 +606,70 @@ C       4.2
         OK = mxGetString(PTR, DS151F42, 10)
 C       4.3
         PTR = mxGetField(prhs(2), 1, 'databaseVersion1')
-        IF (PTR == 0) GO TO 10
-        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
-        DS151F43 = T
+        IF (PTR == 0) THEN
+          DS151F43 = 0
+        ELSE
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
+          DS151F43 = T
+        END IF
 C       4.4
         PTR = mxGetField(prhs(2), 1, 'databaseVersion2')
-        IF (PTR == 0) GO TO 10
-        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
-        DS151F44 = T
+        IF (PTR == 0) THEN
+          DS151F44 = 0
+        ELSE
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
+          DS151F44 = T
+        END IF
 C       4.5
         PTR = mxGetField(prhs(2), 1, 'fileType')
-        IF (PTR == 0) GO TO 10
-        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
-        DS151F45 = T
+        IF (PTR == 0) THEN
+          DS151F45 = 0
+        ELSE
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
+          DS151F45 = T
+          IF (DS151F45 < 0 .OR. DS151F45>2) GO TO 10
+        END IF
 
 C       RECORD 5
 C       5.1
         PTR = mxGetField(prhs(2), 1, 'databaseLastSavedDate')
-        IF (PTR == 0) GO TO 10
-        OK = mxGetString(PTR, DS151F51, 10)
+        IF (PTR == 0) THEN
+          DS151F51 = DS151F41
+        ELSE
+          OK = mxGetString(PTR, DS151F51, 10)
+        END IF
 C       5.2
         PTR = mxGetField(prhs(2), 1, 'databaseLastSavedTime')
-        IF (PTR == 0) GO TO 10
-        OK = mxGetString(PTR, DS151F52, 10)
+        IF (PTR == 0) THEN
+          DS151F52 = DS151F42
+        ELSE
+          OK = mxGetString(PTR, DS151F52, 10)
+        END IF
 
 C       RECORD 6, ID LINE 6, program which created unv-file
         PTR = mxGetField(prhs(2), 1, 'unvProgram')
-        IF (PTR == 0) GO TO 10
-        OK = mxGetString(PTR, ID4, 80)
+        IF (PTR == 0) THEN
+          ID4 = 'WHTA WRITEUNV'
+        ELSE
+          OK = mxGetString(PTR, ID4, 80)
+          IF (ADJUSTL(ID3)==' ') ID4 = 'WHTA WRITEUNV'
+        END IF
 
 C       RECORD 7
 C       7.1
         PTR = mxGetField(prhs(2), 1, 'fileCreatedDate')
-        IF (PTR == 0) GO TO 10
-        OK = mxGetString(PTR, DS151F71, 10)
+        IF (PTR == 0) THEN
+          DS151F71 = DS151F41
+        ELSE
+          OK = mxGetString(PTR, DS151F71, 10)
+        END IF
 C       7.2
         PTR = mxGetField(prhs(2), 1, 'fileCreatedTime')
-        IF (PTR == 0) GO TO 10
-        OK = mxGetString(PTR, DS151F72, 10)
+        IF (PTR == 0) THEN
+          DS151F72 = DS151F42
+        ELSE
+          OK = mxGetString(PTR, DS151F72, 10)
+        END IF
 
 
 C ----- WRITE ALL FIELDS
@@ -672,46 +710,83 @@ C ----- WRITIING FINISHED
 C --- 164
       ELSEIF (DATASETNUM == 164) THEN
 
-C       REQUIRED NUMBER OF FIELDS
-        FIELDSTOUSE = 9
-
         S = -8.0 ! DEFAULT ERROR STATE UNTIL ALL DATA EXTRACTED
-
-        IF (NINPUTF < FIELDSTOUSE) GO TO 10
 
 C       RECORD 1
 C       1.1
         PTR = mxGetField(prhs(2), 1, 'unitsCode')
-        IF (PTR == 0) GO TO 10
-        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
-        DS164F11 = T
+        IF (PTR == 0) THEN
+          DS164F11 = 1
+        ELSE
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
+          DS164F11 = T
+          IF (DS164F11<0 .OR. DS164F11>9) GO TO 10
+        END IF
 C       1.2
         PTR = mxGetField(prhs(2), 1, 'unitsDescription')
-        IF (PTR == 0) GO TO 10
-        OK = mxGetString(PTR, DS164F12, 20)
+        IF (PTR == 0) THEN
+          IF (DS164F11 == 1) THEN
+            DS164F12 = 'SI: Meter (newton)'
+          ELSE IF (DS164F11 == 2) THEN
+            DS164F12 = 'BG: Foot (pound f)'
+          ELSE IF (DS164F11 == 3) THEN
+            DS164F12 = 'MG: Meter (kilogram f)'
+          ELSE IF (DS164F11 == 4) THEN
+            DS164F12 = 'BA: Foot (poundal)'
+          ELSE IF (DS164F11 == 5) THEN
+            DS164F12 = 'MM: mm (milli newton)'
+          ELSE IF (DS164F11 == 6) THEN
+            DS164F12 = 'CM: cm (centi newton)'
+          ELSE IF (DS164F11 == 7) THEN
+            DS164F12 = 'IN: Inch (pound f)'
+          ELSE IF (DS164F11 == 8) THEN
+            DS164F12 = 'GM: mm (kilogram f)'
+          ELSE IF (DS164F11 == 9) THEN
+            DS164F12 = 'US: USER_DEFINED'
+          ELSE
+            GO TO 10
+          END IF
+        ELSE
+          OK = mxGetString(PTR, DS164F12, 20)
+        END IF
 C       1.3
         PTR = mxGetField(prhs(2), 1, 'temperatureMode')
-        IF (PTR == 0) GO TO 10
-        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
-        DS164F13 = T
+        IF (PTR == 0) THEN
+          DS164F13 = 1
+        ELSE
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
+          DS164F13 = T
+        END IF
 
 C       RECORD 2
 C       2.1
         PTR = mxGetField(prhs(2), 1, 'length')
-        IF (PTR == 0) GO TO 10
-        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), DS164F21, N1)
+        IF (PTR == 0) THEN
+          DS164F21 = 1
+        ELSE
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), DS164F21, N1)
+        END IF
 C       2.2
         PTR = mxGetField(prhs(2), 1, 'force')
-        IF (PTR == 0) GO TO 10
-        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), DS164F22, N1)
+        IF (PTR == 0) THEN
+          DS164F22 = 1
+        ELSE
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), DS164F22, N1)
+        END IF
 C       2.3
         PTR = mxGetField(prhs(2), 1, 'temperature')
-        IF (PTR == 0) GO TO 10
-        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), DS164F23, N1)
+        IF (PTR == 0) THEN
+          DS164F23 = 1
+        ELSE
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), DS164F23, N1)
+        END IF
 C       2.4
         PTR = mxGetField(prhs(2), 1, 'temperatureOffset')
-        IF (PTR == 0) GO TO 10
-        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), DS164F24, N1)
+        IF (PTR == 0) THEN
+          DS164F24 = 0
+        ELSE
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), DS164F24, N1)
+        END IF
 
 
 
