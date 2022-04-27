@@ -35,7 +35,7 @@ C       = >1, ERROR CODE FROM IOSTAT WHEN OPENING FILE
       IMPLICIT NONE
 
       mwPointer plhs(*), prhs(*)
-      INTEGER*8 :: nlhs, nrhs
+      mwSize :: nlhs, nrhs
 
 
       mwPointer :: mxCreateDoubleScalar
@@ -55,6 +55,7 @@ C       = >1, ERROR CODE FROM IOSTAT WHEN OPENING FILE
       mwPointer :: mxGetString
       mwPointer :: PTR
       mwPointer :: XPTR
+      mwSize :: NVAL, SCAL
 
 
       INTEGER*4, PARAMETER :: MAXIDX = 512
@@ -71,7 +72,7 @@ C       = >1, ERROR CODE FROM IOSTAT WHEN OPENING FILE
       INTEGER*4 :: F91, F92, F93, F94
       INTEGER*4 :: F101, F102, F103, F104
       INTEGER*4 :: F111, F112, F113, F114
-      INTEGER*8 :: STRLEN, I, K, N, FIELDSTOUSE, NVAL, NVALX, STEP
+      INTEGER*8 :: STRLEN, I, K, N, FIELDSTOUSE, NVALX, STEP
       REAL*4 :: F74, F75, F76
       REAL*8 :: S(1), T
       REAL*8 :: DS164F21, DS164F22, DS164F23, DS164F24
@@ -102,6 +103,7 @@ C       = >1, ERROR CODE FROM IOSTAT WHEN OPENING FILE
 
 
       S = 0.0
+      SCAL = 1
       LIDX = 0
       CASENUM = 0
       KEEPFILEOPEN = .FALSE.
@@ -146,12 +148,12 @@ C ------------------------------------------------------------------------------
       IF (nrhs < 3) THEN
         WRITEMODE = 1
       ELSE
-        CALL mxCopyPtrToReal8(mxGetDoubles(prhs(3)), T, 1)
+        CALL mxCopyPtrToReal8(mxGetDoubles(prhs(3)), T, SCAL)
         WRITEMODE = T
       END IF
 
       IF (nrhs > 3) THEN
-        CALL mxCopyPtrToReal8(mxGetDoubles(prhs(4)), T, 1)
+        CALL mxCopyPtrToReal8(mxGetDoubles(prhs(4)), T, SCAL)
         LIDX = T
         IF (LIDX > 0 .AND. LIDX <= MAXIDX) THEN
           INQUIRE(UNIT=LUN(LIDX), OPENED=OK)
@@ -255,10 +257,10 @@ C ------------------------------------------------------------------------------
           GO TO 10
         END IF
 
-        CALL mxCopyPtrToReal8(mxGetDoubles(prhs(1)), T, 1)
+        CALL mxCopyPtrToReal8(mxGetDoubles(prhs(1)), T, SCAL)
         CASENUM = T
 
-        CALL mxCopyPtrToReal8(mxGetDoubles(prhs(5)), T, 1)
+        CALL mxCopyPtrToReal8(mxGetDoubles(prhs(5)), T, SCAL)
         DATASETNUM = T
 
 
@@ -550,7 +552,7 @@ C --- GET DATASET TYPE TO WRITE
         S = -5.0
         GO TO 10
       END IF
-      CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+      CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
       DATASETNUM = T
 
 
@@ -593,17 +595,17 @@ C       4.2
 C       4.3
         PTR = mxGetField(prhs(2), 1, 'databaseVersion1')
         IF (PTR == 0) GO TO 10
-        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
         DS151F43 = T
 C       4.4
         PTR = mxGetField(prhs(2), 1, 'databaseVersion2')
         IF (PTR == 0) GO TO 10
-        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
         DS151F44 = T
 C       4.5
         PTR = mxGetField(prhs(2), 1, 'fileType')
         IF (PTR == 0) GO TO 10
-        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
         DS151F45 = T
 
 C       RECORD 5
@@ -681,7 +683,7 @@ C       RECORD 1
 C       1.1
         PTR = mxGetField(prhs(2), 1, 'unitsCode')
         IF (PTR == 0) GO TO 10
-        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
         DS164F11 = T
 C       1.2
         PTR = mxGetField(prhs(2), 1, 'unitsDescription')
@@ -690,26 +692,26 @@ C       1.2
 C       1.3
         PTR = mxGetField(prhs(2), 1, 'temperatureMode')
         IF (PTR == 0) GO TO 10
-        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
         DS164F13 = T
 
 C       RECORD 2
 C       2.1
         PTR = mxGetField(prhs(2), 1, 'length')
         IF (PTR == 0) GO TO 10
-        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), DS164F21, 1)
+        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), DS164F21, SCAL)
 C       2.2
         PTR = mxGetField(prhs(2), 1, 'force')
         IF (PTR == 0) GO TO 10
-        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), DS164F22, 1)
+        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), DS164F22, SCAL)
 C       2.3
         PTR = mxGetField(prhs(2), 1, 'temperature')
         IF (PTR == 0) GO TO 10
-        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), DS164F23, 1)
+        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), DS164F23, SCAL)
 C       2.4
         PTR = mxGetField(prhs(2), 1, 'temperatureOffset')
         IF (PTR == 0) GO TO 10
-        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), DS164F24, 1)
+        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), DS164F24, SCAL)
 
 
 
@@ -794,14 +796,14 @@ C       RECORD 6
 C       6.1
         PTR = mxGetField(prhs(2), 1, 'functionType')
         IF (PTR == 0) GO TO 10
-        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
         F61 = T
 C       6.2
         PTR = mxGetField(prhs(2), 1, 'functionID')
         IF (PTR == 0) THEN
           F62 = 0
         ELSE
-          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
           F62 = T
         END IF
 C       6.3
@@ -809,7 +811,7 @@ C       6.3
         IF (PTR == 0) THEN
           F63 = 0
         ELSE
-          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
           F63 = T
         END IF
 C       6.4
@@ -817,7 +819,7 @@ C       6.4
         IF (PTR == 0) THEN
           F64 = 0
         ELSE
-          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
           F64 = T
         END IF
 C       6.5
@@ -831,14 +833,14 @@ C       6.5
 C       6.6
         PTR = mxGetField(prhs(2), 1, 'rspNode')
         IF (PTR == 0) GO TO 10
-        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
         F66 = T
 C       6.7
         PTR = mxGetField(prhs(2), 1, 'rspDir')
         IF (PTR == 0) THEN
           F67 = 0
         ELSE
-          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
           F67 = T
           IF (F67 < -6 .OR. F67 > 6) GO TO 10
         END IF
@@ -855,7 +857,7 @@ C       6.9
         IF (PTR == 0) THEN
           F69 = 0
         ELSE
-          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
           F69 = T
         END IF
 C       6.10
@@ -863,7 +865,7 @@ C       6.10
         IF (PTR == 0) THEN
           F610 = 0
         ELSE
-          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
           F610 = T
           IF (F610 < -6 .OR. F610 > 6) GO TO 10
         END IF
@@ -872,37 +874,37 @@ C       RECORD 7
 C       7.1
         PTR = mxGetField(prhs(2), 1, 'dataFormatType')
         IF (PTR == 0) GO TO 10
-        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
         F71 = T
 C       7.2
         PTR = mxGetField(prhs(2), 1, 'numValues')
         IF (PTR == 0) THEN
           F72 = 0
         ELSE
-          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
           F72 = T
         END IF
 C       7.3
         PTR = mxGetField(prhs(2), 1, 'evenSpacing')
         IF (PTR == 0) GO TO 10
-        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
         F73 = T
 C       7.4
         PTR = mxGetField(prhs(2), 1, 'x0')
         IF (PTR == 0) GO TO 10
-        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
         F74 = T
 C       7.5
         PTR = mxGetField(prhs(2), 1, 'dx')
         IF (PTR == 0) GO TO 10
-        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
         F75 = T
 C       7.6
         PTR = mxGetField(prhs(2), 1, 'zAxisValue')
         IF (PTR == 0) THEN
           F76 = 0
         ELSE
-          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
           F76 = T
         END IF
 
@@ -910,14 +912,14 @@ C       RECORD 8
 C       8.1
         PTR = mxGetField(prhs(2), 1, 'abscDataType')
         IF (PTR == 0) GO TO 10
-        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
         F81 = T
 C       8.2
         PTR = mxGetField(prhs(2), 1, 'abscLengthUnitsExponent')
         IF (PTR == 0) THEN
           F82 = 0
         ELSE
-          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
           F82 = T
         END IF
 C       8.3
@@ -925,7 +927,7 @@ C       8.3
         IF (PTR == 0) THEN
           F83 = 0
         ELSE
-          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
           F83 = T
         END IF
 C       8.4
@@ -933,7 +935,7 @@ C       8.4
         IF (PTR == 0) THEN
           F84 = 0
         ELSE
-          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
           F84 = T
         END IF
 C       8.5
@@ -949,14 +951,14 @@ C       RECORD 9
 C       9.1
         PTR = mxGetField(prhs(2), 1, 'ordNumDataType')
         IF (PTR == 0) GO TO 10
-        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+        CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
         F91 = T
 C       9.2
         PTR = mxGetField(prhs(2), 1, 'ordNumLengthUnitsExponent')
         IF (PTR == 0) THEN
           F92 = 0
         ELSE
-          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
           F92 = T
         END IF
 C       9.3
@@ -964,7 +966,7 @@ C       9.3
         IF (PTR == 0) THEN
           F93 = 0
         ELSE
-          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
           F93 = T
         END IF
 C       9.4
@@ -972,7 +974,7 @@ C       9.4
         IF (PTR == 0) THEN
           F94 = 0
         ELSE
-          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
           F94 = T
         END IF
 C       9.5
@@ -990,7 +992,7 @@ C       10.1
         IF (PTR == 0) THEN
           F101 = 0
         ELSE
-          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
           F101 = T
         END IF
 C       10.2
@@ -998,7 +1000,7 @@ C       10.2
         IF (PTR == 0) THEN
           F102 = 0
         ELSE
-          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
           F102 = T
         END IF
 C       10.3
@@ -1006,7 +1008,7 @@ C       10.3
         IF (PTR == 0) THEN
           F103 = 0
         ELSE
-          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
           F103 = T
         END IF
 C       10.4
@@ -1014,7 +1016,7 @@ C       10.4
         IF (PTR == 0) THEN
           F104 = 0
         ELSE
-          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
           F104 = T
         END IF
 C       10.5
@@ -1040,7 +1042,7 @@ C       11.1
         IF (PTR == 0) THEN
           F111 = 0
         ELSE
-          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
           F111 = T
         END IF
 C       11.2
@@ -1048,7 +1050,7 @@ C       11.2
         IF (PTR == 0) THEN
           F112 = 0
         ELSE
-          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
           F112 = T
         END IF
 C       11.3
@@ -1056,7 +1058,7 @@ C       11.3
         IF (PTR == 0) THEN
           F113 = 0
         ELSE
-          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
           F113 = T
         END IF
 C       11.4
@@ -1064,7 +1066,7 @@ C       11.4
         IF (PTR == 0) THEN
           F114 = 0
         ELSE
-          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, 1)
+          CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, SCAL)
           F114 = T
         END IF
 C       11.5

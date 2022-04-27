@@ -8,7 +8,7 @@ C     Gateway routine
 
 C     mexFunction arguments:
       mwPointer plhs(*), prhs(*)
-      INTEGER*8 :: nlhs, nrhs
+      mwSize :: nlhs, nrhs
 
       mwPointer :: mxCreateString
       mwPointer :: mxCreateDoubleScalar
@@ -24,7 +24,8 @@ C     mexFunction arguments:
       mwPointer :: mxGetString
       mwSize :: STRLEN
       mwPointer :: CELL_PTR, YPTR, XPTR
-      mwPointer :: STRU_PTR(2048) ! maximum number of data records
+      mwPointer :: SPTR(2048) ! maximum number of data records
+      mwSize :: N2, NVAL, M2, K2, FIELDSTOUSE
 
       INTEGER*4, PARAMETER :: nfields = 50 ! maximum number of fields in use
       mwPointer :: ID_PTR(nfields)
@@ -60,7 +61,7 @@ C     mexFunction arguments:
       REAL*8 :: ISEVEN, ABSCNUM, ABSC0, ABSCINCR, ORDDATATYPE
       REAL*8 :: UNITSCODE
       INTEGER*4 :: STATUS_INT, OK, DATASETNUM, CASENUM, LUN, STEP
-      INTEGER*8 :: NVAL, CELLCOUNT, N, I, J, K, FIELDSTOUSE
+      INTEGER*8 :: N, I, J, K, CELLCOUNT
       LOGICAL :: STATUS_BOOL
       REAL*8 :: Y_PART(2,2), S(1)
       CHARACTER(LEN=:), ALLOCATABLE :: FILEPATH
@@ -183,7 +184,8 @@ C       fix text alignment
         CELLCOUNT = CELLCOUNT + 1
         FIELDSTOUSE = 14
 
-        STRU_PTR(CELLCOUNT) = mxCreateStructMatrix(1, 1, FIELDSTOUSE,
+        N2 = 1
+        SPTR(CELLCOUNT) = mxCreateStructMatrix(N2, N2, FIELDSTOUSE,
      & fieldnames(1:FIELDSTOUSE))
 
 
@@ -207,7 +209,7 @@ C       fix text alignment
         ID_PTR(14) = mxCreateString(DS151F72) ! time file written (HH:MM:SS)
 
         DO K = 1,FIELDSTOUSE
-          CALL mxSetField(STRU_PTR(CELLCOUNT),1,fieldnames(K),ID_PTR(K))
+          CALL mxSetField(SPTR(CELLCOUNT),N2,fieldnames(K),ID_PTR(K))
         END DO
 
 
@@ -265,7 +267,8 @@ C       RECORD 2
         CELLCOUNT = CELLCOUNT + 1
         FIELDSTOUSE = 9
 
-        STRU_PTR(CELLCOUNT) = mxCreateStructMatrix(1, 1, FIELDSTOUSE,
+        N2 = 1
+        SPTR(CELLCOUNT) = mxCreateStructMatrix(N2, N2, FIELDSTOUSE,
      & fieldnames(1:FIELDSTOUSE))
 
 
@@ -278,9 +281,9 @@ C       RECORD 2
         ID_PTR(7) = mxCreateDoubleScalar(DS164F22) ! force
         ID_PTR(8) = mxCreateDoubleScalar(DS164F23) ! temperature
         ID_PTR(9) = mxCreateDoubleScalar(DS164F24) ! temperature offset
-
+        
         DO K = 1,FIELDSTOUSE
-          CALL mxSetField(STRU_PTR(CELLCOUNT),1,fieldnames(K),ID_PTR(K))
+          CALL mxSetField(SPTR(CELLCOUNT),N2,fieldnames(K),ID_PTR(K))
         END DO
 
 
@@ -289,7 +292,7 @@ C     58
       ELSEIF (DATASETNUM == 58) THEN
 
 C       READ HEADER
-
+        
 C       RECORD 1, ID LINE 1
         READ(LUN,'(A80)',END=10,ERR=9) ID1
 
@@ -317,7 +320,7 @@ C       RECORD 7
         ORDDATATYPE = DBLE(F71)
         ISEVEN = DBLE(F73)
         ABSCNUM = DBLE(F72)
-        NVAL = INT8(ABSCNUM)
+        NVAL = INT4(ABSCNUM)
         ABSC0 = DBLE(F74)
         ABSCINCR = DBLE(F75)
 
@@ -338,7 +341,7 @@ C       RECORD 11
 5811    FORMAT(I10,3I5,2(1X,A20))
 
         CASENUM = 1
-
+        
         ALLOCATE(XDATA(NVAL))
         IF (ISEVEN > 0.5) THEN
           DO K = 1,NVAL
@@ -358,7 +361,7 @@ C       RECORD 11
         ELSE
           PRECSTR = 'SINGLE'
         END IF
-
+        
 
 
 C       FIX TEXT ALIGNMENT
@@ -393,11 +396,8 @@ C         SKIP FOR NOW
 
         ELSE
 
-C       RECORD 12 - ASCII
-C       READ DATA ACCORDING TO THE EIGHT CASES
-C       NVAL = NUMBER OF POINTS TO READ
+C       RECORD 12 - ASCII, READ DATA ACCORDING TO THE EIGHT CASES
         N = 0 ! NUMBER OF READ POINTS
-
 C       CASE 1, 58
         IF (CASENUM == 1) THEN ! REAL, SINGLE, EVEN SPACING
 
@@ -412,7 +412,8 @@ C       CASE 1, 58
 
           classid = mxClassIDFromClassName('single')
           complexflag = 0
-          YPTR = mxCreateNumericMatrix(NVAL, 1, classid, complexflag)
+          N2 = 1
+          YPTR = mxCreateNumericMatrix(NVAL, N2, classid, complexflag)
           CALL mxCopyReal4ToPtr(Y_RS, mxGetSingles(YPTR), NVAL)
           ID_PTR(3) = YPTR
 
@@ -433,7 +434,8 @@ C       CASE 2, 58
 
           classid = mxClassIDFromClassName('single')
           complexflag = 0
-          YPTR = mxCreateNumericMatrix(NVAL, 1, classid, complexflag)
+          N2 = 1
+          YPTR = mxCreateNumericMatrix(NVAL, N2, classid, complexflag)
           CALL mxCopyReal4ToPtr(Y_RS, mxGetSingles(YPTR), NVAL)
           ID_PTR(3) = YPTR
 
@@ -454,7 +456,8 @@ C       CASE 3, 58
 
           classid = mxClassIDFromClassName('single')
           complexflag = 1
-          YPTR = mxCreateNumericMatrix(NVAL, 1, classid, complexflag)
+          N2 = 1
+          YPTR = mxCreateNumericMatrix(NVAL, N2, classid, complexflag)
           CALL mxCopyComplex8ToPtr(Y_CS, mxGetComplexSingles(YPTR),NVAL)
           ID_PTR(3) = YPTR
 
@@ -475,7 +478,8 @@ C       CASE 4, 58
 
           classid = mxClassIDFromClassName('single')
           complexflag = 1
-          YPTR = mxCreateNumericMatrix(NVAL, 1, classid, complexflag)
+          N2 = 1
+          YPTR = mxCreateNumericMatrix(NVAL, N2, classid, complexflag)
           CALL mxCopyComplex8ToPtr(Y_CS, mxGetComplexSingles(YPTR),NVAL)
           ID_PTR(3) = YPTR
 
@@ -496,7 +500,8 @@ C       CASE 5, 58
 
           classid = mxClassIDFromClassName('double')
           complexflag = 0
-          YPTR = mxCreateNumericMatrix(NVAL, 1, classid, complexflag)
+          N2 = 1
+          YPTR = mxCreateNumericMatrix(NVAL, N2, classid, complexflag)
           CALL mxCopyReal8ToPtr(Y_RD, mxGetDoubles(YPTR), NVAL)
           ID_PTR(3) = YPTR
 
@@ -517,7 +522,8 @@ C       CASE 6, 58
 
           classid = mxClassIDFromClassName('double')
           complexflag = 0
-          YPTR = mxCreateNumericMatrix(NVAL, 1, classid, complexflag)
+          N2 = 1
+          YPTR = mxCreateNumericMatrix(NVAL, N2, classid, complexflag)
           CALL mxCopyReal8ToPtr(Y_RD, mxGetDoubles(YPTR), NVAL)
           ID_PTR(3) = YPTR
 
@@ -541,7 +547,8 @@ C       CASE 7, 58
 
           classid = mxClassIDFromClassName('double')
           complexflag = 1
-          YPTR = mxCreateNumericMatrix(NVAL, 1, classid, complexflag)
+          N2 = 1
+          YPTR = mxCreateNumericMatrix(NVAL, N2, classid, complexflag)
           CALL mxCopyComplex16ToPtr(Y_CD,mxGetComplexDoubles(YPTR),NVAL)
           ID_PTR(3) = YPTR
 
@@ -562,7 +569,8 @@ C       CASE 8, 58
 
           classid = mxClassIDFromClassName('double')
           complexflag = 1
-          YPTR = mxCreateNumericMatrix(NVAL, 1, classid, complexflag)
+          N2 = 1
+          YPTR = mxCreateNumericMatrix(NVAL, N2, classid, complexflag)
           CALL mxCopyComplex16ToPtr(Y_CD,mxGetComplexDoubles(YPTR),NVAL)
           ID_PTR(3) = YPTR
 
@@ -572,7 +580,7 @@ C       CASE 8, 58
 
         END IF ! end of binary/ascii switch
 
-
+        
 
         fieldnames(1) = 'datasetType'
         fieldnames(2) = 'x'
@@ -637,15 +645,15 @@ C       RECORD 11
 
         CELLCOUNT = CELLCOUNT + 1
         FIELDSTOUSE = 50
-
-
-        STRU_PTR(CELLCOUNT) = mxCreateStructMatrix(1, 1, FIELDSTOUSE,
-     & fieldnames(1:FIELDSTOUSE))
+        
+        N2 = 1
+        SPTR(CELLCOUNT) = mxCreateStructMatrix(N2, N2, 
+     & FIELDSTOUSE, fieldnames(1:FIELDSTOUSE))
 
 
         classid = mxClassIDFromClassName('single')
         complexflag = 0
-        XPTR = mxCreateNumericMatrix(NVAL, 1, classid, complexflag)
+        XPTR = mxCreateNumericMatrix(NVAL, N2, classid, complexflag)
         CALL mxCopyReal4ToPtr(XDATA, mxGetSingles(XPTR), NVAL)
         ID_PTR(2) = XPTR
         DEALLOCATE(XDATA)
@@ -713,8 +721,9 @@ C       RECORD 11
         ID_PTR(49) = mxCreateDoubleScalar(DBLE(CASENUM))
         ID_PTR(50) = mxCreateString(PRECSTR) ! data precision (string)
 
+        N2 = 1
         DO K = 1,FIELDSTOUSE
-          CALL mxSetField(STRU_PTR(CELLCOUNT),1,fieldnames(K),ID_PTR(K))
+          CALL mxSetField(SPTR(CELLCOUNT),N2,fieldnames(K),ID_PTR(K))
         END DO
 
 
@@ -753,21 +762,6 @@ C     return arguments and close files and variables
       IF (ALLOCATED(Y_CD)) DEALLOCATE(Y_CD)
 
 
-C     create and assign cell matrix
-      IF ( nlhs > 1 ) THEN
-        IF (CELLCOUNT > 0) THEN
-          CELL_PTR = mxCreateCellMatrix(CELLCOUNT, 1)
-          DO K = 1,CELLCOUNT
-            CALL mxSetCell(CELL_PTR, K, STRU_PTR(K))
-          END DO
-        ELSE
-          CELL_PTR = mxCreateCellMatrix(1, 1)
-        END IF
-        plhs(2) = CELL_PTR
-      END IF
-
-
-
       IF (LUN /= 0) THEN
         INQUIRE(UNIT=LUN, OPENED=OK)
         IF (OK) THEN
@@ -775,6 +769,26 @@ C     create and assign cell matrix
         END IF
         LUN = 0
       END IF
+
+
+C     CREATE AND ASSIGN OUTPUT ARGUMENTS
+      IF ( nlhs > 1 ) THEN
+        N2 = 1
+        IF (CELLCOUNT > 0) THEN
+          M2 = CELLCOUNT
+          CELL_PTR = mxCreateCellMatrix(M2, N2)
+          DO K2 = 1,CELLCOUNT
+            CALL mxSetCell(CELL_PTR, K2, SPTR(K))
+          END DO
+        ELSE
+          CELL_PTR = mxCreateCellMatrix(N2, N2)
+        END IF
+        plhs(2) = CELL_PTR
+      END IF
+
+
+
+      
 
 
 
