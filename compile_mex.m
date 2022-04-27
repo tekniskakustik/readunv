@@ -8,6 +8,7 @@ if ispc
 elseif ismac
 
 else % linux
-    mex FC='ifort' -R2018a COMPFLAGS='$COMPFLAGS /O2 /Qax:AVX2' readunv.F
+    mex FC='ifort' -R2018a COMPFLAGS='$COMPFLAGS /warn:unused /Os /Qunroll-aggressive /Qax:AVX2' readunv.F
+    mex FC='ifort' -R2018a COMPFLAGS='$COMPFLAGS /warn:unused /Os /Qax:AVX2 /assume:buffered_io /Qunroll-aggressive' writeunv.F
 end
 
