@@ -24,13 +24,13 @@ C     mexFunction arguments:
       mwPointer :: mxGetString
       mwSize :: STRLEN
       mwPointer :: CELL_PTR, YPTR, XPTR
-      mwPointer :: SPTR(2048) ! maximum number of data records
+      mwPointer :: SPTR(2048) ! MAXIMUM NUMBER OF DATA RECORDS
       mwSize, PARAMETER :: N1 = 1
       mwSize :: NVAL, K2, CELLCOUNT
 
-      INTEGER*4, PARAMETER :: nfields = 50 ! maximum number of fields in use
+      INTEGER*4, PARAMETER :: nfields = 50 ! MAXIMUM NUMBER OF FIELDS IN USE
       mwPointer :: ID_PTR(nfields)
-      CHARACTER*32 :: fieldnames(nfields) ! length of longest fieldname
+      CHARACTER*32 :: fieldnames(nfields) ! LENGTH OF LONGEST FIELDNAME
 
 
       CHARACTER(LEN=80) :: REC0
@@ -406,7 +406,7 @@ C       CASE 1, 58
 1001      FORMAT(6E13.5)
           READ(LUN,1001,ERR=9)(Y_RS(I),I=1,NVAL)
           N = NVAL
-          
+
           classid = mxClassIDFromClassName('single')
           complexflag = 0
           YPTR = mxCreateNumericMatrix(NVAL, N1, classid, complexflag)
@@ -621,7 +621,7 @@ C       RECORD 11
         CELLCOUNT = CELLCOUNT + 1
         FIELDSTOUSE = 50
 
-        
+
         SPTR(CELLCOUNT) = mxCreateStructMatrix(N1, N1, FIELDSTOUSE,
      & fieldnames(1:FIELDSTOUSE))
 
