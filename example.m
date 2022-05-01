@@ -1,4 +1,38 @@
 
+% -------------------------------------------------------------------------
+% SYNTAX:
+% -------------------------------------------------------------------------
+%
+%      STATE = WRITEUNV(FILEPATH, STRUCT, WRITEMODE, IDX)
+% 
+%      WRITEUNV(FILEPATH, STRUCT) -> APPEND DATA (FROM STRUCT), CREATE FILE IF NEEDED
+%      WRITEUNV(FILEPATH, STRUCT, WRITEMODE) | WRITEMODE = 0 (APPEND), WRITEMODE = 1 (REPLACE), [WRITEMODE] = UINT8
+%      WRITEUNV(FILEPATH, STRUCT, 0/1, IDX) -> CREATE FILE ACCORDING TO WRITEMODE, KEEP FILE OPEN, CURRENT FILE = IDX (IDX MUST <= MAXIDX)
+%      WRITEUNV([], STRUCT, 2, IDX) -> WRITE INTO LUN(IDX), FILEPATH IS IGNORED
+%      WRITEUNV(CASENUM, DATA, 3, IDX, DATASET) -> STREAM DATA INTO <IDX>, FILEPATH IS REPLACED WITH CASENUM FOR DATA WRITING
+%      WRITEUNV(-1, DATA, 3, IDX, DATASET) -> TERMINATE FILE <IDX>, AND WRITE NUMBER OF VALUES INTO HEADER
+%      WRITEUNV() -> CLOSE ALL OPEN FILES AND ZERO LUN
+%      <STATE IS ALWAYS RETURNED>
+%      STATE FLAGS:
+%        =  1, SUCCESFUL
+%        =  0, UNKNOWN ERROR
+%        = -1, ERROR WRITING FIELDS/DATA
+%        = -2, COULD NOT READ FILEPATH
+%        = -3, UNKNOWN WRITEMODE
+%        = -4, TOO FEW INPUTS
+%        = -5, MISSING DATASET NUMBER
+%        = -6, UNSUPPORTED DATASET NUMBER
+%        = -7, EXPECTED STRUCT INPUT IS NOT A STRUCTURE
+%        = -8, TOO FEW FIELDS, OR BADLY FORMATTED FIELDS, IN STRUCTURE
+%        = -9, FILE LUN IS NOT OPEN
+%        = -10, DATA IS NOT AN ARRAY, OR WRONGLY SIZED
+%        = -11, DATA CASE TYPE IS UNSUPPORTED
+%        = -12, FLOATING POINT ARITHMETIC OVERFLOW (FROM IOSTAT)
+%        = >1, ERROR CODE FROM IOSTAT WHEN OPENING FILE
+%
+% -------------------------------------------------------------------------
+% -------------------------------------------------------------------------
+
 
 
 % read data from a test file
