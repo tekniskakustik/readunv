@@ -17,4 +17,4 @@ BSD 3-Clause, see LICENSE for details
 
 Copyright (c) 2022, Wolkesson & Hansson Teknisk Akustik AB. All rights reserved.
 
-[![View read and write unv-files on File Exchange]
+[![View read/write universal files on File Exchange](https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg)](https://se.mathworks.com/matlabcentral/fileexchange/110705-read-write-universal-files)
