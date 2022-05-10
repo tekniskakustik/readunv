@@ -6,10 +6,11 @@ Supported datasets:
 
 164
 
-58 (not 58b)
+58 (not 58b, binary)
 <p>&nbsp;</p>
 See example.m
-NB: included mex-files only tested with R2022a and R2021a.
+
+Requires R2018a Update 3, or later.
 <p>&nbsp;</p>
 License:
 
