@@ -23,6 +23,7 @@ C       = -5,  FILEPATH IS NOT A CHAR
 C       = -6,  FILE IS ILL-FORMATTED
 C       = -7,  TWO OUTPUT ARGUMENTS ARE REQUIRED
 C       = -12, FLOATING POINT ARITHMETIC OVERFLOW (FROM IOSTAT)
+C       = >1,  ERROR CODE FROM IOSTAT WHEN OPENING FILE
 C
 C ------------------------------------------------------------------------------
 
