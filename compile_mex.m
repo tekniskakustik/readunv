@@ -3,6 +3,7 @@
 % Tested with:
 % Windows: Matlab R2022a, Intel Fortran Compiler (ifort) version 2021.5.0, Visual Studio 2019 (16.11.12), Windows 11 22H2 Build 22598
 % Linux: Matlab R2022a, Intel Fortran Compiler (ifort) version 2021.5.0, Clear Linux 36220
+% Mac: Matlab R2022a, Intel Fortran Compiler (ifort) version 2021.6.0, Macos 12.3.1
 
 % NB: -R2018a flag is required
 if ispc || ismac
