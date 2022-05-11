@@ -3,6 +3,32 @@
 % SYNTAX:
 % -------------------------------------------------------------------------
 %
+%
+%     [STATE, DATACELL] = READUNV(FILEPATH)
+%
+%     NB: ALL ARGUMENTS ARE REQUIRED (TWO OUTPUTS AND ONE INPUT)
+%
+%
+%     FILEPATH: CHAR WITH RELATIVE OR ABSOLUTE PATH TO FILE TO READ
+%
+%     DATACELL: CELL ARRAY FOR EACH DATASET IN FILE
+%
+%     STATE FLAGS:
+%       =  1,  SUCCESFUL
+%       =  0,  UNKNOWN ERROR
+%       = -1,  EMPTY INPUT
+%       = -2,  COULD NOT READ FILEPATH
+%       = -3,  FILE DOES NOT EXIST
+%       = -4,  TOO FEW INPUTS
+%       = -5,  FILEPATH IS NOT A CHAR
+%       = -6,  FILE IS ILL-FORMATTED
+%       = -7,  TWO OUTPUT ARGUMENTS ARE REQUIRED
+%       = -12, FLOATING POINT ARITHMETIC OVERFLOW (FROM IOSTAT)
+%
+%
+% -------------------------------------------------------------------------
+%
+%
 %      STATE = WRITEUNV(FILEPATH, STRUCT, WRITEMODE, IDX)
 % 
 %      WRITEUNV(FILEPATH, STRUCT) -> APPEND DATA (FROM STRUCT), CREATE FILE IF NEEDED
@@ -14,21 +40,22 @@
 %      WRITEUNV() -> CLOSE ALL OPEN FILES AND ZERO LUN
 %      <STATE IS ALWAYS RETURNED>
 %      STATE FLAGS:
-%        =  1, SUCCESFUL
-%        =  0, UNKNOWN ERROR
-%        = -1, ERROR WRITING FIELDS/DATA
-%        = -2, COULD NOT READ FILEPATH
-%        = -3, UNKNOWN WRITEMODE
-%        = -4, TOO FEW INPUTS
-%        = -5, MISSING DATASET NUMBER
-%        = -6, UNSUPPORTED DATASET NUMBER
-%        = -7, EXPECTED STRUCT INPUT IS NOT A STRUCTURE
-%        = -8, TOO FEW FIELDS, OR BADLY FORMATTED FIELDS, IN STRUCTURE
-%        = -9, FILE LUN IS NOT OPEN
+%        =  1,  SUCCESFUL
+%        =  0,  UNKNOWN ERROR
+%        = -1,  ERROR WRITING FIELDS/DATA
+%        = -2,  COULD NOT READ FILEPATH
+%        = -3,  UNKNOWN WRITEMODE
+%        = -4,  TOO FEW INPUTS
+%        = -5,  MISSING DATASET NUMBER
+%        = -6,  UNSUPPORTED DATASET NUMBER
+%        = -7,  EXPECTED STRUCT INPUT IS NOT A STRUCTURE
+%        = -8,  TOO FEW FIELDS, OR BADLY FORMATTED FIELDS, IN STRUCTURE
+%        = -9,  FILE LUN IS NOT OPEN
 %        = -10, DATA IS NOT AN ARRAY, OR WRONGLY SIZED
 %        = -11, DATA CASE TYPE IS UNSUPPORTED
 %        = -12, FLOATING POINT ARITHMETIC OVERFLOW (FROM IOSTAT)
-%        = >1, ERROR CODE FROM IOSTAT WHEN OPENING FILE
+%        = >1,  ERROR CODE FROM IOSTAT WHEN OPENING FILE
+%
 %
 % -------------------------------------------------------------------------
 % -------------------------------------------------------------------------
