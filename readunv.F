@@ -1,15 +1,39 @@
 #include "fintrf.h"
 
+      
+C ------------------------------------------------------------------------------
+C
+C     [STATE, DATACELL] = READUNV(FILEPATH)
+C
+C     NB: ALL ARGUMENTS ARE REQUIRED (TWO OUTPUTS AND ONE INPUT)
+C
+C
+C     FILEPATH: CHAR WITH RELATIVE OR ABSOLUTE PATH TO FILE TO READ
+C
+C     DATACELL: CELL ARRAY FOR EACH DATASET IN FILE
+C
+C     STATE FLAGS:
+C       =  1,  SUCCESFUL
+C       =  0,  UNKNOWN ERROR
+C       = -1,  EMPTY INPUT
+C       = -2,  COULD NOT READ FILEPATH
+C       = -3,  FILE DOES NOT EXIST
+C       = -4,  TOO FEW INPUTS
+C       = -5,  FILEPATH IS NOT A CHAR
+C       = -6,  FILE IS ILL-FORMATTED
+C       = -7,  TWO OUTPUT ARGUMENTS ARE REQUIRED
+C       = -12, FLOATING POINT ARITHMETIC OVERFLOW (FROM IOSTAT)
+C       = >1,  ERROR CODE FROM IOSTAT WHEN OPENING FILE
+C
+C ------------------------------------------------------------------------------
 
-C     Gateway routine
-      subroutine mexFunction(nlhs, plhs, nrhs, prhs)
+
+      SUBROUTINE mexFunction(nlhs, plhs, nrhs, prhs)
 
       IMPLICIT NONE
 
-C     mexFunction arguments:
       mwPointer plhs(*), prhs(*)
-      INTEGER*8 :: nlhs, nrhs
-
+      mwSize :: nlhs, nrhs
       mwPointer :: mxCreateString
       mwPointer :: mxCreateDoubleScalar
       mwPointer :: mxGetDoubles
@@ -22,16 +46,16 @@ C     mexFunction arguments:
       mwPointer :: mxCreateStructMatrix
       mwPointer :: mxGetN
       mwPointer :: mxGetString
+      mwPointer :: mxIsChar
       mwSize :: STRLEN
       mwPointer :: CELL_PTR, YPTR, XPTR
       mwPointer :: SPTR(2048) ! MAXIMUM NUMBER OF DATA RECORDS
       mwSize, PARAMETER :: N1 = 1
       mwSize :: NVAL, K2, CELLCOUNT
 
-      INTEGER*4, PARAMETER :: nfields = 50 ! MAXIMUM NUMBER OF FIELDS IN USE
+      INTEGER*4, PARAMETER :: nfields = 50 ! MAXIMUM NUMBER OF FIELDS IN USE, ADJUST WHEN NEEDED
       mwPointer :: ID_PTR(nfields)
-      CHARACTER*32 :: fieldnames(nfields) ! LENGTH OF LONGEST FIELDNAME
-
+      CHARACTER*32 :: fieldnames(nfields) ! LENGTH OF LONGEST FIELDNAME, ADJUST WHEN NEEDED
 
       CHARACTER(LEN=80) :: REC0
       CHARACTER(LEN=80) :: ID1, ID2, ID3, ID4, ID5
@@ -61,7 +85,7 @@ C     mexFunction arguments:
       REAL*4 :: F74, F75,F76
       REAL*8 :: ISEVEN, ABSCNUM, ABSC0, ABSCINCR, ORDDATATYPE
       REAL*8 :: UNITSCODE, S(1)
-      INTEGER*4 :: STATUS_INT, OK, DATASETNUM, CASENUM, LUN, STEP
+      INTEGER*4 :: STATUS_INT, OK, NOK, DATASETNUM, CASENUM, LUN, STEP
       INTEGER*8 :: N, I, K, FIELDSTOUSE
       LOGICAL :: STATUS_BOOL
       CHARACTER(LEN=:), ALLOCATABLE :: FILEPATH
@@ -72,41 +96,82 @@ C     mexFunction arguments:
 
 
 
-      CELLCOUNT = 0
-      S = 0.0
+      CELLCOUNT = 0 ! INITIALISE OUTPUT CELL COUNTER
+      S = 0
       LUN = 0
 
-      IF (nrhs < 1) GO TO 10
-
-      STRLEN = mxGetN(prhs(1))
-
-      ALLOCATE(CHARACTER(LEN=STRLEN) :: FILEPATH)
-
-      STATUS_INT = mxGetString(prhs(1), FILEPATH, STRLEN)
-
-      INQUIRE(FILE=FILEPATH, EXIST=STATUS_BOOL)
-
-      IF (STATUS_BOOL /= .TRUE.) THEN
-        S = -2
+C     ONE INPUT ARGUMENT (FILEPATH) IS REQUIRED
+      IF (nrhs < 1) THEN
+        S = -4
         GO TO 10
       END IF
 
-      LUN = 2
+C     CHECK IF TWO OUTPUT ARGUMENTS ARE USED, IF NOT -> ERROR
+      IF (nlhs /= 2) THEN
+        S = -7
+        GO TO 10
+      END IF
 
+C     CHECK IF INPUT ARGUMENT IS OF CHAR TYPE
+      OK = mxIsChar(prhs(1))
+      IF (NOT(OK)) THEN ! CHAR TYPE IS REQUIRED
+        S = -2.0
+        GO TO 10
+      END IF
+
+
+C     GET LENGTH OF INPUT STRING
+      STRLEN = mxGetN(prhs(1))
+      IF (STRLEN < 1) THEN ! EMPTY FILEPATH -> ERROR
+        S = -1
+        GO TO 10
+      END IF
+
+
+C     ALLOCATE FILEPATH FOR REQUIRED LENGTH
+      ALLOCATE(CHARACTER(LEN=STRLEN) :: FILEPATH)
+
+
+C     COPY INPUT STRING TO FILEPATH
+      NOK = mxGetString(prhs(1), FILEPATH, STRLEN)
+      IF (NOK /= 0) THEN ! COPYING FAILED
+        S = -2.0
+        GO TO 10
+      END IF
+
+
+C     CHECK IF FILEPATH EXIST
+      INQUIRE(FILE=FILEPATH, EXIST=STATUS_BOOL)
+      IF (NOT(STATUS_BOOL)) THEN
+        S = -3
+        GO TO 10
+      END IF
+
+
+C     OPEN FILEPATH
+      LUN = 2
       OPEN (UNIT=LUN, FILE=FILEPATH, STATUS='OLD', IOSTAT=STATUS_INT,
      & POSITION='REWIND', ACTION='READ', FORM='FORMATTED')
 
+C     CHECK IF FILE OPENING FAILED -> RETURN IOSTAT CODE
       IF (STATUS_INT /= 0) THEN
-        S = STATUS_INT
+        IF (STATUS_INT == 1) THEN ! REMAP IOSTAT ERROR CODE 1 TO -12
+          S = -12
+        ELSE
+          S = STATUS_INT
+        END IF
         GO TO 10
       END IF
 
 
 
-
+C     READ FIRST LINE IN FILE
 1     READ(LUN,'(A80)',END=10,ERR=9) REC0
 
+
+C     CHECK IF FILE STARTS WITH -1 START/END UNV TERMINATOR, IF NOT -> RETURN ERROR
       IF (ADJUSTL(REC0) /= "-1") THEN
+        S = -6
         GO TO 10
       END IF
 
@@ -115,7 +180,7 @@ C     mexFunction arguments:
 
 
 
-      ! read dataset number, 58b compatible
+C     READ DATASET NUMBER, 58B COMPATIBLE (BUT NOT SUPPORTED YET)
       READ(LUN,582,END=10,ERR=9) DATASETNUM,F02,F03,F04,F05,F06,
      & F07,F08,F09,F010
 582   FORMAT(I6,1A1,I6,I6,I12,I12,I6,I6,I12,I12)
@@ -123,7 +188,8 @@ C     mexFunction arguments:
 
 
 
-C     151
+C --- DATASET 151 --------------------------------------------------------------
+C ------------------------------------------------------------------------------
       IF (DATASETNUM == 151) THEN
 
 C       RECORD 1, ID LINE 1, model file name
@@ -152,7 +218,7 @@ C       RECORD 7
 1517    FORMAT(A10,A10)
 
 
-C       fix text alignment
+C       FIX TEXT ALIGNMENT
         ID1 = ADJUSTL(ID1)
         ID2 = ADJUSTL(ID2)
         ID3 = ADJUSTL(ID3)
@@ -181,8 +247,8 @@ C       fix text alignment
         fieldnames(14) = 'fileCreatedTime'
 
 
-        CELLCOUNT = CELLCOUNT + 1
-        FIELDSTOUSE = 14
+        CELLCOUNT = CELLCOUNT + 1 ! INCREMENT CELL COUNTER BY ONE
+        FIELDSTOUSE = 14 ! NUMBER OF FIELDS IN DATASET 151
 
         SPTR(CELLCOUNT) = mxCreateStructMatrix(N1, N1, FIELDSTOUSE,
      & fieldnames(1:FIELDSTOUSE))
@@ -214,7 +280,9 @@ C       fix text alignment
 
 
 
-C     164
+
+C --- DATASET 164 --------------------------------------------------------------
+C ------------------------------------------------------------------------------
       ELSEIF (DATASETNUM == 164) THEN
 
 C       RECORD 1
@@ -251,7 +319,6 @@ C       RECORD 2
         END IF
 
 
-
         fieldnames(1) = 'datasetType'
         fieldnames(2) = 'unitsCode'
         fieldnames(3) = 'unitsString'
@@ -263,7 +330,7 @@ C       RECORD 2
         fieldnames(9) = 'temperatureOffset'
 
 
-        CELLCOUNT = CELLCOUNT + 1
+        CELLCOUNT = CELLCOUNT + 1 ! INCREMENT CELL COUNTER BY ONE
         FIELDSTOUSE = 9
 
         SPTR(CELLCOUNT) = mxCreateStructMatrix(N1, N1, FIELDSTOUSE,
@@ -286,7 +353,10 @@ C       RECORD 2
 
 
 
-C     58
+
+
+C --- DATASET 58 --------------------------------------------------------------
+C ------------------------------------------------------------------------------
       ELSEIF (DATASETNUM == 58) THEN
 
 C       READ HEADER
@@ -341,12 +411,12 @@ C       RECORD 11
         CASENUM = 1
 
         ALLOCATE(XDATA(NVAL))
-        IF (ISEVEN > 0.5) THEN
+        IF (ISEVEN > 0.5) THEN ! XDATA EVENLY SPACED
           DO K = 1,NVAL
             XDATA(K) = (K-1)*ABSCINCR + ABSC0
           END DO
         ELSE
-          CASENUM = CASENUM + 1 ! = UNEVEN
+          CASENUM = CASENUM + 1 ! = UNEVEN XDATA
         END IF
 
         IF (ORDDATATYPE > 4.5) THEN ! = COMPLEX
@@ -705,7 +775,7 @@ C       RECORD 11
       ELSE
 
         ID1 = "0"
-        DO WHILE (ID1 /= "    -1")
+        DO WHILE (ID1 /= "    -1") ! CHECK STRICTLY FOR THE CORRECT FORMATTING OF END TERMINATOR
           READ(LUN,'(A80)',END=10,ERR=9) ID1
         END DO
         GO TO 1
@@ -714,20 +784,24 @@ C       RECORD 11
 
 
 
-C     read end string, e.g. '-1'
+C     IF NOT ALREADY END OF FILE RETURN TO READING NEXT HEADER
       READ(LUN,'(A80)',END=10,ERR=9) ID1
-      GO TO 1 ! if not already end of file return to reading next header
+      GO TO 1
+
+
+C --- FINISHED READING ---------------------------------------------------------
+C ------------------------------------------------------------------------------
 
 
 
-
-C     return arguments and close files and variables
+C --- RETURN ARGUMENTS AND CLOSE FILE AND VARIABLES
 
 9     S = -1.0
 
 10    PLHS(1) = mxCreateDoubleScalar(S)
 
 
+C     DEALLOCATE ALLOCATED VARIABLES
       IF (ALLOCATED(FILEPATH)) DEALLOCATE(FILEPATH)
       IF (ALLOCATED(XDATA)) DEALLOCATE(XDATA)
       IF (ALLOCATED(Y_RS)) DEALLOCATE(Y_RS)
@@ -736,31 +810,33 @@ C     return arguments and close files and variables
       IF (ALLOCATED(Y_CD)) DEALLOCATE(Y_CD)
 
 
-      IF (LUN /= 0) THEN
-        INQUIRE(UNIT=LUN, OPENED=OK)
+      IF (LUN /= 0) THEN ! IF LUN HAVE BEEN INITIALISED
+        INQUIRE(UNIT=LUN, OPENED=OK) ! CHECK IF FILE IS OPEN
         IF (OK) THEN
-          CLOSE(LUN, STATUS='KEEP')
+          CLOSE(LUN, STATUS='KEEP') ! CLOSE IF OPEN
         END IF
-        LUN = 0
       END IF
 
 
 C     CREATE AND ASSIGN CELL MATRIX
-      IF ( nlhs > 1 ) THEN
-        IF (CELLCOUNT > 0) THEN
-          CELL_PTR = mxCreateCellMatrix(CELLCOUNT, N1)
-          DO K2 = 1,CELLCOUNT
-            CALL mxSetCell(CELL_PTR, K2, SPTR(K2))
-          END DO
-        ELSE
-          CELL_PTR = mxCreateCellMatrix(N1, N1)
-        END IF
-        plhs(2) = CELL_PTR
+      IF (CELLCOUNT > 0) THEN
+        CELL_PTR = mxCreateCellMatrix(CELLCOUNT, N1)
+        DO K2 = 1,CELLCOUNT
+          CALL mxSetCell(CELL_PTR, K2, SPTR(K2))
+        END DO
+      ELSE ! CREATE EMPTY CELL IF NOTHING READ
+        CELL_PTR = mxCreateCellMatrix(N1, N1)
       END IF
+      plhs(2) = CELL_PTR ! ASSIGN POINTER TO OUTPUT ARGUMENT #2
 
 
 
       RETURN
       END
+
+
+C ------------------------------------------------------------------------------
+C --- END OF PROGRAM -----------------------------------------------------------
+C ------------------------------------------------------------------------------
 
 

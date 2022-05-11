@@ -1,10 +1,8 @@
 #include "fintrf.h"
 
 
-
-      SUBROUTINE mexFunction(nlhs, plhs, nrhs, prhs)
-
-
+C ------------------------------------------------------------------------------
+C
 C     STATE = WRITEUNV(FILEPATH, STRUCT, WRITEMODE, IDX)
 C
 C     WRITEUNV(FILEPATH, STRUCT) -> APPEND DATA (FROM STRUCT), CREATE FILE IF NEEDED
@@ -16,22 +14,26 @@ C     WRITEUNV(-1, DATA, 3, IDX, DATASET) -> TERMINATE FILE <IDX>, AND WRITE NUM
 C     WRITEUNV() -> CLOSE ALL OPEN FILES AND ZERO LUN
 C     <STATE IS ALWAYS RETURNED>
 C     STATE FLAGS:
-C       =  1, SUCCESFUL
-C       =  0, UNKNOWN ERROR
-C       = -1, ERROR WRITING FIELDS/DATA
-C       = -2, COULD NOT READ FILEPATH
-C       = -3, UNKNOWN WRITEMODE
-C       = -4, TOO FEW INPUTS
-C       = -5, MISSING DATASET NUMBER
-C       = -6, UNSUPPORTED DATASET NUMBER
-C       = -7, EXPECTED STRUCT INPUT IS NOT A STRUCTURE
-C       = -8, TOO FEW FIELDS, OR BADLY FORMATTED FIELDS, IN STRUCTURE
-C       = -9, FILE LUN IS NOT OPEN
+C       =  1,  SUCCESFUL
+C       =  0,  UNKNOWN ERROR
+C       = -1,  ERROR WRITING FIELDS/DATA
+C       = -2,  COULD NOT READ FILEPATH
+C       = -3,  UNKNOWN WRITEMODE
+C       = -4,  TOO FEW INPUTS
+C       = -5,  MISSING DATASET NUMBER
+C       = -6,  UNSUPPORTED DATASET NUMBER
+C       = -7,  EXPECTED STRUCT INPUT IS NOT A STRUCTURE
+C       = -8,  TOO FEW FIELDS, OR BADLY FORMATTED FIELDS, IN STRUCTURE
+C       = -9,  FILE LUN IS NOT OPEN
 C       = -10, DATA IS NOT AN ARRAY, OR WRONGLY SIZED
 C       = -11, DATA CASE TYPE IS UNSUPPORTED
 C       = -12, FLOATING POINT ARITHMETIC OVERFLOW (FROM IOSTAT)
-C       = >1, ERROR CODE FROM IOSTAT WHEN OPENING FILE
+C       = >1,  ERROR CODE FROM IOSTAT WHEN OPENING FILE
+C
+C ------------------------------------------------------------------------------
 
+
+      SUBROUTINE mexFunction(nlhs, plhs, nrhs, prhs)
 
       IMPLICIT NONE
 
@@ -180,14 +182,16 @@ C --- OPEN FILE IF NEEDED/DESIRED ----------------------------------------------
 C ------------------------------------------------------------------------------
       IF (WRITEMODE == 1 .OR. LIDX < 1 .OR. OPENLUN) THEN ! CREATE NEW FILE LUN
 
+C       CHECK IF ARGUMENT IS EMPTY
         NOK = mxIsEmpty(prhs(1))
-        IF (NOK == 1) THEN
+        IF (NOK == 1) THEN ! IF EMPTY -> ERROR
           S = -2.0
           GO TO 10
         END IF
 
+C       CHECK IF INPUT ARGUMENT IS OF CHAR TYPE
         OK = mxIsChar(prhs(1))
-        IF (NOT(OK)) THEN
+        IF (NOT(OK)) THEN ! IF NOT CHAR -> ERROR
           S = -2.0
           GO TO 10
         END IF
@@ -197,24 +201,36 @@ C ------------------------------------------------------------------------------
 
         NOK = mxGetString(prhs(1), FILEPATH, STRLEN)
 
-        IF (NOK /= 0) THEN
+        IF (NOK /= 0) THEN ! COULD NOT GET FILEPATH STRING FROM INPUT ARGUMENT
           S = -2.0
           GO TO 10
         END IF
 
+
+C       ASSIGN DEFAULT INDEX IF MISSING OR OUT OF BOUNDS
         IF (LIDX < 1 .OR. LIDX > MAXIDX) THEN
           LIDX = 1
         ELSE IF (LUN(LIDX) == 0) THEN
           LUN(LIDX) = LIDX + 1
         END IF
 
+
+C       DETERMINE IF FILE IS TO BE REPLACED OR NOT (APPENDED)
         IF (WRITEMODE /= 0) THEN
           FILEACT = 'REPLACE'
         ELSE
           FILEACT = 'OLD'
         END IF
 
-C       OPEN FILE LUN
+
+C       IF DESIRED LUN INDEX ALREADY MAPS TO AN OPEN LUN, CLOSE IT
+        INQUIRE(UNIT=LUN(LIDX), OPENED=OK)
+        IF (OK) THEN
+          CLOSE(LUN(LIDX), STATUS='KEEP')
+        END IF
+
+
+C       OPEN FILE
         OPEN(UNIT=LUN(LIDX),
      & FILE=FILEPATH,
      & ACCESS='STREAM',
@@ -328,7 +344,7 @@ C             NVAL = M
             STEP = REMPTS(LIDX)
 
 
-C --- WRITING STREAMING DATA / CASE 1 ------------------------------------------
+C --------- WRITING STREAMING DATA / CASE 1 ------------------------------------
             IF (CASENUM == 1) THEN ! REAL SINGLE, X-EVENLY-SPACED
 
 
@@ -372,7 +388,7 @@ C --- WRITING STREAMING DATA / CASE 1 ------------------------------------------
 
 
 
-C --- WRITING STREAMING DATA / CASE 3 ------------------------------------------
+C --------- WRITING STREAMING DATA / CASE 3 ------------------------------------
             ELSE IF (CASENUM == 3) THEN ! COMPLES SINGLE, X-EVENLY-SPACED
 
               ALLOCATE(Y_CS(NVAL))
@@ -416,7 +432,7 @@ C --- WRITING STREAMING DATA / CASE 3 ------------------------------------------
 
 
 
-C --- WRITING STREAMING DATA / CASE 5 ------------------------------------------
+C --------- WRITING STREAMING DATA / CASE 5 ------------------------------------
             ELSE IF (CASENUM == 5) THEN ! REAL DOUBLE, X-EVENLY-SPACED
 
               ALLOCATE(Y_RD(NVAL))
@@ -460,7 +476,7 @@ C --- WRITING STREAMING DATA / CASE 5 ------------------------------------------
 
 
 
-C --- WRITING STREAMING DATA / CASE 7 ------------------------------------------
+C --------- WRITING STREAMING DATA / CASE 7 ------------------------------------
             ELSE IF (CASENUM == 7) THEN ! COMPLES DOUBLE, X-EVENLY-SPACED
               S = 7
 
@@ -558,7 +574,8 @@ C --- GET DATASET TYPE TO WRITE
 
 
 
-C --- 151
+C --- DATASET 151 --------------------------------------------------------------
+C ------------------------------------------------------------------------------
       IF (DATASETNUM == 151) THEN
 
 C       MIN. REQUIRED NUMBER OF FIELDS
@@ -708,7 +725,8 @@ C ----- WRITIING FINISHED
 
 
 
-C --- 164
+C --- DATASET 164 --------------------------------------------------------------
+C ------------------------------------------------------------------------------
       ELSEIF (DATASETNUM == 164) THEN
 
         S = -8.0 ! DEFAULT ERROR STATE UNTIL ALL DATA EXTRACTED
@@ -816,7 +834,8 @@ C ----- WRITIING FINISHED
 
 
 
-C --- 58
+C --- DATASET 58 --------------------------------------------------------------
+C ------------------------------------------------------------------------------
       ELSEIF (DATASETNUM == 58) THEN
 
 
@@ -1420,4 +1439,7 @@ C     NORMAL/ASSIGNED EXIT
 
 
 C ------------------------------------------------------------------------------
+C --- END OF PROGRAM -----------------------------------------------------------
 C ------------------------------------------------------------------------------
+
+
