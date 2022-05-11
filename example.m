@@ -24,6 +24,7 @@
 %       = -6,  FILE IS ILL-FORMATTED
 %       = -7,  TWO OUTPUT ARGUMENTS ARE REQUIRED
 %       = -12, FLOATING POINT ARITHMETIC OVERFLOW (FROM IOSTAT)
+%       = >1,  ERROR CODE FROM IOSTAT WHEN OPENING FILE
 %
 %
 % -------------------------------------------------------------------------

@@ -1,19 +1,17 @@
-# Read/write unv files using matlab/fortran
+# Read/write universal files using matlab/fortran
 
-Supported datasets:
-
-151
-
-164
-
-58 (not 58b, binary)
-<p>&nbsp;</p>
-See example.m
-
+Supported datasets:\
+151\
+164\
+58 (not binary variant 58b)
+\
+\
+See example.m\
+\
 Requires R2018a Update 3, or later.
-<p>&nbsp;</p>
-License:
-
+\
+\
+License:\
 BSD 3-Clause, see LICENSE for details
 
 Copyright (c) 2022, Wolkesson & Hansson Teknisk Akustik AB. All rights reserved.
