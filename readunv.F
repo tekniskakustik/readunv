@@ -41,14 +41,14 @@ C ------------------------------------------------------------------------------
       mwPointer :: mxGetComplexDoubles
       mwPointer :: mxGetComplexSingles
       mwPointer :: mxCreateCellMatrix
-      INTEGER*4 :: mxClassIDFromClassName, classid, complexflag
+      INTEGER*4 :: mxClassIDFromClassName, CID, CXFLAG
       mwPointer :: mxCreateNumericMatrix
       mwPointer :: mxCreateStructMatrix
       mwPointer :: mxGetN
       mwPointer :: mxGetString
       mwPointer :: mxIsChar
       mwSize :: STRLEN
-      mwPointer :: CELL_PTR, YPTR, XPTR
+      mwPointer :: CELL_PTR, YPTR
       mwPointer :: SPTR(2048) ! MAXIMUM NUMBER OF DATA RECORDS
       mwSize, PARAMETER :: N1 = 1
       mwSize :: NVAL, K2, CELLCOUNT
@@ -82,8 +82,10 @@ C ------------------------------------------------------------------------------
       INTEGER*4 :: F111, F112, F113, F114
       INTEGER*4 :: DS164F11, DS164F13
       REAL*8 :: DS164F21, DS164F22, DS164F23, DS164F24
-      REAL*4 :: F74, F75,F76
-      REAL*8 :: ISEVEN, ABSCNUM, ABSC0, ABSCINCR, ORDDATATYPE
+      REAL*4 :: F74, F75, F76
+C       REAL*4 :: ABSCINCR
+      REAL*8 :: ABSCINCR
+      REAL*8 :: ISEVEN, ABSCNUM, ABSC0, ORDDATATYPE
       REAL*8 :: UNITSCODE, S(1)
       INTEGER*4 :: STATUS_INT, OK, NOK, DATASETNUM, CASENUM, LUN, STEP
       INTEGER*8 :: N, I, K, FIELDSTOUSE
@@ -385,12 +387,14 @@ C       RECORD 7
         READ(LUN,5807,END=10,ERR=9) F71,F72,F73,F74,F75,F76
 5807    FORMAT(3I10,3E13.5)
 
+
         ORDDATATYPE = DBLE(F71)
         ISEVEN = DBLE(F73)
         ABSCNUM = DBLE(F72)
         NVAL = INT8(ABSCNUM)
         ABSC0 = DBLE(F74)
         ABSCINCR = DBLE(F75)
+
 
 C       RECORD 8
         READ(LUN,5808,END=10,ERR=9) F81,F82,F83,F84,F85,F86
@@ -412,6 +416,9 @@ C       RECORD 11
 
         ALLOCATE(XDATA(NVAL))
         IF (ISEVEN > 0.5) THEN ! XDATA EVENLY SPACED
+          IF (ABSCINCR < 1E-3 .AND. F81==17) THEN
+            ABSCINCR = 20.0/NINT(20.0/ABSCINCR) ! FOR SMALL DX:S APPLY ROUNDING, WHEN ABSCISSA IS TIME
+          END IF
           DO K = 1,NVAL
             XDATA(K) = (K-1)*ABSCINCR + ABSC0
           END DO
@@ -477,9 +484,9 @@ C       CASE 1, 58
           READ(LUN,1001,ERR=9)(Y_RS(I),I=1,NVAL)
           N = NVAL
 
-          classid = mxClassIDFromClassName('single')
-          complexflag = 0
-          YPTR = mxCreateNumericMatrix(NVAL, N1, classid, complexflag)
+          CID = mxClassIDFromClassName('single')
+          CXFLAG = 0
+          YPTR = mxCreateNumericMatrix(NVAL, N1, CID, CXFLAG)
           CALL mxCopyReal4ToPtr(Y_RS, mxGetSingles(YPTR), NVAL)
           ID_PTR(3) = YPTR
 
@@ -498,9 +505,9 @@ C       CASE 2, 58
             N = N + STEP
           END DO
 
-202       classid = mxClassIDFromClassName('single')
-          complexflag = 0
-          YPTR = mxCreateNumericMatrix(NVAL, N1, classid, complexflag)
+202       CID = mxClassIDFromClassName('single')
+          CXFLAG = 0
+          YPTR = mxCreateNumericMatrix(NVAL, N1, CID, CXFLAG)
           CALL mxCopyReal4ToPtr(Y_RS, mxGetSingles(YPTR), NVAL)
           ID_PTR(3) = YPTR
 
@@ -516,9 +523,9 @@ C       CASE 3, 58
           READ(LUN,1003,ERR=9)(Y_CS(I),I=1,NVAL)
           N = NVAL
 
-          classid = mxClassIDFromClassName('single')
-          complexflag = 1
-          YPTR = mxCreateNumericMatrix(NVAL, N1, classid, complexflag)
+          CID = mxClassIDFromClassName('single')
+          CXFLAG = 1
+          YPTR = mxCreateNumericMatrix(NVAL, N1, CID, CXFLAG)
           CALL mxCopyComplex8ToPtr(Y_CS, mxGetComplexSingles(YPTR),NVAL)
           ID_PTR(3) = YPTR
 
@@ -537,9 +544,9 @@ C       CASE 4, 58
             N = N + STEP
           END DO
 
-204       classid = mxClassIDFromClassName('single')
-          complexflag = 1
-          YPTR = mxCreateNumericMatrix(NVAL, N1, classid, complexflag)
+204       CID = mxClassIDFromClassName('single')
+          CXFLAG = 1
+          YPTR = mxCreateNumericMatrix(NVAL, N1, CID, CXFLAG)
           CALL mxCopyComplex8ToPtr(Y_CS, mxGetComplexSingles(YPTR),NVAL)
           ID_PTR(3) = YPTR
 
@@ -554,9 +561,9 @@ C       CASE 5, 58
 1005      FORMAT(4E20.12)
           READ(LUN,1005,ERR=9)(Y_RD(I),I=1,NVAL)
 
-          classid = mxClassIDFromClassName('double')
-          complexflag = 0
-          YPTR = mxCreateNumericMatrix(NVAL, N1, classid, complexflag)
+          CID = mxClassIDFromClassName('double')
+          CXFLAG = 0
+          YPTR = mxCreateNumericMatrix(NVAL, N1, CID, CXFLAG)
           CALL mxCopyReal8ToPtr(Y_RD, mxGetDoubles(YPTR), NVAL)
           ID_PTR(3) = YPTR
 
@@ -575,9 +582,9 @@ C       CASE 6, 58
             N = N + STEP
           END DO
 
-206       classid = mxClassIDFromClassName('double')
-          complexflag = 0
-          YPTR = mxCreateNumericMatrix(NVAL, N1, classid, complexflag)
+206       CID = mxClassIDFromClassName('double')
+          CXFLAG = 0
+          YPTR = mxCreateNumericMatrix(NVAL, N1, CID, CXFLAG)
           CALL mxCopyReal8ToPtr(Y_RD, mxGetDoubles(YPTR), NVAL)
           ID_PTR(3) = YPTR
 
@@ -593,9 +600,9 @@ C       CASE 7, 58
           READ(LUN,1007,ERR=9)(Y_CD(I),I=1,NVAL)
           N = NVAL
 
-          classid = mxClassIDFromClassName('double')
-          complexflag = 1
-          YPTR = mxCreateNumericMatrix(NVAL, N1, classid, complexflag)
+          CID = mxClassIDFromClassName('double')
+          CXFLAG = 1
+          YPTR = mxCreateNumericMatrix(NVAL, N1, CID, CXFLAG)
           CALL mxCopyComplex16ToPtr(Y_CD,mxGetComplexDoubles(YPTR),NVAL)
           ID_PTR(3) = YPTR
 
@@ -613,9 +620,9 @@ C       CASE 8, 58
             N = N + 1
           END DO
 
-208       classid = mxClassIDFromClassName('double')
-          complexflag = 1
-          YPTR = mxCreateNumericMatrix(NVAL, N1, classid, complexflag)
+208       CID = mxClassIDFromClassName('double')
+          CXFLAG = 1
+          YPTR = mxCreateNumericMatrix(NVAL, N1, CID, CXFLAG)
           CALL mxCopyComplex16ToPtr(Y_CD,mxGetComplexDoubles(YPTR),NVAL)
           ID_PTR(3) = YPTR
 
@@ -696,11 +703,10 @@ C       RECORD 11
      & fieldnames(1:FIELDSTOUSE))
 
 
-        classid = mxClassIDFromClassName('single')
-        complexflag = 0
-        XPTR = mxCreateNumericMatrix(NVAL, N1, classid, complexflag)
-        CALL mxCopyReal4ToPtr(XDATA, mxGetSingles(XPTR), NVAL)
-        ID_PTR(2) = XPTR
+        CID = mxClassIDFromClassName('single')
+        CXFLAG = 0
+        ID_PTR(2) = mxCreateNumericMatrix(NVAL,N1,CID,CXFLAG)
+        CALL mxCopyReal4ToPtr(XDATA,mxGetSingles(ID_PTR(2)),NVAL)
         DEALLOCATE(XDATA)
 
 C       RECORD 1-5
