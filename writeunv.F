@@ -821,7 +821,7 @@ C       RECORD 1
 C       RECORD 2
         WRITE(LUN(LIDX),1642,ERR=9) DS164F21,DS164F22,DS164F23,
      & DS164F24
-1642    FORMAT(3D25.17)
+1642    FORMAT(3ES25.17)
 C       END OF RECORD, -1
         WRITE(LUN(LIDX),'(I6)',ERR=9) -1
 C
@@ -1267,7 +1267,7 @@ C       RECORD 6
 C       RECORD 7
         INQUIRE(LUN(LIDX), POS=REC7POS(LIDX))
         WRITE(LUN(LIDX),5807,ERR=9) F71,F72,F73,F74,F75,F76
-5807    FORMAT(3I10,3E13.5)
+5807    FORMAT(3I10,3ES13.5)
 C       RECORD 8
         WRITE(LUN(LIDX),5808,ERR=9) F81,F82,F83,F84,F85,F86
 5808    FORMAT(I10,3I5,2(1X,A20))
@@ -1294,13 +1294,13 @@ C       RECORD 12, DATA, IF TO BE WRITTEN
           N = 0 ! INITIALISE NUMBER OF VALUES WRITTEN
 
           IF (CASENUM == 1) THEN
-1001        FORMAT(6E13.5)
+1001        FORMAT(6ES13.5)
             WRITE(LUN(LIDX),1001,ERR=9)(Y_RS(I),I=1,NVAL)
             N = NVAL
 
           ELSE IF (CASENUM == 2) THEN
 
-1002        FORMAT(6E13.5)
+1002        FORMAT(6ES13.5)
             DO WHILE (N < NVAL)
               STEP = MIN(3, NVAL-N)
               WRITE(LUN(LIDX),1002,ERR=9)(XDATA(I+N),Y_RS(I+N),I=1,STEP)
@@ -1308,12 +1308,12 @@ C       RECORD 12, DATA, IF TO BE WRITTEN
             END DO
 
           ELSE IF (CASENUM == 3) THEN
-1003        FORMAT(6E13.5)
+1003        FORMAT(6ES13.5)
             WRITE(LUN(LIDX),1003,ERR=9)(Y_CS(I),I=1,NVAL)
             N = NVAL
 
           ELSE IF (CASENUM == 4) THEN
-1004        FORMAT(6E13.5)
+1004        FORMAT(6ES13.5)
             DO WHILE (N < NVAL)
               STEP = MIN(2, NVAL-N)
               WRITE(LUN(LIDX),1004,ERR=9)(XDATA(I+N),Y_CS(I+N),I=1,STEP)
@@ -1321,12 +1321,12 @@ C       RECORD 12, DATA, IF TO BE WRITTEN
             END DO
 
           ELSE IF (CASENUM == 5) THEN
-1005        FORMAT(4E20.12)
+1005        FORMAT(4ES20.12)
             WRITE(LUN(LIDX),1005,ERR=9)(Y_RD(I),I=1,NVAL)
             N = NVAL
 
           ELSE IF (CASENUM == 6) THEN
-1006        FORMAT(2(E13.5,E20.12))
+1006        FORMAT(2(ES13.5,ES20.12))
             DO WHILE (N < NVAL)
               STEP = MIN(2, NVAL-N)
               WRITE(LUN(LIDX),1006,ERR=9)(XDATA(I+N),Y_RD(I+N),I=1,STEP)
@@ -1334,12 +1334,12 @@ C       RECORD 12, DATA, IF TO BE WRITTEN
             END DO
 
           ELSE IF (CASENUM == 7) THEN
-1007        FORMAT(4E20.12)
+1007        FORMAT(4ES20.12)
             WRITE(LUN(LIDX),1007,ERR=9)(Y_CD(I),I=1,NVAL)
             N = NVAL
 
           ELSE IF (CASENUM == 8) THEN
-1008        FORMAT(E13.5,2E20.12)
+1008        FORMAT(ES13.5,2ES20.12)
             DO WHILE (N < NVAL)
               WRITE(LUN(LIDX),1008,ERR=9)(XDATA(I+N),Y_CD(N+I),I=1,1)
               N = N + 1

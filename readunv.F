@@ -83,9 +83,7 @@ C ------------------------------------------------------------------------------
       INTEGER*4 :: DS164F11, DS164F13
       REAL*8 :: DS164F21, DS164F22, DS164F23, DS164F24
       REAL*4 :: F74, F75, F76
-C       REAL*4 :: ABSCINCR
-      REAL*8 :: ABSCINCR
-      REAL*8 :: ISEVEN, ABSCNUM, ABSC0, ORDDATATYPE
+      REAL*8 :: ISEVEN, ABSCNUM, ABSCINCR, ABSC0, ORDDATATYPE
       REAL*8 :: UNITSCODE, S(1)
       INTEGER*4 :: STATUS_INT, OK, NOK, DATASETNUM, CASENUM, LUN, STEP
       INTEGER*8 :: N, I, K, FIELDSTOUSE
@@ -385,7 +383,7 @@ C       RECORD 6
 
 C       RECORD 7
         READ(LUN,5807,END=10,ERR=9) F71,F72,F73,F74,F75,F76
-5807    FORMAT(3I10,3E13.5)
+5807    FORMAT(3I10,3ES13.5)
 
 
         ORDDATATYPE = DBLE(F71)
@@ -417,7 +415,11 @@ C       RECORD 11
         ALLOCATE(XDATA(NVAL))
         IF (ISEVEN > 0.5) THEN ! XDATA EVENLY SPACED
           IF (ABSCINCR < 1E-3 .AND. F81==17) THEN
-            ABSCINCR = 20.0/NINT(20.0/ABSCINCR) ! FOR SMALL DX:S APPLY ROUNDING, WHEN ABSCISSA IS TIME
+            IF (ABSCINCR < 1E-4) THEN
+              ABSCINCR = 2.0/NINT(2.0/ABSCINCR) ! FOR SMALL DX:S APPLY ROUNDING, WHEN ABSCISSA IS TIME
+            ELSE
+              ABSCINCR = 10.0/NINT(10.0/ABSCINCR) ! FOR SMALL DX:S APPLY ROUNDING, WHEN ABSCISSA IS TIME
+            END IF
           END IF
           DO K = 1,NVAL
             XDATA(K) = (K-1)*ABSCINCR + ABSC0
@@ -480,7 +482,7 @@ C       CASE 1, 58
 
           ALLOCATE(Y_RS(NVAL))
 
-1001      FORMAT(6E13.5)
+1001      FORMAT(6ES13.5)
           READ(LUN,1001,ERR=9)(Y_RS(I),I=1,NVAL)
           N = NVAL
 
@@ -498,7 +500,7 @@ C       CASE 2, 58
 
           ALLOCATE(Y_RS(NVAL))
 
-1002      FORMAT(6E13.5)
+1002      FORMAT(6ES13.5)
           DO WHILE (N < NVAL)
             STEP = MIN(3, NVAL-N)
             READ(LUN,1002,END=202,ERR=9)(XDATA(I+N),Y_RS(I+N),I=1,STEP)
@@ -519,7 +521,7 @@ C       CASE 3, 58
 
           ALLOCATE(Y_CS(NVAL))
 
-1003      FORMAT(6E13.5)
+1003      FORMAT(6ES13.5)
           READ(LUN,1003,ERR=9)(Y_CS(I),I=1,NVAL)
           N = NVAL
 
@@ -537,7 +539,7 @@ C       CASE 4, 58
 
           ALLOCATE(Y_CS(NVAL))
 
-1004      FORMAT(6E13.5)
+1004      FORMAT(6ES13.5)
           DO WHILE (N < NVAL)
             STEP = MIN(2, NVAL-N)
             READ(LUN,1004,END=204,ERR=9)(XDATA(I+N),Y_CS(I+N),I=1,STEP)
@@ -558,7 +560,7 @@ C       CASE 5, 58
 
           ALLOCATE(Y_RD(NVAL))
 
-1005      FORMAT(4E20.12)
+1005      FORMAT(4ES20.12)
           READ(LUN,1005,ERR=9)(Y_RD(I),I=1,NVAL)
 
           CID = mxClassIDFromClassName('double')
@@ -575,7 +577,7 @@ C       CASE 6, 58
 
           ALLOCATE(Y_RD(NVAL))
 
-1006      FORMAT(2(E13.5,E20.12))
+1006      FORMAT(2(ES13.5,ES20.12))
           DO WHILE (N < NVAL)
             STEP = MIN(2, NVAL-N)
             READ(LUN,1006,END=206,ERR=9)(XDATA(I+N),Y_RD(I+N),I=1,STEP)
@@ -596,7 +598,7 @@ C       CASE 7, 58
 
           ALLOCATE(Y_CD(NVAL))
 
-1007      FORMAT(4E20.12)
+1007      FORMAT(4ES20.12)
           READ(LUN,1007,ERR=9)(Y_CD(I),I=1,NVAL)
           N = NVAL
 
@@ -614,7 +616,7 @@ C       CASE 8, 58
 
           ALLOCATE(Y_CD(NVAL))
 
-1008      FORMAT(E13.5,2E20.12)
+1008      FORMAT(ES13.5,2ES20.12)
           DO WHILE (N < NVAL)
             READ(LUN,1008,END=208,ERR=9)(XDATA(N+1),Y_CD(N+1))
             N = N + 1
