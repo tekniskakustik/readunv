@@ -8,7 +8,7 @@ Supported datasets:\
 \
 See example.m\
 \
-Prebuilt mex-files for Windows and Linux are supplied.\
+Prebuilt mex-files for Windows, Mac and Linux are supplied.\
 For compilation, see compile_mex.m\
 \
 Requires R2018a Update 3, or later.
