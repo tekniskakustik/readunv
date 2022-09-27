@@ -293,14 +293,13 @@ C ------------------------------------------------------------------------------
                 GO TO 10
               END IF
 
-C             FINISH LAST LINE IF LEFT UNFILLED
-              IF (REMPTS(LIDX) > 0) THEN
-C                 WRITE(LUN(LIDX),'(A4)',ERR=9) ''
-C                 WRITE(LUN(LIDX),'(1X)',ERR=9)
-              END IF
+C             FINISH LAST LINE
               WRITE(LUN(LIDX),'(1X)',ERR=9)
 
+C             WRITE UNV TERMINATOR, -1
               WRITE(LUN(LIDX),'(I6)') -1
+
+C             CLOSE FILE
               CLOSE(LUN(LIDX),STATUS='KEEP')
 
               OPEN(UNIT=LUN(LIDX),
@@ -315,8 +314,7 @@ C                 WRITE(LUN(LIDX),'(1X)',ERR=9)
               WRITE(LUN(LIDX),ERR=9,POS=REC7POS(LIDX)+10) STR10
               CLOSE(LUN(LIDX),STATUS='KEEP')
 
-              S = REMPTS(LIDX)
-C               S = 1.0
+              S = 1.0
 
             ELSE
 
