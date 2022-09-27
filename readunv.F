@@ -1,6 +1,6 @@
 #include "fintrf.h"
 
-      
+
 C ------------------------------------------------------------------------------
 C
 C     [STATE, DATACELL] = READUNV(FILEPATH)
@@ -483,7 +483,7 @@ C       CASE 1, 58
           ALLOCATE(Y_RS(NVAL))
 
 1001      FORMAT(6ES13.5)
-          READ(LUN,1001,ERR=9)(Y_RS(I),I=1,NVAL)
+          READ(LUN,1001,END=9,ERR=9)(Y_RS(I),I=1,NVAL)
           N = NVAL
 
           CID = mxClassIDFromClassName('single')
@@ -503,11 +503,11 @@ C       CASE 2, 58
 1002      FORMAT(6ES13.5)
           DO WHILE (N < NVAL)
             STEP = MIN(3, NVAL-N)
-            READ(LUN,1002,END=202,ERR=9)(XDATA(I+N),Y_RS(I+N),I=1,STEP)
+            READ(LUN,1002,END=9,ERR=9)(XDATA(I+N),Y_RS(I+N),I=1,STEP)
             N = N + STEP
           END DO
 
-202       CID = mxClassIDFromClassName('single')
+          CID = mxClassIDFromClassName('single')
           CXFLAG = 0
           YPTR = mxCreateNumericMatrix(NVAL, N1, CID, CXFLAG)
           CALL mxCopyReal4ToPtr(Y_RS, mxGetSingles(YPTR), NVAL)
@@ -522,7 +522,7 @@ C       CASE 3, 58
           ALLOCATE(Y_CS(NVAL))
 
 1003      FORMAT(6ES13.5)
-          READ(LUN,1003,ERR=9)(Y_CS(I),I=1,NVAL)
+          READ(LUN,1003,END=9,ERR=9)(Y_CS(I),I=1,NVAL)
           N = NVAL
 
           CID = mxClassIDFromClassName('single')
@@ -542,11 +542,11 @@ C       CASE 4, 58
 1004      FORMAT(6ES13.5)
           DO WHILE (N < NVAL)
             STEP = MIN(2, NVAL-N)
-            READ(LUN,1004,END=204,ERR=9)(XDATA(I+N),Y_CS(I+N),I=1,STEP)
+            READ(LUN,1004,END=9,ERR=9)(XDATA(I+N),Y_CS(I+N),I=1,STEP)
             N = N + STEP
           END DO
 
-204       CID = mxClassIDFromClassName('single')
+          CID = mxClassIDFromClassName('single')
           CXFLAG = 1
           YPTR = mxCreateNumericMatrix(NVAL, N1, CID, CXFLAG)
           CALL mxCopyComplex8ToPtr(Y_CS, mxGetComplexSingles(YPTR),NVAL)
@@ -561,7 +561,7 @@ C       CASE 5, 58
           ALLOCATE(Y_RD(NVAL))
 
 1005      FORMAT(4ES20.12)
-          READ(LUN,1005,ERR=9)(Y_RD(I),I=1,NVAL)
+          READ(LUN,1005,END=9,ERR=9)(Y_RD(I),I=1,NVAL)
 
           CID = mxClassIDFromClassName('double')
           CXFLAG = 0
@@ -580,11 +580,11 @@ C       CASE 6, 58
 1006      FORMAT(2(ES13.5,ES20.12))
           DO WHILE (N < NVAL)
             STEP = MIN(2, NVAL-N)
-            READ(LUN,1006,END=206,ERR=9)(XDATA(I+N),Y_RD(I+N),I=1,STEP)
+            READ(LUN,1006,END=9,ERR=9)(XDATA(I+N),Y_RD(I+N),I=1,STEP)
             N = N + STEP
           END DO
 
-206       CID = mxClassIDFromClassName('double')
+          CID = mxClassIDFromClassName('double')
           CXFLAG = 0
           YPTR = mxCreateNumericMatrix(NVAL, N1, CID, CXFLAG)
           CALL mxCopyReal8ToPtr(Y_RD, mxGetDoubles(YPTR), NVAL)
@@ -599,7 +599,7 @@ C       CASE 7, 58
           ALLOCATE(Y_CD(NVAL))
 
 1007      FORMAT(4ES20.12)
-          READ(LUN,1007,ERR=9)(Y_CD(I),I=1,NVAL)
+          READ(LUN,1007,END=9,ERR=9)(Y_CD(I),I=1,NVAL)
           N = NVAL
 
           CID = mxClassIDFromClassName('double')
