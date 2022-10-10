@@ -22,6 +22,7 @@ C       = -4,  TOO FEW INPUTS
 C       = -5,  FILEPATH IS NOT A CHAR
 C       = -6,  FILE IS ILL-FORMATTED
 C       = -7,  TWO OUTPUT ARGUMENTS ARE REQUIRED
+C       = -8,  TOO MANY DATASETS, MAX IS 16384
 C       = -12, FLOATING POINT ARITHMETIC OVERFLOW (FROM IOSTAT)
 C       = >1,  ERROR CODE FROM IOSTAT WHEN OPENING FILE
 C
@@ -49,7 +50,7 @@ C ------------------------------------------------------------------------------
       mwPointer :: mxIsChar
       mwSize :: STRLEN
       mwPointer :: CELL_PTR, YPTR
-      mwPointer :: SPTR(2048) ! MAXIMUM NUMBER OF DATA RECORDS
+      mwPointer :: SPTR(16384) ! MAXIMUM NUMBER OF DATA RECORDS
       mwSize, PARAMETER :: N1 = 1
       mwSize :: NVAL, K2, CELLCOUNT
 
@@ -358,6 +359,14 @@ C       RECORD 2
 C --- DATASET 58 --------------------------------------------------------------
 C ------------------------------------------------------------------------------
       ELSEIF (DATASETNUM == 58) THEN
+
+
+        CELLCOUNT = CELLCOUNT + 1
+
+        IF (CELLCOUNT > 16384) THEN ! TOO MANY CELLS
+          S = -8.0
+          GO TO 10
+        END IF
 
 C       READ HEADER
 
@@ -697,7 +706,6 @@ C       RECORD 11
         fieldnames(50) = 'precision'
 
 
-        CELLCOUNT = CELLCOUNT + 1
         FIELDSTOUSE = 50
 
 
