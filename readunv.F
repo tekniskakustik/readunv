@@ -20,7 +20,7 @@ C       = -2,  COULD NOT READ FILEPATH
 C       = -3,  FILE DOES NOT EXIST
 C       = -4,  TOO FEW INPUTS
 C       = -5,  FILEPATH IS NOT A CHAR
-C       = -6,  FILE IS ILL-FORMATTED
+C       = -6,  FILE IS ILL-FORMED
 C       = -7,  TWO OUTPUT ARGUMENTS ARE REQUIRED
 C       = -8,  TOO MANY DATASETS, MAX IS 16384
 C       = -12, FLOATING POINT ARITHMETIC OVERFLOW (FROM IOSTAT)
@@ -116,7 +116,7 @@ C     CHECK IF TWO OUTPUT ARGUMENTS ARE USED, IF NOT -> ERROR
 C     CHECK IF INPUT ARGUMENT IS OF CHAR TYPE
       OK = mxIsChar(prhs(1))
       IF (NOT(OK)) THEN ! CHAR TYPE IS REQUIRED
-        S = -2.0
+        S = -5.0
         GO TO 10
       END IF
 
@@ -835,15 +835,61 @@ C     DEALLOCATE ALLOCATED VARIABLES
 
 
 C     CREATE AND ASSIGN CELL MATRIX
-      IF (CELLCOUNT > 0) THEN
-        CELL_PTR = mxCreateCellMatrix(CELLCOUNT, N1)
-        DO K2 = 1,CELLCOUNT
-          CALL mxSetCell(CELL_PTR, K2, SPTR(K2))
-        END DO
-      ELSE ! CREATE EMPTY CELL IF NOTHING READ
-        CELL_PTR = mxCreateCellMatrix(N1, N1)
+      IF (nlhs > 1) THEN
+        IF (CELLCOUNT > 0) THEN
+          CELL_PTR = mxCreateCellMatrix(CELLCOUNT, N1)
+          DO K2 = 1,CELLCOUNT
+            CALL mxSetCell(CELL_PTR, K2, SPTR(K2))
+          END DO
+          plhs(2) = CELL_PTR ! ASSIGN POINTER TO OUTPUT ARGUMENT #2
+
+        ELSE IF (INT(S(1)) == 1) THEN
+          CELL_PTR = mxCreateCellMatrix(N1, N1)
+          plhs(2) = CELL_PTR ! ASSIGN POINTER TO OUTPUT ARGUMENT #2
+
+        ELSE ! CREATE EMPTY CELL IF NOTHING READ
+          K = S(1)
+          SELECT CASE (K)
+            CASE (0)
+              plhs(2) = mxCreateString('Unknown error.')
+
+            CASE (-1)
+              plhs(2) = mxCreateString('Empty filepath input.')
+
+            CASE (-2)
+              plhs(2) = mxCreateString('Could not read filepath.')
+
+            CASE (-3)
+              plhs(2) = mxCreateString('File does not exist.')
+
+            CASE (-4)
+              plhs(2) = mxCreateString('Too few inputs.')
+
+            CASE (-5)
+              plhs(2) = mxCreateString('Input is not of type char.')
+
+            CASE (-6)
+              plhs(2) = mxCreateString('Filepath is ill-formed.')
+
+            CASE (-7)
+              plhs(2) = mxCreateString('Two output arguments are require
+     &d.')
+
+            CASE (-8)
+              plhs(2) = mxCreateString('Too many datasets in file, max i
+     &s 16384.')
+
+            CASE (-12)
+              plhs(2) = mxCreateString('Floating point arithmetic overfl
+     &ow.')
+
+            CASE DEFAULT
+              plhs(2)=mxCreateString('Read error: check IOSTAT code.')
+
+          END SELECT
+        END IF
+
       END IF
-      plhs(2) = CELL_PTR ! ASSIGN POINTER TO OUTPUT ARGUMENT #2
 
 
 
