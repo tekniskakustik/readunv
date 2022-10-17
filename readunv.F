@@ -11,6 +11,7 @@ C
 C     FILEPATH: CHAR WITH RELATIVE OR ABSOLUTE PATH TO FILE TO READ
 C
 C     DATACELL: CELL ARRAY FOR EACH DATASET IN FILE
+C               IF NO DATA READ, IT WILL BE A CHAR WITH ERROR DESCRIPTION
 C
 C     STATE FLAGS:
 C       =  1,  SUCCESFUL
@@ -22,7 +23,6 @@ C       = -4,  TOO FEW INPUTS
 C       = -5,  FILEPATH IS NOT A CHAR
 C       = -6,  FILE IS ILL-FORMED
 C       = -7,  TWO OUTPUT ARGUMENTS ARE REQUIRED
-C       = -8,  TOO MANY DATASETS, MAX IS 16384
 C       = -12, FLOATING POINT ARITHMETIC OVERFLOW (FROM IOSTAT)
 C       = >1,  ERROR CODE FROM IOSTAT WHEN OPENING FILE
 C
@@ -50,9 +50,12 @@ C ------------------------------------------------------------------------------
       mwPointer :: mxIsChar
       mwSize :: STRLEN
       mwPointer :: CELL_PTR, YPTR
-      mwPointer :: SPTR(16384) ! MAXIMUM NUMBER OF DATA RECORDS
+      INTEGER*4, PARAMETER :: MAXRECORDS = 4096
+      INTEGER*4, PARAMETER :: RECORD_STEP = 16384
+      mwPointer :: SPTR(MAXRECORDS) ! MAXIMUM NUMBER OF DATA RECORDS
+      mwPointer, DIMENSION(:), ALLOCATABLE :: SPTR_1, SPTR_2 ! USE WHEN NUM. OF RECORDS > MAXRECORDS
       mwSize, PARAMETER :: N1 = 1
-      mwSize :: NVAL, K2, CELLCOUNT
+      mwSize :: NVAL, K2, NCELL
 
       INTEGER*4, PARAMETER :: nfields = 50 ! MAXIMUM NUMBER OF FIELDS IN USE, ADJUST WHEN NEEDED
       mwPointer :: ID_PTR(nfields)
@@ -86,8 +89,9 @@ C ------------------------------------------------------------------------------
       REAL*4 :: F74, F75, F76
       REAL*8 :: ISEVEN, ABSCNUM, ABSCINCR, ABSC0, ORDDATATYPE
       REAL*8 :: UNITSCODE, S(1)
+      INTEGER*1 :: USE_ALLOCATION
       INTEGER*4 :: STATUS_INT, OK, NOK, DATASETNUM, CASENUM, LUN, STEP
-      INTEGER*8 :: N, I, K, FIELDSTOUSE
+      INTEGER*8 :: N, I, K, FIELDSTOUSE, MAXRECORDS_LOCAL
       LOGICAL :: STATUS_BOOL
       CHARACTER(LEN=:), ALLOCATABLE :: FILEPATH
       REAL*4, DIMENSION(:), ALLOCATABLE :: Y_RS, XDATA
@@ -97,9 +101,11 @@ C ------------------------------------------------------------------------------
 
 
 
-      CELLCOUNT = 0 ! INITIALISE OUTPUT CELL COUNTER
+      NCELL = 0 ! INITIALISE OUTPUT CELL COUNTER
       S = 0
       LUN = 0
+      MAXRECORDS_LOCAL = MAXRECORDS
+      USE_ALLOCATION = 0
 
 C     ONE INPUT ARGUMENT (FILEPATH) IS REQUIRED
       IF (nrhs < 1) THEN
@@ -248,10 +254,10 @@ C       FIX TEXT ALIGNMENT
         fieldnames(14) = 'fileCreatedTime'
 
 
-        CELLCOUNT = CELLCOUNT + 1 ! INCREMENT CELL COUNTER BY ONE
+        NCELL = NCELL + 1 ! INCREMENT CELL COUNTER BY ONE
         FIELDSTOUSE = 14 ! NUMBER OF FIELDS IN DATASET 151
 
-        SPTR(CELLCOUNT) = mxCreateStructMatrix(N1, N1, FIELDSTOUSE,
+        SPTR(NCELL) = mxCreateStructMatrix(N1, N1, FIELDSTOUSE,
      &    fieldnames(1:FIELDSTOUSE))
 
 
@@ -275,7 +281,7 @@ C       FIX TEXT ALIGNMENT
         ID_PTR(14) = mxCreateString(DS151F72) ! time file written (HH:MM:SS)
 
         DO K = 1,FIELDSTOUSE
-          CALL mxSetField(SPTR(CELLCOUNT),N1,fieldnames(K),ID_PTR(K))
+          CALL mxSetField(SPTR(NCELL),N1,fieldnames(K),ID_PTR(K))
         END DO
 
 
@@ -331,10 +337,10 @@ C       RECORD 2
         fieldnames(9) = 'temperatureOffset'
 
 
-        CELLCOUNT = CELLCOUNT + 1 ! INCREMENT CELL COUNTER BY ONE
+        NCELL = NCELL + 1 ! INCREMENT CELL COUNTER BY ONE
         FIELDSTOUSE = 9
 
-        SPTR(CELLCOUNT) = mxCreateStructMatrix(N1, N1, FIELDSTOUSE,
+        SPTR(NCELL) = mxCreateStructMatrix(N1, N1, FIELDSTOUSE,
      &    fieldnames(1:FIELDSTOUSE))
 
 
@@ -349,7 +355,7 @@ C       RECORD 2
         ID_PTR(9) = mxCreateDoubleScalar(DS164F24) ! temperature offset
 
         DO K = 1,FIELDSTOUSE
-          CALL mxSetField(SPTR(CELLCOUNT),N1,fieldnames(K),ID_PTR(K))
+          CALL mxSetField(SPTR(NCELL),N1,fieldnames(K),ID_PTR(K))
         END DO
 
 
@@ -361,11 +367,33 @@ C ------------------------------------------------------------------------------
       ELSEIF (DATASETNUM == 58) THEN
 
 
-        CELLCOUNT = CELLCOUNT + 1
+        NCELL = NCELL + 1
 
-        IF (CELLCOUNT > 16384) THEN ! TOO MANY CELLS
-          S = -8.0
-          GO TO 10
+        IF (NCELL > MAXRECORDS_LOCAL) THEN ! TOO MANY CELLS
+          MAXRECORDS_LOCAL = MAXRECORDS_LOCAL + RECORD_STEP
+
+          SELECT CASE (USE_ALLOCATION)
+           CASE (0)
+            USE_ALLOCATION = 1
+            ALLOCATE(SPTR_1(MAXRECORDS_LOCAL))
+            SPTR_1(1:MAXRECORDS_LOCAL-RECORD_STEP) = SPTR
+
+           CASE (1)
+            USE_ALLOCATION = 2
+            ALLOCATE(SPTR_2(MAXRECORDS_LOCAL))
+            SPTR_2(1:MAXRECORDS_LOCAL-RECORD_STEP) =
+     &        SPTR_1(1:MAXRECORDS_LOCAL-RECORD_STEP)
+            DEALLOCATE(SPTR_1)
+
+           CASE (2)
+            USE_ALLOCATION = 1
+            ALLOCATE(SPTR_1(MAXRECORDS_LOCAL))
+            SPTR_1(1:MAXRECORDS_LOCAL-RECORD_STEP) =
+     &        SPTR_2(1:MAXRECORDS_LOCAL-RECORD_STEP)
+            DEALLOCATE(SPTR_2)
+
+          END SELECT
+
         END IF
 
 C       READ HEADER
@@ -709,9 +737,6 @@ C       RECORD 11
         FIELDSTOUSE = 50
 
 
-        SPTR(CELLCOUNT) = mxCreateStructMatrix(N1, N1, FIELDSTOUSE,
-     &    fieldnames(1:FIELDSTOUSE))
-
 
         CID = mxClassIDFromClassName('single')
         CXFLAG = 0
@@ -782,10 +807,30 @@ C       RECORD 11
         ID_PTR(49) = mxCreateDoubleScalar(DBLE(CASENUM))
         ID_PTR(50) = mxCreateString(PRECSTR) ! data precision (string)
 
-        DO K = 1,FIELDSTOUSE
-          CALL mxSetField(SPTR(CELLCOUNT),N1,fieldnames(K),ID_PTR(K))
-        END DO
 
+        SELECT CASE (USE_ALLOCATION)
+          CASE (0)
+            SPTR(NCELL) = mxCreateStructMatrix(N1, N1, FIELDSTOUSE,
+     &        fieldnames(1:FIELDSTOUSE))
+            DO K = 1,FIELDSTOUSE
+            CALL mxSetField(SPTR(NCELL),N1,fieldnames(K),ID_PTR(K))
+            END DO
+
+          CASE (1)
+            SPTR_1(NCELL) = mxCreateStructMatrix(N1, N1, FIELDSTOUSE,
+     &        fieldnames(1:FIELDSTOUSE))
+            DO K = 1,FIELDSTOUSE
+              CALL mxSetField(SPTR_1(NCELL),N1,fieldnames(K),ID_PTR(K))
+            END DO
+
+          CASE (2)
+            SPTR(NCELL) = mxCreateStructMatrix(N1, N1, FIELDSTOUSE,
+     &        fieldnames(1:FIELDSTOUSE))
+            DO K = 1,FIELDSTOUSE
+              CALL mxSetField(SPTR_2(NCELL),N1,fieldnames(K),ID_PTR(K))
+            END DO
+
+        END SELECT
 
 
       ELSE
@@ -824,6 +869,11 @@ C     DEALLOCATE ALLOCATED VARIABLES
       IF (ALLOCATED(Y_RD)) DEALLOCATE(Y_RD)
       IF (ALLOCATED(Y_CS)) DEALLOCATE(Y_CS)
       IF (ALLOCATED(Y_CD)) DEALLOCATE(Y_CD)
+      IF (ALLOCATED(Y_CD)) DEALLOCATE(Y_CD)
+      IF (USE_ALLOCATION > 0) THEN
+        IF (ALLOCATED(SPTR_1)) DEALLOCATE(SPTR_1)
+        IF (ALLOCATED(SPTR_2)) DEALLOCATE(SPTR_2)
+      END IF
 
 
       IF (LUN /= 0) THEN ! IF LUN HAVE BEEN INITIALISED
@@ -836,11 +886,25 @@ C     DEALLOCATE ALLOCATED VARIABLES
 
 C     CREATE AND ASSIGN CELL MATRIX
       IF (nlhs > 1) THEN
-        IF (CELLCOUNT > 0) THEN
-          CELL_PTR = mxCreateCellMatrix(CELLCOUNT, N1)
-          DO K2 = 1,CELLCOUNT
-            CALL mxSetCell(CELL_PTR, K2, SPTR(K2))
-          END DO
+        IF (NCELL > 0) THEN
+          CELL_PTR = mxCreateCellMatrix(NCELL, N1)
+          SELECT CASE (USE_ALLOCATION)
+            CASE (0)
+              DO K2 = 1,NCELL
+                CALL mxSetCell(CELL_PTR, K2, SPTR(K2))
+              END DO
+
+            CASE (1)
+              DO K2 = 1,NCELL
+                CALL mxSetCell(CELL_PTR, K2, SPTR_1(K2))
+              END DO
+
+            CASE (2)
+              DO K2 = 1,NCELL
+                CALL mxSetCell(CELL_PTR, K2, SPTR_2(K2))
+              END DO
+
+          END SELECT
           plhs(2) = CELL_PTR ! ASSIGN POINTER TO OUTPUT ARGUMENT #2
 
         ELSE IF (INT(S(1)) == 1) THEN
@@ -874,10 +938,6 @@ C     CREATE AND ASSIGN CELL MATRIX
             CASE (-7)
               plhs(2) = mxCreateString('Two output arguments are require
      &d.')
-
-            CASE (-8)
-              plhs(2) = mxCreateString('Too many datasets in file, max i
-     &s 16384.')
 
             CASE (-12)
               plhs(2) = mxCreateString('Floating point arithmetic overfl

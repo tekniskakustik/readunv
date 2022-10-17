@@ -9,18 +9,18 @@
 % NB: -R2018a flag is required
 if ispc
     
-    mex -R2018a COMPFLAGS='$COMPFLAGS /warn:unused /Os /QaxAVX2 /Qunroll-aggressive' readunv.F
-    mex -R2018a COMPFLAGS='$COMPFLAGS /warn:unused /Os /QaxAVX2 /assume:buffered_io /Qunroll-aggressive' writeunv.F
+    mex -R2018a COMPFLAGS='$COMPFLAGS /warn:unused /Ofast /QaxAVX2 /Qunroll-aggressive' readunv.F
+    mex -R2018a COMPFLAGS='$COMPFLAGS /warn:unused /Ofast /QaxAVX2 /assume:buffered_io /Qunroll-aggressive' writeunv.F
 
 elseif ismac
 
-    mex -R2018a FOPTIMFLAGS='$FOPTIMFLAGS -warn unused -Os -axAVX2 -unroll-aggressive' readunv.F
-    mex -R2018a FOPTIMFLAGS='$FOPTIMFLAGS -warn unused -Os -axAVX2 -assume:buffered_io -unroll-aggressive' writeunv.F
+    mex -R2018a FOPTIMFLAGS='$FOPTIMFLAGS -warn unused -Ofast -axAVX2 -unroll-aggressive' readunv.F
+    mex -R2018a FOPTIMFLAGS='$FOPTIMFLAGS -warn unused -Ofast -axAVX2 -assume:buffered_io -unroll-aggressive' writeunv.F
 
 else % linux
 
-    mex FC='ifort' -R2018a FOPTIMFLAGS='$FOPTIMFLAGS -Os -i8 -axAVX2 -unroll-aggressive' readunv.F
-    mex FC='ifort' -R2018a FOPTIMFLAGS='$FOPTIMFLAGS -Os -i8 -axAVX2 -assume buffered_io -unroll-aggressive' writeunv.F
+    mex FC='ifort' -R2018a FOPTIMFLAGS='$FOPTIMFLAGS -Ofast -i8 -axAVX2 -unroll-aggressive' readunv.F
+    mex FC='ifort' -R2018a FOPTIMFLAGS='$FOPTIMFLAGS -Ofast -i8 -axAVX2 -assume buffered_io -unroll-aggressive' writeunv.F
 
 end
 
