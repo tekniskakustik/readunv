@@ -55,7 +55,7 @@ C ----------------------------------------------------------------------
       mwPointer :: SPTR(MAXRECORDS)
       mwPointer, DIMENSION(:), ALLOCATABLE :: SPTR_1, SPTR_2 ! USE WHEN NUM. OF DATA RECORDS > MAXRECORDS
       mwSize, PARAMETER :: N1 = 1
-      mwSize :: NVAL, K2, NCELL
+      mwSize :: NVAL, KMW, NCELL
 
 
       INTEGER*4, PARAMETER :: NFIELDS = 48 ! MAXIMUM NUMBER OF FIELDS IN USE, ADJUST WHEN NEEDED
@@ -88,7 +88,7 @@ C ----------------------------------------------------------------------
       REAL*8 :: DS164F21, DS164F22, DS164F23, DS164F24
       REAL*4 :: F74, F75, F76
       REAL*8 :: ISEVEN, ABSCNUM, ABSCINCR, ABSC0, ORDDATATYPE
-      REAL*8 :: UNITSCODE, S(1)
+      REAL*8 :: S(1)
       INTEGER*1 :: USE_ALLOCATION
       INTEGER*4 :: STATUS_INT, OK, NOK, DATASETNUM, CASENUM, LUN, STEP
       INTEGER*4, PARAMETER :: DATASETS(3) = (/151, 164, 58/)
@@ -337,28 +337,28 @@ C       RECORD 2
 1642    FORMAT(3D25.17)
 
 
-        UNITSCODE = DBLE(DS164F11)
-        IF (UNITSCODE == 1) THEN
-          UNITSSTR = 'SI: Meter (newton)'
-        ELSEIF (UNITSCODE == 2) THEN
-          UNITSSTR = 'BG: Foot (pound f)'
-        ELSEIF (UNITSCODE == 3) THEN
-          UNITSSTR = 'MG: Meter (kilogram f)'
-        ELSEIF (UNITSCODE == 4) THEN
-          UNITSSTR = 'BA: Foot (poundal)'
-        ELSEIF (UNITSCODE == 5) THEN
-          UNITSSTR = 'MM: mm (milli newton)'
-        ELSEIF (UNITSCODE == 6) THEN
-          UNITSSTR = 'CM: cm (centi newton)'
-        ELSEIF (UNITSCODE == 7) THEN
-          UNITSSTR = 'IN: Inch (pound f)'
-        ELSEIF (UNITSCODE == 8) THEN
-          UNITSSTR = 'GM: mm (kilogram f)'
-        ELSEIF (UNITSCODE == 9) THEN
-          UNITSSTR = 'US: USER_DEFINED'
-        ELSE
-          UNITSSTR = 'Unknown units'
-        END IF
+        SELECT CASE (DS164F11)
+          CASE (1)
+            UNITSSTR = 'SI: Meter (newton)'
+          CASE (2)
+            UNITSSTR = 'BG: Foot (pound f)'
+          CASE (3)
+            UNITSSTR = 'MG: Meter (kilogram f)'
+          CASE (4)
+            UNITSSTR = 'BA: Foot (poundal)'
+          CASE (5)
+            UNITSSTR = 'MM: mm (milli newton)'
+          CASE (6)
+            UNITSSTR = 'CM: cm (centi newton)'
+          CASE (7)
+            UNITSSTR = 'IN: Inch (pound f)'
+          CASE (8)
+            UNITSSTR = 'GM: mm (kilogram f)'
+          CASE (9)
+            UNITSSTR = 'US: USER_DEFINED'
+          CASE DEFAULT
+            UNITSSTR = 'Unknown units'
+        END SELECT
 
 
         fieldnames(1) = 'datasetType'
@@ -374,7 +374,7 @@ C       RECORD 2
         FIELDSTOUSE = 9
 
         ID_PTR(1) = mxCreateDoubleScalar(DBLE(DATASETNUM)) ! dataset number
-        ID_PTR(2) = mxCreateDoubleScalar(UNITSCODE) ! units code
+        ID_PTR(2) = mxCreateDoubleScalar(DBLE(DS164F11)) ! units code
         ID_PTR(3) = mxCreateString(UNITSSTR) ! derived string from units code
         ID_PTR(4) = mxCreateString(DS164F12) ! units description
         ID_PTR(5) = mxCreateDoubleScalar(DBLE(DS164F13)) ! temperature mode: 1 = absolute, 2 = relative
@@ -894,18 +894,18 @@ C     CREATE AND ASSIGN CELL MATRIX
           CELL_PTR = mxCreateCellMatrix(NCELL, N1)
           SELECT CASE (USE_ALLOCATION)
             CASE (0)
-              DO K2 = 1,NCELL
-                CALL mxSetCell(CELL_PTR, K2, SPTR(K2))
+              DO KMW = 1,NCELL
+                CALL mxSetCell(CELL_PTR, KMW, SPTR(KMW))
               END DO
 
             CASE (1)
-              DO K2 = 1,NCELL
-                CALL mxSetCell(CELL_PTR, K2, SPTR_1(K2))
+              DO KMW = 1,NCELL
+                CALL mxSetCell(CELL_PTR, KMW, SPTR_1(KMW))
               END DO
 
             CASE (2)
-              DO K2 = 1,NCELL
-                CALL mxSetCell(CELL_PTR, K2, SPTR_2(K2))
+              DO KMW = 1,NCELL
+                CALL mxSetCell(CELL_PTR, KMW, SPTR_2(KMW))
               END DO
 
           END SELECT
