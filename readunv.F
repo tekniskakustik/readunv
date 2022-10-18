@@ -381,20 +381,18 @@ C ----------------------------------------------------------------------
            CASE (0)
             USE_ALLOCATION = 1
             ALLOCATE(SPTR_1(MAXRECORDS_LOCAL))
-            SPTR_1(1:MAXRECORDS_LOCAL-RECORD_STEP) = SPTR
+            SPTR_1(1:NCELL-1) = SPTR(1:NCELL-1)
 
            CASE (1)
             USE_ALLOCATION = 2
             ALLOCATE(SPTR_2(MAXRECORDS_LOCAL))
-            SPTR_2(1:MAXRECORDS_LOCAL-RECORD_STEP) =
-     &        SPTR_1(1:MAXRECORDS_LOCAL-RECORD_STEP)
+            SPTR_2(1:NCELL-1) = SPTR_1(1:NCELL-1)
             DEALLOCATE(SPTR_1)
 
            CASE (2)
             USE_ALLOCATION = 1
             ALLOCATE(SPTR_1(MAXRECORDS_LOCAL))
-            SPTR_1(1:MAXRECORDS_LOCAL-RECORD_STEP) =
-     &        SPTR_2(1:MAXRECORDS_LOCAL-RECORD_STEP)
+            SPTR_1(1:NCELL-1) = SPTR_2(1:NCELL-1)
             DEALLOCATE(SPTR_2)
 
           END SELECT
