@@ -1,7 +1,7 @@
 #include "fintrf.h"
 
 
-C ------------------------------------------------------------------------------
+C ----------------------------------------------------------------------
 C
 C     [STATE, DATACELL] = READUNV(FILEPATH)
 C
@@ -11,7 +11,7 @@ C
 C     FILEPATH: CHAR WITH RELATIVE OR ABSOLUTE PATH TO FILE TO READ
 C
 C     DATACELL: CELL ARRAY FOR EACH DATASET IN FILE
-C               IF NO DATA READ, IT WILL BE A CHAR WITH ERROR DESCRIPTION
+C               IF NO DATA READ -> CHAR WITH ERROR DESCRIPTION
 C
 C     STATE FLAGS:
 C       =  1,  SUCCESFUL
@@ -26,7 +26,7 @@ C       = -7,  TWO OUTPUT ARGUMENTS ARE REQUIRED
 C       = -12, FLOATING POINT ARITHMETIC OVERFLOW (FROM IOSTAT)
 C       = >1,  ERROR CODE FROM IOSTAT WHEN OPENING FILE
 C
-C ------------------------------------------------------------------------------
+C ----------------------------------------------------------------------
 
 
       SUBROUTINE mexFunction(nlhs, plhs, nrhs, prhs)
@@ -42,7 +42,7 @@ C ------------------------------------------------------------------------------
       mwPointer :: mxGetComplexDoubles
       mwPointer :: mxGetComplexSingles
       mwPointer :: mxCreateCellMatrix
-      INTEGER*4 :: mxClassIDFromClassName, CID, CXFLAG
+      INTEGER*4 :: mxClassIDFromClassName, CXFLAG, CID_S, CID_D
       mwPointer :: mxCreateNumericMatrix
       mwPointer :: mxCreateStructMatrix
       mwPointer :: mxGetN
@@ -53,13 +53,14 @@ C ------------------------------------------------------------------------------
       INTEGER*4, PARAMETER :: MAXRECORDS = 4096
       INTEGER*4, PARAMETER :: RECORD_STEP = 16384
       mwPointer :: SPTR(MAXRECORDS) ! MAXIMUM NUMBER OF DATA RECORDS
-      mwPointer, DIMENSION(:), ALLOCATABLE :: SPTR_1, SPTR_2 ! USE WHEN NUM. OF RECORDS > MAXRECORDS
+      mwPointer, DIMENSION(:), ALLOCATABLE :: SPTR_1, SPTR_2 ! USE WHEN NUM. OF DATA RECORDS > MAXRECORDS
       mwSize, PARAMETER :: N1 = 1
       mwSize :: NVAL, K2, NCELL
 
-      INTEGER*4, PARAMETER :: nfields = 50 ! MAXIMUM NUMBER OF FIELDS IN USE, ADJUST WHEN NEEDED
-      mwPointer :: ID_PTR(nfields)
-      CHARACTER*32 :: fieldnames(nfields) ! LENGTH OF LONGEST FIELDNAME, ADJUST WHEN NEEDED
+
+      INTEGER*4, PARAMETER :: NFIELDS = 48 ! MAXIMUM NUMBER OF FIELDS IN USE, ADJUST WHEN NEEDED
+      mwPointer :: ID_PTR(NFIELDS)
+      CHARACTER*32 :: fieldnames(NFIELDS) ! LENGTH OF LONGEST FIELDNAME, ADJUST WHEN NEEDED
 
       CHARACTER(LEN=80) :: REC0
       CHARACTER(LEN=80) :: ID1, ID2, ID3, ID4, ID5
@@ -74,7 +75,6 @@ C ------------------------------------------------------------------------------
       CHARACTER(LEN=20) :: DS164F12
       CHARACTER(LEN=22) :: UNITSSTR
       CHARACTER(LEN=1) :: F02
-      CHARACTER(LEN=6) :: PRECSTR
       INTEGER*8 :: F05, F06, F09, F010
       INTEGER*4 :: F03, F04, F07, F08
       INTEGER*4 :: DS151F43, DS151F44, DS151F45
@@ -106,6 +106,8 @@ C ------------------------------------------------------------------------------
       LUN = 0
       MAXRECORDS_LOCAL = MAXRECORDS
       USE_ALLOCATION = 0
+      CID_S = mxClassIDFromClassName('single')
+      CID_D = mxClassIDFromClassName('double')
 
 C     ONE INPUT ARGUMENT (FILEPATH) IS REQUIRED
       IF (nrhs < 1) THEN
@@ -173,7 +175,7 @@ C     CHECK IF FILE OPENING FAILED -> RETURN IOSTAT CODE
 
 
 C     READ FIRST LINE IN FILE
-1     READ(LUN,'(A80)',END=10,ERR=9) REC0
+1     READ(LUN, '(A80)', END=10, ERR=9) REC0
 
 
 C     CHECK IF FILE STARTS WITH -1 START/END UNV TERMINATOR, IF NOT -> RETURN ERROR
@@ -188,41 +190,43 @@ C     CHECK IF FILE STARTS WITH -1 START/END UNV TERMINATOR, IF NOT -> RETURN ER
 
 
 C     READ DATASET NUMBER, 58B COMPATIBLE (BUT NOT SUPPORTED YET)
-      READ(LUN,582,END=10,ERR=9) DATASETNUM,F02,F03,F04,F05,F06,
-     &  F07,F08,F09,F010
-582   FORMAT(I6,1A1,I6,I6,I12,I12,I6,I6,I12,I12)
+      READ(LUN, 582, END=10, ERR=9)
+     &  DATASETNUM, F02, F03, F04, F05, F06, F07, F08, F09, F010
+582   FORMAT(I6, 1A1, I6,I6, I12, I12, I6, I6, I12, I12)
 
 
 
 
-C --- DATASET 151 --------------------------------------------------------------
-C ------------------------------------------------------------------------------
+C --- DATASET 151 ------------------------------------------------------
+C ----------------------------------------------------------------------
       IF (DATASETNUM == 151) THEN
 
 C       RECORD 1, ID LINE 1, model file name
-        READ(LUN,'(A80)',END=10,ERR=9) ID1
+        READ(LUN, '(A80)', END=10, ERR=9) ID1
 
 C       RECORD 2, ID LINE 2, model file description
-        READ(LUN,'(A80)',END=10,ERR=9) ID2
+        READ(LUN, '(A80)', END=10, ERR=9) ID2
 
 C       RECORD 3, ID LINE 3, program which created DB
-        READ(LUN,'(A80)',END=10,ERR=9) ID3
+        READ(LUN, '(A80)', END=10, ERR=9) ID3
 
 C       RECORD 4
-        READ(LUN,1514,END=10,ERR=9) DS151F41,DS151F42,DS151F43,
-     &    DS151F44,DS151F45
-1514    FORMAT(A10,A10,3I10)
+        READ(LUN, 1514, END=10, ERR=9)
+     &    DS151F41, DS151F42, DS151F43, DS151F44, DS151F45
+1514    FORMAT(A10, A10, 3I10)
 
 C       RECORD 5
-        READ(LUN,1515,END=10,ERR=9) DS151F51,DS151F52
-1515    FORMAT(A10,A10)
+        READ(LUN, 1515, END=10, ERR=9)
+     &    DS151F51, DS151F52
+1515    FORMAT(A10, A10)
 
 C       RECORD 6, ID LINE 6, program which created unv-file
-        READ(LUN,'(A80)',END=10,ERR=9) ID4
+        READ(LUN, '(A80)', END=10, ERR=9) ID4
 
 C       RECORD 7
-        READ(LUN,1517,END=10,ERR=9) DS151F71,DS151F72
-1517    FORMAT(A10,A10)
+        READ(LUN, 1517, END=10, ERR=9)
+     &    DS151F71, DS151F72
+1517    FORMAT(A10, A10)
 
 
 C       FIX TEXT ALIGNMENT
@@ -288,17 +292,18 @@ C       FIX TEXT ALIGNMENT
 
 
 
-C --- DATASET 164 --------------------------------------------------------------
-C ------------------------------------------------------------------------------
+C --- DATASET 164 ------------------------------------------------------
+C ----------------------------------------------------------------------
       ELSEIF (DATASETNUM == 164) THEN
 
 C       RECORD 1
-        READ(LUN,1641,END=10,ERR=9) DS164F11,DS164F12,DS164F13
-1641    FORMAT(I10,A20,I10)
+        READ(LUN, 1641, END=10, ERR=9)
+     &    DS164F11, DS164F12, DS164F13
+1641    FORMAT(I10, A20, I10)
 
 C       RECORD 2
-        READ(LUN,1642,END=10,ERR=9) DS164F21,DS164F22,DS164F23,
-     &    DS164F24
+        READ(LUN, 1642, END=10, ERR=9)
+     &    DS164F21, DS164F22, DS164F23, DS164F24
 1642    FORMAT(3D25.17)
 
 
@@ -362,8 +367,8 @@ C       RECORD 2
 
 
 
-C --- DATASET 58 --------------------------------------------------------------
-C ------------------------------------------------------------------------------
+C --- DATASET 58 -------------------------------------------------------
+C ----------------------------------------------------------------------
       ELSEIF (DATASETNUM == 58) THEN
 
 
@@ -399,28 +404,29 @@ C ------------------------------------------------------------------------------
 C       READ HEADER
 
 C       RECORD 1, ID LINE 1
-        READ(LUN,'(A80)',END=10,ERR=9) ID1
+        READ(LUN, '(A80)', END=10, ERR=9) ID1
 
 C       RECORD 2, ID LINE 2
-        READ(LUN,'(A80)',END=10,ERR=9) ID2
+        READ(LUN, '(A80)', END=10, ERR=9) ID2
 
 C       RECORD 3, ID LINE 3
-        READ(LUN,'(A80)',END=10,ERR=9) ID3
+        READ(LUN, '(A80)', END=10, ERR=9) ID3
 
 C       RECORD 4, ID LINE 4
-        READ(LUN,'(A80)',END=10,ERR=9) ID4
+        READ(LUN, '(A80)', END=10, ERR=9) ID4
 
 C       RECORD 5, ID LINE 5
-        READ(LUN,'(A80)',END=10,ERR=9) ID5
+        READ(LUN, '(A80)', END=10, ERR=9) ID5
 
 C       RECORD 6
-        READ(LUN,5806,END=10,ERR=9) F61,F62,F63,F64,F65,F66,F67,F68,F69
-     &    ,F610
-5806    FORMAT(2(I5,I10),2(1X,A10,I10,I4))
+        READ(LUN, 5806, END=10, ERR=9)
+     &    F61, F62, F63, F64, F65, F66, F67, F68, F69, F610
+5806    FORMAT(2(I5, I10), 2(1X, A10, I10, I4))
 
 C       RECORD 7
-        READ(LUN,5807,END=10,ERR=9) F71,F72,F73,F74,F75,F76
-5807    FORMAT(3I10,3ES13.5)
+        READ(LUN, 5807, END=10, ERR=9)
+     &    F71, F72, F73, F74, F75, F76
+5807    FORMAT(3I10, 3ES13.5)
 
 
         ORDDATATYPE = DBLE(F71)
@@ -432,26 +438,31 @@ C       RECORD 7
 
 
 C       RECORD 8
-        READ(LUN,5808,END=10,ERR=9) F81,F82,F83,F84,F85,F86
-5808    FORMAT(I10,3I5,2(1X,A20))
+        READ(LUN, 5808, END=10, ERR=9)
+     &    F81, F82, F83, F84, F85, F86
+5808    FORMAT(I10, 3I5, 2(1X, A20))
 
 C       RECORD 9
-        READ(LUN,5809,END=10,ERR=9) F91,F92,F93,F94,F95,F96
-5809    FORMAT(I10,3I5,2(1X,A20))
+        READ(LUN, 5809, END=10, ERR=9)
+     &    F91, F92, F93, F94, F95, F96
+5809    FORMAT(I10, 3I5, 2(1X, A20))
 
 C       RECORD 10
-        READ(LUN,5810,END=10,ERR=9) F101,F102,F103,F104,F105,F106
-5810    FORMAT(I10,3I5,2(1X,A20))
+        READ(LUN, 5810, END=10, ERR=9)
+     &    F101, F102, F103, F104, F105, F106
+5810    FORMAT(I10, 3I5, 2(1X, A20))
 
 C       RECORD 11
-        READ(LUN,5811,END=10,ERR=9) F111,F112,F113,F114,F115,F116
-5811    FORMAT(I10,3I5,2(1X,A20))
+        READ(LUN, 5811, END=10, ERR=9)
+     &    F111, F112, F113, F114, F115, F116
+5811    FORMAT(I10, 3I5, 2(1X, A20))
 
         CASENUM = 1
 
         ALLOCATE(XDATA(NVAL))
+
         IF (ISEVEN > 0.5) THEN ! XDATA EVENLY SPACED
-          IF (ABSCINCR < 1E-3 .AND. F81==17) THEN
+          IF (ABSCINCR < 1E-3 .AND. F81 == 17) THEN
             IF (ABSCINCR < 1E-4) THEN
               ABSCINCR = 2.0/NINT(2.0/ABSCINCR) ! FOR SMALL DX:S APPLY ROUNDING, WHEN ABSCISSA IS TIME
             ELSE
@@ -470,10 +481,7 @@ C       RECORD 11
         END IF
 
         IF (ORDDATATYPE == 4 .OR. ORDDATATYPE == 6) THEN ! = DOUBLE
-          PRECSTR = 'DOUBLE'
           CASENUM = CASENUM + 4
-        ELSE
-          PRECSTR = 'SINGLE'
         END IF
 
 
@@ -504,9 +512,9 @@ C       FIX TEXT ALIGNMENT
 C         SKIP FOR NOW
           ID1 = "0"
           DO WHILE (ID1 /= "    -1")
-            READ(LUN,'(A80)',END=10,ERR=9) ID1
+            READ(LUN, '(A80)', END=10, ERR=9) ID1
           END DO
-          GO TO 1
+          GO TO 1 ! READ HEADER AGAIN
 
         ELSE
 
@@ -520,12 +528,11 @@ C       CASE 1, 58
           ALLOCATE(Y_RS(NVAL))
 
 1001      FORMAT(6ES13.5)
-          READ(LUN,1001,END=9,ERR=9)(Y_RS(I),I=1,NVAL)
+          READ(LUN, 1001, END=9, ERR=9) (Y_RS(I), I = 1,NVAL)
           N = NVAL
 
-          CID = mxClassIDFromClassName('single')
           CXFLAG = 0
-          YPTR = mxCreateNumericMatrix(NVAL, N1, CID, CXFLAG)
+          YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, CXFLAG)
           CALL mxCopyReal4ToPtr(Y_RS, mxGetSingles(YPTR), NVAL)
           ID_PTR(3) = YPTR
 
@@ -540,13 +547,13 @@ C       CASE 2, 58
 1002      FORMAT(6ES13.5)
           DO WHILE (N < NVAL)
             STEP = MIN(3, NVAL-N)
-            READ(LUN,1002,END=9,ERR=9)(XDATA(I+N),Y_RS(I+N),I=1,STEP)
+            READ(LUN, 1002, END=9, ERR=9)
+     &        (XDATA(I+N), Y_RS(I+N), I = 1,STEP)
             N = N + STEP
           END DO
 
-          CID = mxClassIDFromClassName('single')
           CXFLAG = 0
-          YPTR = mxCreateNumericMatrix(NVAL, N1, CID, CXFLAG)
+          YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, CXFLAG)
           CALL mxCopyReal4ToPtr(Y_RS, mxGetSingles(YPTR), NVAL)
           ID_PTR(3) = YPTR
 
@@ -554,17 +561,16 @@ C       CASE 2, 58
 
 
 C       CASE 3, 58
-        ELSEIF (CASENUM == 3) THEN ! complex, single, even spacing
+        ELSEIF (CASENUM == 3) THEN ! COMPLEX, SINGLE, EVEN SPACING
 
           ALLOCATE(Y_CS(NVAL))
 
 1003      FORMAT(6ES13.5)
-          READ(LUN,1003,END=9,ERR=9)(Y_CS(I),I=1,NVAL)
+          READ(LUN, 1003, END=9, ERR=9) (Y_CS(I), I = 1,NVAL)
           N = NVAL
 
-          CID = mxClassIDFromClassName('single')
           CXFLAG = 1
-          YPTR = mxCreateNumericMatrix(NVAL, N1, CID, CXFLAG)
+          YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, CXFLAG)
           CALL mxCopyComplex8ToPtr(Y_CS, mxGetComplexSingles(YPTR),NVAL)
           ID_PTR(3) = YPTR
 
@@ -579,13 +585,13 @@ C       CASE 4, 58
 1004      FORMAT(6ES13.5)
           DO WHILE (N < NVAL)
             STEP = MIN(2, NVAL-N)
-            READ(LUN,1004,END=9,ERR=9)(XDATA(I+N),Y_CS(I+N),I=1,STEP)
+            READ(LUN, 1004, END=9, ERR=9)
+     &        (XDATA(I+N), Y_CS(I+N), I = 1,STEP)
             N = N + STEP
           END DO
 
-          CID = mxClassIDFromClassName('single')
           CXFLAG = 1
-          YPTR = mxCreateNumericMatrix(NVAL, N1, CID, CXFLAG)
+          YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, CXFLAG)
           CALL mxCopyComplex8ToPtr(Y_CS, mxGetComplexSingles(YPTR),NVAL)
           ID_PTR(3) = YPTR
 
@@ -598,11 +604,10 @@ C       CASE 5, 58
           ALLOCATE(Y_RD(NVAL))
 
 1005      FORMAT(4ES20.12)
-          READ(LUN,1005,END=9,ERR=9)(Y_RD(I),I=1,NVAL)
+          READ(LUN, 1005, END=9, ERR=9) (Y_RD(I), I = 1,NVAL)
 
-          CID = mxClassIDFromClassName('double')
           CXFLAG = 0
-          YPTR = mxCreateNumericMatrix(NVAL, N1, CID, CXFLAG)
+          YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, CXFLAG)
           CALL mxCopyReal8ToPtr(Y_RD, mxGetDoubles(YPTR), NVAL)
           ID_PTR(3) = YPTR
 
@@ -617,13 +622,13 @@ C       CASE 6, 58
 1006      FORMAT(2(ES13.5,ES20.12))
           DO WHILE (N < NVAL)
             STEP = MIN(2, NVAL-N)
-            READ(LUN,1006,END=9,ERR=9)(XDATA(I+N),Y_RD(I+N),I=1,STEP)
+            READ(LUN, 1006, END=9, ERR=9)
+     &        (XDATA(I+N), Y_RD(I+N), I = 1,STEP)
             N = N + STEP
           END DO
 
-          CID = mxClassIDFromClassName('double')
           CXFLAG = 0
-          YPTR = mxCreateNumericMatrix(NVAL, N1, CID, CXFLAG)
+          YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, CXFLAG)
           CALL mxCopyReal8ToPtr(Y_RD, mxGetDoubles(YPTR), NVAL)
           ID_PTR(3) = YPTR
 
@@ -636,12 +641,11 @@ C       CASE 7, 58
           ALLOCATE(Y_CD(NVAL))
 
 1007      FORMAT(4ES20.12)
-          READ(LUN,1007,END=9,ERR=9)(Y_CD(I),I=1,NVAL)
+          READ(LUN, 1007, END=9, ERR=9) (Y_CD(I), I = 1,NVAL)
           N = NVAL
 
-          CID = mxClassIDFromClassName('double')
           CXFLAG = 1
-          YPTR = mxCreateNumericMatrix(NVAL, N1, CID, CXFLAG)
+          YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, CXFLAG)
           CALL mxCopyComplex16ToPtr(Y_CD,mxGetComplexDoubles(YPTR),NVAL)
           ID_PTR(3) = YPTR
 
@@ -655,24 +659,23 @@ C       CASE 8, 58
 
 1008      FORMAT(ES13.5,2ES20.12)
           DO WHILE (N < NVAL)
-            READ(LUN,1008,END=208,ERR=9)(XDATA(N+1),Y_CD(N+1))
+            READ(LUN, 1008, END=208, ERR=9) (XDATA(N+1), Y_CD(N+1))
             N = N + 1
           END DO
 
-208       CID = mxClassIDFromClassName('double')
-          CXFLAG = 1
-          YPTR = mxCreateNumericMatrix(NVAL, N1, CID, CXFLAG)
+208       CXFLAG = 1
+          YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, CXFLAG)
           CALL mxCopyComplex16ToPtr(Y_CD,mxGetComplexDoubles(YPTR),NVAL)
           ID_PTR(3) = YPTR
 
           DEALLOCATE(Y_CD)
 
-        END IF ! end of case switch
+        END IF ! END OF CASE SWITCH
 
-        END IF ! end of binary/ascii switch
+        END IF ! END OF BINARY/ASCII SWITCH
 
 
-
+C       DATA
         fieldnames(1) = 'datasetType'
         fieldnames(2) = 'x'
         fieldnames(3) = 'data'
@@ -683,6 +686,7 @@ C       RECORD 1-5
         fieldnames(6) = 'date'
         fieldnames(7) = 'ID4'
         fieldnames(8) = 'ID5'
+
 C       RECORD 6
         fieldnames(9) = 'functionType'
         fieldnames(10) = 'functionID'
@@ -694,6 +698,7 @@ C       RECORD 6
         fieldnames(16) = 'refEntName'
         fieldnames(17) = 'refNode'
         fieldnames(18) = 'refDir'
+
 C       RECORD 7
         fieldnames(19) = 'dataFormatType'
         fieldnames(20) = 'numValues'
@@ -701,6 +706,7 @@ C       RECORD 7
         fieldnames(22) = 'x0'
         fieldnames(23) = 'dx'
         fieldnames(24) = 'zAxisValue'
+
 C       RECORD 8
         fieldnames(25) = 'abscDataType'
         fieldnames(26) = 'abscLengthUnitsExponent'
@@ -708,6 +714,7 @@ C       RECORD 8
         fieldnames(28) = 'abscTempUnitsExponent'
         fieldnames(29) = 'abscAxisLabel'
         fieldnames(30) = 'abscAxisUnitLabel'
+
 C       RECORD 9
         fieldnames(31) = 'ordNumDataType'
         fieldnames(32) = 'ordNumLengthUnitsExponent'
@@ -715,6 +722,7 @@ C       RECORD 9
         fieldnames(34) = 'ordNumTempUnitsExponent'
         fieldnames(35) = 'ordNumAxisLabel'
         fieldnames(36) = 'ordNumAxisUnitLabel'
+
 C       RECORD 10
         fieldnames(37) = 'ordDenomDataType'
         fieldnames(38) = 'ordDenomLengthUnitsExponent'
@@ -722,6 +730,7 @@ C       RECORD 10
         fieldnames(40) = 'ordDenomTempUnitsExponent'
         fieldnames(41) = 'ordDenomAxisLabel'
         fieldnames(42) = 'ordDenomAxisUnitLabel'
+
 C       RECORD 11
         fieldnames(43) = 'zDataType'
         fieldnames(44) = 'zLengthUnitsExponent'
@@ -730,18 +739,14 @@ C       RECORD 11
         fieldnames(47) = 'zAxisLabel'
         fieldnames(48) = 'zAxisUnitLabel'
 
-        fieldnames(49) = 'dataCase'
-        fieldnames(50) = 'precision'
 
+        FIELDSTOUSE = 48
 
-        FIELDSTOUSE = 50
-
-
-
-        CID = mxClassIDFromClassName('single')
+C       COPY XDATA TO SINGLE OUTPUT MATRIX
         CXFLAG = 0
-        ID_PTR(2) = mxCreateNumericMatrix(NVAL,N1,CID,CXFLAG)
-        CALL mxCopyReal4ToPtr(XDATA,mxGetSingles(ID_PTR(2)),NVAL)
+        ID_PTR(2) = mxCreateNumericMatrix(NVAL, N1, CID_S, CXFLAG)
+        CALL mxCopyReal4ToPtr(XDATA, mxGetSingles(ID_PTR(2)), NVAL)
+
         DEALLOCATE(XDATA)
 
 C       RECORD 1-5
@@ -804,8 +809,6 @@ C       RECORD 11
         ID_PTR(47) = mxCreateString(F115) ! Ordinate axis label
         ID_PTR(48) = mxCreateString(F116) ! Ordinate axis units label
 
-        ID_PTR(49) = mxCreateDoubleScalar(DBLE(CASENUM))
-        ID_PTR(50) = mxCreateString(PRECSTR) ! data precision (string)
 
 
         SELECT CASE (USE_ALLOCATION)
@@ -836,9 +839,13 @@ C       RECORD 11
       ELSE
 
         ID1 = "0"
-        DO WHILE (ID1 /= "    -1") ! CHECK STRICTLY FOR THE CORRECT FORMATTING OF END TERMINATOR
-          READ(LUN,'(A80)',END=10,ERR=9) ID1
+
+C       CHECK STRICTLY FOR THE CORRECT FORMATTING OF END TERMINATOR
+        DO WHILE (ID1 /= "    -1")
+          READ(LUN, '(A80)', END=10, ERR=9) ID1
         END DO
+
+C       RETURN TO TOP, FOR NEXT DATARECORD
         GO TO 1
 
       END IF
@@ -846,12 +853,12 @@ C       RECORD 11
 
 
 C     IF NOT ALREADY END OF FILE RETURN TO READING NEXT HEADER
-      READ(LUN,'(A80)',END=10,ERR=9) ID1
+      READ(LUN, '(A80)', END=10, ERR=9) ID1
       GO TO 1
 
 
-C --- FINISHED READING ---------------------------------------------------------
-C ------------------------------------------------------------------------------
+C --- FINISHED READING -------------------------------------------------
+C ----------------------------------------------------------------------
 
 
 
@@ -870,13 +877,10 @@ C     DEALLOCATE ALLOCATED VARIABLES
       IF (ALLOCATED(Y_CS)) DEALLOCATE(Y_CS)
       IF (ALLOCATED(Y_CD)) DEALLOCATE(Y_CD)
       IF (ALLOCATED(Y_CD)) DEALLOCATE(Y_CD)
-      IF (USE_ALLOCATION > 0) THEN
-        IF (ALLOCATED(SPTR_1)) DEALLOCATE(SPTR_1)
-        IF (ALLOCATED(SPTR_2)) DEALLOCATE(SPTR_2)
-      END IF
 
 
-      IF (LUN /= 0) THEN ! IF LUN HAVE BEEN INITIALISED
+C     IF LUN HAVE BEEN INITIALISED
+      IF (LUN /= 0) THEN
         INQUIRE(UNIT=LUN, OPENED=OK) ! CHECK IF FILE IS OPEN
         IF (OK) THEN
           CLOSE(LUN, STATUS='KEEP') ! CLOSE IF OPEN
@@ -944,11 +948,18 @@ C     CREATE AND ASSIGN CELL MATRIX
      &ow.')
 
             CASE DEFAULT
-              plhs(2)=mxCreateString('Read error: check IOSTAT code.')
+              plhs(2) = mxCreateString('Read error: check IOSTAT code.')
 
           END SELECT
         END IF
 
+      END IF
+
+
+C     IF ALLOCATION HAVE BEEN USED -> DEALLOCATE DYNAMIC STRUCT POINTERS
+      IF (USE_ALLOCATION > 0) THEN
+        IF (ALLOCATED(SPTR_1)) DEALLOCATE(SPTR_1)
+        IF (ALLOCATED(SPTR_2)) DEALLOCATE(SPTR_2)
       END IF
 
 
@@ -957,8 +968,8 @@ C     CREATE AND ASSIGN CELL MATRIX
       END
 
 
-C ------------------------------------------------------------------------------
-C --- END OF PROGRAM -----------------------------------------------------------
-C ------------------------------------------------------------------------------
+C ----------------------------------------------------------------------
+C --- END OF PROGRAM ---------------------------------------------------
+C ----------------------------------------------------------------------
 
 
