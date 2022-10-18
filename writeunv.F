@@ -1,7 +1,7 @@
 #include "fintrf.h"
 
 
-C ------------------------------------------------------------------------------
+C ----------------------------------------------------------------------
 C
 C     STATE = WRITEUNV(FILEPATH, STRUCT, WRITEMODE, IDX)
 C
@@ -30,7 +30,7 @@ C       = -11, DATA CASE TYPE IS UNSUPPORTED
 C       = -12, FLOATING POINT ARITHMETIC OVERFLOW (FROM IOSTAT)
 C       = >1,  ERROR CODE FROM IOSTAT WHEN OPENING FILE
 C
-C ------------------------------------------------------------------------------
+C ----------------------------------------------------------------------
 
 
       SUBROUTINE mexFunction(nlhs, plhs, nrhs, prhs)
@@ -114,8 +114,8 @@ C ------------------------------------------------------------------------------
 
 
 
-C --- CLOSE ALL OPENED FILES, OR CONTINUE --------------------------------------
-C ------------------------------------------------------------------------------
+C --- CLOSE ALL OPENED FILES, OR CONTINUE ------------------------------
+C ----------------------------------------------------------------------
       IF (nrhs < 1) THEN ! EMPTY CALL
         IF (MAXVAL(LUN) > 0) THEN
           DO K=1,SIZE(LUN)
@@ -129,24 +129,26 @@ C ------------------------------------------------------------------------------
         LUN = 0
         NUMPTS = 0
         REMPTS = 0
-        GO TO 10 ! GO TO END SECTION
+C       GO TO END SECTION
+        GO TO 10 !
 
       ELSEIF (nrhs < 2) THEN ! TOO FEW INPUTS
         S = -4.0
-        GO TO 10  ! GO TO END SECTION
+C       GO TO END SECTION
+        GO TO 10
 
       ELSE
 C       CONTINUE BELOW
 
       END IF
-C ------------------------------------------------------------------------------
-C ------------------------------------------------------------------------------
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
 
 
 
 
-C --- DETERMINE DESIRED WRITING MODE -------------------------------------------
-C ------------------------------------------------------------------------------
+C --- DETERMINE DESIRED WRITING MODE -----------------------------------
+C ----------------------------------------------------------------------
       OPENLUN = .FALSE.
       IF (nrhs < 3) THEN
         WRITEMODE = 1
@@ -172,15 +174,16 @@ C ------------------------------------------------------------------------------
           LIDX = 0
         END IF
       END IF
-C ------------------------------------------------------------------------------
-C ------------------------------------------------------------------------------
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
 
 
 
 
-C --- OPEN FILE IF NEEDED/DESIRED ----------------------------------------------
-C ------------------------------------------------------------------------------
-      IF (WRITEMODE == 1 .OR. LIDX < 1 .OR. OPENLUN) THEN ! CREATE NEW FILE LUN
+C --- OPEN FILE IF NEEDED/DESIRED --------------------------------------
+C ----------------------------------------------------------------------
+      IF (WRITEMODE == 1 .OR. LIDX < 1 .OR. OPENLUN) THEN
+C       CREATE NEW FILE LUN
 
 C       CHECK IF ARGUMENT IS EMPTY
         NOK = mxIsEmpty(prhs(1))
@@ -231,15 +234,16 @@ C       IF DESIRED LUN INDEX ALREADY MAPS TO AN OPEN LUN, CLOSE IT
 
 
 C       OPEN FILE
-        OPEN(UNIT=LUN(LIDX),
-     & FILE=FILEPATH,
-     & ACCESS='STREAM',
-     & STATUS=FILEACT,
-     & ERR=8,
-     & FORM='FORMATTED',
-     & POSITION='APPEND',
-     & IOSTAT=OPENSTAT,
-     & ACTION='READWRITE')
+        OPEN(
+     &    UNIT = LUN(LIDX),
+     &    FILE = FILEPATH,
+     &    ACCESS = 'STREAM',
+     &    STATUS = FILEACT,
+     &    ERR = 8,
+     &    FORM = 'FORMATTED',
+     &    POSITION = 'APPEND',
+     &    IOSTAT = OPENSTAT,
+     &    ACTION = 'READWRITE')
 
         REMPTS(LIDX) = 0
         NUMPTS(LIDX) = 0
@@ -257,16 +261,16 @@ C       OPEN FILE
         KEEPFILEOPEN = .TRUE.
 
       END IF
-C ------------------------------------------------------------------------------
-C ------------------------------------------------------------------------------
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
 
 
 
 
 
 
-C --- ONLY WRITE STREAMING DATA ------------------------------------------------
-C ------------------------------------------------------------------------------
+C --- ONLY WRITE STREAMING DATA ----------------------------------------
+C ----------------------------------------------------------------------
       IF (WRITEMODE == 3) THEN
 
         IF (nrhs < 5) THEN
@@ -293,25 +297,27 @@ C ------------------------------------------------------------------------------
                 GO TO 10
               END IF
 
-C             FINISH LAST LINE IF LEFT UNFILLED
-              IF (REMPTS(LIDX) > 0) THEN
-                WRITE(LUN(LIDX),'(1X)',ERR=9)
-              END IF
+C             FINISH LAST LINE
+              WRITE(LUN(LIDX),'(1X)',ERR=9)
 
+C             WRITE UNV TERMINATOR, -1
               WRITE(LUN(LIDX),'(I6)') -1
+
+C             CLOSE FILE
               CLOSE(LUN(LIDX),STATUS='KEEP')
 
-              OPEN(UNIT=LUN(LIDX),
-     & FILE=FILESTR,
-     & ACCESS='STREAM',
-     & STATUS='OLD',
-     & ERR=8,
-     & FORM='UNFORMATTED',
-     & ACTION='WRITE')
+              OPEN(
+     &          UNIT = LUN(LIDX),
+     &          FILE = FILESTR,
+     &          ACCESS = 'STREAM',
+     &          STATUS = 'OLD',
+     &          ERR = 8,
+     &          FORM = 'UNFORMATTED',
+     &          ACTION = 'WRITE')
 
-              WRITE(STR10,'(I10)') NUMPTS(LIDX)
-              WRITE(LUN(LIDX),ERR=9,POS=REC7POS(LIDX)+10) STR10
-              CLOSE(LUN(LIDX),STATUS='KEEP')
+              WRITE(STR10, '(I10)') NUMPTS(LIDX)
+              WRITE(LUN(LIDX), ERR=9, POS=REC7POS(LIDX)+10) STR10
+              CLOSE(LUN(LIDX), STATUS='KEEP')
 
               S = 1.0
 
@@ -333,7 +339,6 @@ C             FINISH LAST LINE IF LEFT UNFILLED
             NVAL = mxGetM(prhs(2))
             N = mxGetN(prhs(2))
 
-C             NVAL = M
 
             IF (N > 1 .OR. NVAL < 1) THEN
               S = -10
@@ -344,9 +349,8 @@ C             NVAL = M
             STEP = REMPTS(LIDX)
 
 
-C --------- WRITING STREAMING DATA / CASE 1 ------------------------------------
+C --------- WRITING STREAMING DATA / CASE 1 ----------------------------
             IF (CASENUM == 1) THEN ! REAL SINGLE, X-EVENLY-SPACED
-
 
               ALLOCATE(Y_RS(NVAL))
 
@@ -355,41 +359,53 @@ C --------- WRITING STREAMING DATA / CASE 1 ------------------------------------
               PTR = mxGetSingles(prhs(2))
               CALL mxCopyPtrToReal4(PTR, Y_RS, NVAL)
 
-              IF (STEP /= 0) THEN
-                IF (STEP > NVAL) THEN
-                    WRITE(LUN(LIDX),1001,ERR=9,ADVANCE='NO')(Y_RS(I),
-     & I=1,NVAL)
+              IF (STEP /= 0) THEN ! IF THERE IS UNFINISHED DATA, 0 -> FINISHED ROW
+                IF (STEP >= NVAL) THEN ! IF NUMBER VALUES TO WRITE IS <= REQUIRED AMOUNT TO FINISH ROW
+                    WRITE(LUN(LIDX), 1001, ERR=9, ADVANCE='NO')
+     &                (Y_RS(I), I = 1,NVAL)
                   REMPTS(LIDX) = REMPTS(LIDX)-NVAL
-                  S = 1.0
-                  GO TO 10
-                ELSE
-                  WRITE(LUN(LIDX),1001,ERR=9) (Y_RS(I),I=1, ! ADD PARTIAL DATA
-     & STEP)
+                  S = 1.0 ! SUCCESS
+                  GO TO 10 ! RETURN
+                ELSE ! MORE DATA AVAILABLE AFTER FINISH OF CURRENT LINE
+C                   ADD PARTIAL DATA, REQUIRED AMOUNT TO FINISH ROW
+                    WRITE(LUN(LIDX), 1001, ERR=9, ADVANCE='NO')
+     &                (Y_RS(I), I = 1,STEP)
                 END IF
               END IF
+
               N = STEP
+
               IF (N == NVAL) THEN
                 REMPTS(LIDX) = 0
               ELSE
-                STEP = (NVAL-N)-MOD(NVAL-N,PTLIM)
-                WRITE(LUN(LIDX),1001,ERR=9) (Y_RS(I+N),I=1,STEP)
-                N = N + STEP
-                IF (N /= NVAL) THEN
-                  WRITE(LUN(LIDX),1001,ERR=9,ADVANCE='NO')(Y_RS(I),
-     & I=N+1,NVAL)
-                  STEP = NVAL-N
-                ELSE
-                  STEP = PTLIM
+                WRITE(LUN(LIDX), '(1X)',ERR=9) ! IF PREVIOUS WRITE WAS FINISHED, OR END OF HEADER -> ADVANCE
+                STEP = (NVAL-N) - MOD(NVAL-N, PTLIM) ! WRITE NO PARTIAL NUMBER OF LINES
+                IF (N+STEP == NVAL) THEN
+                  STEP = STEP-PTLIM ! ONLY WRITE UP UNTIL THE SECOND-TO-LAST LINE, WITH ADVANCE=YES
                 END IF
-                REMPTS(LIDX) = PTLIM-STEP
+
+C               WRITE 1:END-1 COMPLETE LINES, WITH ADVANCE
+                IF (STEP > 0) THEN
+                  WRITE(LUN(LIDX), 1001, ERR=9, ADVANCE='YES')
+     &              (Y_RS(I+N), I = 1,STEP)
+                END IF
+
+                N = N + STEP
+
+C               WRITE LAST (PARTIAL/COMPLETE) LINE, WITH NO ADVANCE
+                WRITE(LUN(LIDX), 1001, ERR=9, ADVANCE='NO')
+     &              (Y_RS(I), I = N+1,NVAL)
+
+                REMPTS(LIDX) = PTLIM-(NVAL-N) ! POINTS LEFT TO WRITE
+
               END IF
-              S = 1.0
+              S = 1.0 ! SUCCESS
 
 
 
 
-C --------- WRITING STREAMING DATA / CASE 3 ------------------------------------
-            ELSE IF (CASENUM == 3) THEN ! COMPLES SINGLE, X-EVENLY-SPACED
+C --------- WRITING STREAMING DATA / CASE 3 ----------------------------
+            ELSE IF (CASENUM == 3) THEN ! COMPLEX SINGLE, X-EVEN
 
               ALLOCATE(Y_CS(NVAL))
 
@@ -398,41 +414,52 @@ C --------- WRITING STREAMING DATA / CASE 3 ------------------------------------
               PTR = mxGetComplexSingles(prhs(2))
               CALL mxCopyPtrToComplex8(PTR, Y_CS, NVAL)
 
-              IF (STEP /= 0) THEN
-                IF (STEP > NVAL) THEN
-                    WRITE(LUN(LIDX),1003,ERR=9,ADVANCE='NO')(Y_CS(I),
-     & I=1,NVAL)
+              IF (STEP /= 0) THEN ! IF THERE IS UNFINISHED DATA, 0 -> FINISHED ROW
+                IF (STEP >= NVAL) THEN ! IF NUMBER VALUES TO WRITE IS <= REQUIRED AMOUNT TO FINISH ROW
+                    WRITE(LUN(LIDX), 1003, ERR=9, ADVANCE='NO')
+     &                (Y_CS(I), I = 1,NVAL)
                   REMPTS(LIDX) = REMPTS(LIDX)-NVAL
-                  S = 1.0
-                  GO TO 10
-                ELSE
-                  WRITE(LUN(LIDX),1003,ERR=9) (Y_CS(I),I=1, ! ADD PARTIAL DATA
-     & STEP)
+                  S = 1.0 ! SUCCESS
+                  GO TO 10 ! RETURN
+                ELSE ! MORE DATA AVAILABLE AFTER FINISH OF CURRENT LINE
+C                   ADD PARTIAL DATA, REQUIRED AMOUNT TO FINISH ROW
+                    WRITE(LUN(LIDX), 1003, ERR=9, ADVANCE='NO')
+     &                (Y_CS(I), I = 1,STEP)
                 END IF
               END IF
+
               N = STEP
+
               IF (N == NVAL) THEN
                 REMPTS(LIDX) = 0
               ELSE
-                STEP = (NVAL-N)-MOD(NVAL-N,PTLIM)
-                WRITE(LUN(LIDX),1003,ERR=9) (Y_CS(I+N),I=1,STEP)
-                N = N + STEP
-                IF (N /= NVAL) THEN
-                  WRITE(LUN(LIDX),1003,ERR=9,ADVANCE='NO')(Y_CS(I),
-     & I=N+1,NVAL)
-                  STEP = NVAL-N
-                ELSE
-                  STEP = PTLIM
+                WRITE(LUN(LIDX), '(1X)', ERR=9) ! IF PREVIOUS WRITE WAS FINISHED, OR END OF HEADER -> ADVANCE
+                STEP = (NVAL-N) - MOD(NVAL-N, PTLIM) ! WRITE NO PARTIAL NUMBER OF LINES
+                IF (N+STEP == NVAL) THEN
+                  STEP = STEP-PTLIM ! ONLY WRITE UP UNTIL THE SECOND-TO-LAST LINE, WITH ADVANCE=YES
                 END IF
-                REMPTS(LIDX) = PTLIM-STEP
+
+C               WRITE 1:END-1 COMPLETE LINES, WITH ADVANCE
+                IF (STEP > 0) THEN
+                  WRITE(LUN(LIDX), 1003, ERR=9, ADVANCE='YES')
+     &              (Y_CS(I+N), I = 1,STEP)
+                END IF
+
+                N = N + STEP
+
+C               WRITE LAST (PARTIAL/COMPLETE) LINE, WITH NO ADVANCE
+                WRITE(LUN(LIDX), 1003, ERR=9, ADVANCE='NO')
+     &              (Y_CS(I), I = N+1,NVAL)
+
+                REMPTS(LIDX) = PTLIM-(NVAL-N) ! POINTS LEFT TO WRITE
+
               END IF
-              S = 1.0
+              S = 1.0 ! SUCCESS
 
 
 
 
-
-C --------- WRITING STREAMING DATA / CASE 5 ------------------------------------
+C --------- WRITING STREAMING DATA / CASE 5 ----------------------------
             ELSE IF (CASENUM == 5) THEN ! REAL DOUBLE, X-EVENLY-SPACED
 
               ALLOCATE(Y_RD(NVAL))
@@ -442,43 +469,53 @@ C --------- WRITING STREAMING DATA / CASE 5 ------------------------------------
               PTR = mxGetDoubles(prhs(2))
               CALL mxCopyPtrToReal8(PTR, Y_RD, NVAL)
 
-              IF (STEP /= 0) THEN
-                IF (STEP > NVAL) THEN
-                    WRITE(LUN(LIDX),1005,ERR=9,ADVANCE='NO')(Y_RD(I),
-     & I=1,NVAL)
+              IF (STEP /= 0) THEN ! IF THERE IS UNFINISHED DATA, 0 -> FINISHED ROW
+                IF (STEP >= NVAL) THEN ! IF NUMBER VALUES TO WRITE IS <= REQUIRED AMOUNT TO FINISH ROW
+                    WRITE(LUN(LIDX), 1005, ERR=9, ADVANCE='NO')
+     &                (Y_RD(I), I = 1,NVAL)
                   REMPTS(LIDX) = REMPTS(LIDX)-NVAL
-                  S = 1.0
-                  GO TO 10
-                ELSE
-                  WRITE(LUN(LIDX),1005,ERR=9) (Y_RD(I),I=1, ! ADD PARTIAL DATA
-     & STEP)
+                  S = 1.0 ! SUCCESS
+                  GO TO 10 ! RETURN
+                ELSE ! MORE DATA AVAILABLE AFTER FINISH OF CURRENT LINE
+C                   ADD PARTIAL DATA, REQUIRED AMOUNT TO FINISH ROW
+                    WRITE(LUN(LIDX), 1005, ERR=9, ADVANCE='NO')
+     &                (Y_RD(I), I = 1,STEP)
                 END IF
               END IF
+
               N = STEP
+
               IF (N == NVAL) THEN
                 REMPTS(LIDX) = 0
               ELSE
-                STEP = (NVAL-N)-MOD(NVAL-N,PTLIM)
-                WRITE(LUN(LIDX),1005,ERR=9) (Y_RD(I+N),I=1,STEP)
-                N = N + STEP
-                IF (N /= NVAL) THEN
-                  WRITE(LUN(LIDX),1005,ERR=9,ADVANCE='NO')(Y_RD(I),
-     & I=N+1,NVAL)
-                  STEP = NVAL-N
-                ELSE
-                  STEP = PTLIM
+                WRITE(LUN(LIDX), '(1X)', ERR=9) ! IF PREVIOUS WRITE WAS FINISHED, OR END OF HEADER -> ADVANCE
+                STEP = (NVAL-N) - MOD(NVAL-N, PTLIM) ! WRITE NO PARTIAL NUMBER OF LINES
+                IF (N+STEP == NVAL) THEN
+                  STEP = STEP-PTLIM ! ONLY WRITE UP UNTIL THE SECOND-TO-LAST LINE, WITH ADVANCE=YES
                 END IF
-                REMPTS(LIDX) = PTLIM-STEP
+
+C               WRITE 1:END-1 COMPLETE LINES, WITH ADVANCE
+                IF (STEP > 0) THEN
+                  WRITE(LUN(LIDX), 1005, ERR=9, ADVANCE='YES')
+     &              (Y_RD(I+N), I = 1,STEP)
+                END IF
+
+                N = N + STEP
+
+C               WRITE LAST (PARTIAL/COMPLETE) LINE, WITH NO ADVANCE
+                WRITE(LUN(LIDX), 1005, ERR=9, ADVANCE='NO')
+     &              (Y_RD(I), I = N+1,NVAL)
+
+                REMPTS(LIDX) = PTLIM-(NVAL-N) ! POINTS LEFT TO WRITE
+
               END IF
-              S = 1.0
+              S = 1.0 ! SUCCESS
 
 
 
 
-
-C --------- WRITING STREAMING DATA / CASE 7 ------------------------------------
-            ELSE IF (CASENUM == 7) THEN ! COMPLES DOUBLE, X-EVENLY-SPACED
-              S = 7
+C --------- WRITING STREAMING DATA / CASE 7 ----------------------------
+            ELSE IF (CASENUM == 7) THEN ! COMPLEX DOUBLE, X-EVEN
 
               ALLOCATE(Y_CD(NVAL))
 
@@ -487,35 +524,47 @@ C --------- WRITING STREAMING DATA / CASE 7 ------------------------------------
               PTR = mxGetComplexDoubles(prhs(2))
               CALL mxCopyPtrToComplex16(PTR, Y_CD, NVAL)
 
-              IF (STEP /= 0) THEN
-                IF (STEP > NVAL) THEN
-                    WRITE(LUN(LIDX),1007,ERR=9,ADVANCE='NO')(Y_CD(I),
-     & I=1,NVAL)
+              IF (STEP /= 0) THEN ! IF THERE IS UNFINISHED DATA, 0 -> FINISHED ROW
+                IF (STEP >= NVAL) THEN ! IF NUMBER VALUES TO WRITE IS <= REQUIRED AMOUNT TO FINISH ROW
+                    WRITE(LUN(LIDX), 1007, ERR=9, ADVANCE='NO')
+     &                (Y_CD(I), I = 1,NVAL)
                   REMPTS(LIDX) = REMPTS(LIDX)-NVAL
-                  S = 1.0
-                  GO TO 10
-                ELSE
-                  WRITE(LUN(LIDX),1007,ERR=9) (Y_CD(I),I=1, ! ADD PARTIAL DATA
-     & STEP)
+                  S = 1.0 ! SUCCESS
+                  GO TO 10 ! RETURN
+                ELSE ! MORE DATA AVAILABLE AFTER FINISH OF CURRENT LINE
+C                   ADD PARTIAL DATA, REQUIRED AMOUNT TO FINISH ROW
+                    WRITE(LUN(LIDX), 1007, ERR=9, ADVANCE='NO')
+     &                (Y_CD(I), I = 1,STEP)
                 END IF
               END IF
+
               N = STEP
+
               IF (N == NVAL) THEN
                 REMPTS(LIDX) = 0
               ELSE
-                STEP = (NVAL-N)-MOD(NVAL-N,PTLIM)
-                WRITE(LUN(LIDX),1007,ERR=9) (Y_CD(I+N),I=1,STEP)
-                N = N + STEP
-                IF (N /= NVAL) THEN
-                  WRITE(LUN(LIDX),1007,ERR=9,ADVANCE='NO')(Y_CD(I),
-     & I=N+1,NVAL)
-                  STEP = NVAL-N
-                ELSE
-                  STEP = PTLIM
+                WRITE(LUN(LIDX), '(1X)', ERR=9) ! IF PREVIOUS WRITE WAS FINISHED, OR END OF HEADER -> ADVANCE
+                STEP = (NVAL-N) - MOD(NVAL-N, PTLIM) ! WRITE NO PARTIAL NUMBER OF LINES
+                IF (N+STEP == NVAL) THEN
+                  STEP = STEP-PTLIM ! ONLY WRITE UP UNTIL THE SECOND-TO-LAST LINE, WITH ADVANCE=YES
                 END IF
-                REMPTS(LIDX) = PTLIM-STEP
+
+C               WRITE 1:END-1 COMPLETE LINES, WITH ADVANCE
+                IF (STEP > 0) THEN
+                  WRITE(LUN(LIDX), 1007, ERR=9, ADVANCE='YES')
+     &              (Y_CD(I+N), I = 1,STEP)
+                END IF
+
+                N = N + STEP
+
+C               WRITE LAST (PARTIAL/COMPLETE) LINE, WITH NO ADVANCE
+                WRITE(LUN(LIDX), 1007, ERR=9, ADVANCE='NO')
+     &              (Y_CD(I), I = N+1,NVAL)
+
+                REMPTS(LIDX) = PTLIM-(NVAL-N) ! POINTS LEFT TO WRITE
+
               END IF
-              S = 1.0
+              S = 1.0 ! SUCCESS
 
 
 
@@ -538,14 +587,14 @@ C --------- WRITING STREAMING DATA / CASE 7 ------------------------------------
         END IF
 
 
-C ------------------------------------------------------------------------------
-C ------------------------------------------------------------------------------
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
 
 
 
 
-C --- NORMAL WRITING MODE ------------------------------------------------------
-C ------------------------------------------------------------------------------
+C --- NORMAL WRITING MODE ----------------------------------------------
+C ----------------------------------------------------------------------
       ELSE
 
 
@@ -574,8 +623,8 @@ C --- GET DATASET TYPE TO WRITE
 
 
 
-C --- DATASET 151 --------------------------------------------------------------
-C ------------------------------------------------------------------------------
+C --- DATASET 151 ------------------------------------------------------
+C ----------------------------------------------------------------------
       IF (DATASETNUM == 151) THEN
 
 C       MIN. REQUIRED NUMBER OF FIELDS
@@ -693,40 +742,50 @@ C       7.2
 C ----- WRITE ALL FIELDS
 C
 C       START OF RECORD, -1
-        WRITE(LUN(LIDX),'(I6)',ERR=9) -1
+        WRITE(LUN(LIDX), '(I6)', ERR=9) -1
+
 C       DATASET NUMBER
-        WRITE(LUN(LIDX),'(I6)',ERR=9) DATASETNUM
+        WRITE(LUN(LIDX), '(I6)', ERR=9) DATASETNUM
+
 C       RECORD 1
-        WRITE(LUN(LIDX),'(A80)',ERR=9) ID1
+        WRITE(LUN(LIDX), '(A80)', ERR=9) ID1
+
 C       RECORD 2
-        WRITE(LUN(LIDX),'(A80)',ERR=9) ID2
+        WRITE(LUN(LIDX), '(A80)', ERR=9) ID2
+
 C       RECORD 3
-        WRITE(LUN(LIDX),'(A80)',ERR=9) ID3
+        WRITE(LUN(LIDX),'(A80)', ERR=9) ID3
+
 C       RECORD 4
-        WRITE(LUN(LIDX),1514,ERR=9) DS151F41,DS151F42,DS151F43,
-     & DS151F44,DS151F45
-1514    FORMAT(A10,A10,3I10)
+        WRITE(LUN(LIDX), 1514, ERR=9)
+     &    DS151F41, DS151F42, DS151F43, DS151F44, DS151F45
+1514    FORMAT(A10, A10, 3I10)
+
 C       RECORD 5
-        WRITE(LUN(LIDX),1515,ERR=9) DS151F51,DS151F52
-1515    FORMAT(A10,A10)
+        WRITE(LUN(LIDX), 1515, ERR=9) DS151F51, DS151F52
+1515    FORMAT(A10, A10)
+
 C       RECORD 6
-        WRITE(LUN(LIDX),'(A80)',ERR=9) ID4
+        WRITE(LUN(LIDX), '(A80)', ERR=9) ID4
+
 C       RECORD 7
-        WRITE(LUN(LIDX),1517,ERR=9) DS151F71, DS151F72
-1517    FORMAT(A10,A10)
+        WRITE(LUN(LIDX), 1517, ERR=9) DS151F71, DS151F72
+1517    FORMAT(A10, A10)
+
 C       END OF RECORD, -1
-        WRITE(LUN(LIDX),'(I6)',ERR=9) -1
-C
+        WRITE(LUN(LIDX), '(I6)', ERR=9) -1
+
+
 C ----- WRITIING FINISHED
 
         S = 1.0 ! SUCCESS
-        GO TO 10
+        GO TO 10 ! GO TO END
 
 
 
 
-C --- DATASET 164 --------------------------------------------------------------
-C ------------------------------------------------------------------------------
+C --- DATASET 164 ------------------------------------------------------
+C ----------------------------------------------------------------------
       ELSEIF (DATASETNUM == 164) THEN
 
         S = -8.0 ! DEFAULT ERROR STATE UNTIL ALL DATA EXTRACTED
@@ -741,6 +800,7 @@ C       1.1
           DS164F11 = T
           IF (DS164F11<0 .OR. DS164F11>9) GO TO 10
         END IF
+
 C       1.2
         PTR = mxGetField(prhs(2), 1, 'unitsDescription')
         IF (PTR == 0) THEN
@@ -768,6 +828,7 @@ C       1.2
         ELSE
           OK = mxGetString(PTR, DS164F12, 20)
         END IF
+
 C       1.3
         PTR = mxGetField(prhs(2), 1, 'temperatureMode')
         IF (PTR == 0) THEN
@@ -785,6 +846,7 @@ C       2.1
         ELSE
           CALL mxCopyPtrToReal8(mxGetDoubles(PTR), DS164F21, N1)
         END IF
+
 C       2.2
         PTR = mxGetField(prhs(2), 1, 'force')
         IF (PTR == 0) THEN
@@ -792,6 +854,7 @@ C       2.2
         ELSE
           CALL mxCopyPtrToReal8(mxGetDoubles(PTR), DS164F22, N1)
         END IF
+
 C       2.3
         PTR = mxGetField(prhs(2), 1, 'temperature')
         IF (PTR == 0) THEN
@@ -799,6 +862,7 @@ C       2.3
         ELSE
           CALL mxCopyPtrToReal8(mxGetDoubles(PTR), DS164F23, N1)
         END IF
+
 C       2.4
         PTR = mxGetField(prhs(2), 1, 'temperatureOffset')
         IF (PTR == 0) THEN
@@ -812,36 +876,41 @@ C       2.4
 C ----- WRITE ALL FIELDS
 C
 C       START OF RECORD, -1
-        WRITE(LUN(LIDX),'(I6)',ERR=9) -1
+        WRITE(LUN(LIDX), '(I6)', ERR=9) -1
+
 C       DATASET NUMBER
-        WRITE(LUN(LIDX),'(I6)',ERR=9) DATASETNUM
+        WRITE(LUN(LIDX), '(I6)', ERR=9) DATASETNUM
+
 C       RECORD 1
-        WRITE(LUN(LIDX),1641,ERR=9) DS164F11,DS164F12,DS164F13
-1641    FORMAT(I10,A20,I10)
+        WRITE(LUN(LIDX), 1641, ERR=9) DS164F11,DS164F12,DS164F13
+1641    FORMAT(I10, A20, I10)
+
 C       RECORD 2
-        WRITE(LUN(LIDX),1642,ERR=9) DS164F21,DS164F22,DS164F23,
-     & DS164F24
+        WRITE(LUN(LIDX), 1642, ERR=9) DS164F21,DS164F22,DS164F23,
+     &    DS164F24
 1642    FORMAT(3ES25.17)
+
 C       END OF RECORD, -1
-        WRITE(LUN(LIDX),'(I6)',ERR=9) -1
-C
+        WRITE(LUN(LIDX), '(I6)', ERR=9) -1
+
+
 C ----- WRITIING FINISHED
 
 
 
         S = 1.0 ! SUCCESS
-        GO TO 10
+        GO TO 10 ! GO TO END
 
 
 
-C --- DATASET 58 --------------------------------------------------------------
-C ------------------------------------------------------------------------------
+C --- DATASET 58 -------------------------------------------------------
+C ----------------------------------------------------------------------
       ELSEIF (DATASETNUM == 58) THEN
 
 
-        FIELDSTOUSE = 13 ! some data is not strictly needed for writing the header
+        FIELDSTOUSE = 13 ! SOME DATA IS NOT STRICTLY NEEDED FOR WRITING THE HEADER
 
-        S = -8.0 ! default error state until all data extracted
+        S = -8.0 ! DEFAULT ERROR STATE UNTIL ALL DATA EXTRACTED
 
         IF (NINPUTF < FIELDSTOUSE) GO TO 10
 
@@ -893,6 +962,7 @@ C       6.1
         IF (PTR == 0) GO TO 10
         CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
         F61 = T
+
 C       6.2
         PTR = mxGetField(prhs(2), 1, 'functionID')
         IF (PTR == 0) THEN
@@ -901,6 +971,7 @@ C       6.2
           CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
           F62 = T
         END IF
+
 C       6.3
         PTR = mxGetField(prhs(2), 1, 'versionNumber')
         IF (PTR == 0) THEN
@@ -909,6 +980,7 @@ C       6.3
           CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
           F63 = T
         END IF
+
 C       6.4
         PTR = mxGetField(prhs(2), 1, 'loadCaseID')
         IF (PTR == 0) THEN
@@ -917,6 +989,7 @@ C       6.4
           CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
           F64 = T
         END IF
+
 C       6.5
         PTR = mxGetField(prhs(2), 1, 'rspEntName')
         IF (PTR == 0) THEN
@@ -925,11 +998,13 @@ C       6.5
           OK = mxGetString(PTR, F65, 10)
           IF (ADJUSTL(F65)==' ') F65 = 'NONE'
         END IF
+
 C       6.6
         PTR = mxGetField(prhs(2), 1, 'rspNode')
         IF (PTR == 0) GO TO 10
         CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
         F66 = T
+
 C       6.7
         PTR = mxGetField(prhs(2), 1, 'rspDir')
         IF (PTR == 0) THEN
@@ -939,6 +1014,7 @@ C       6.7
           F67 = T
           IF (F67 < -6 .OR. F67 > 6) GO TO 10
         END IF
+
 C       6.8
         PTR = mxGetField(prhs(2), 1, 'refEntName')
         IF (PTR == 0) THEN
@@ -947,6 +1023,7 @@ C       6.8
           OK = mxGetString(PTR, F68, 10)
           IF (ADJUSTL(F68)==' ') F68 = 'NONE'
         END IF
+
 C       6.9
         PTR = mxGetField(prhs(2), 1, 'refNode')
         IF (PTR == 0) THEN
@@ -955,6 +1032,7 @@ C       6.9
           CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
           F69 = T
         END IF
+
 C       6.10
         PTR = mxGetField(prhs(2), 1, 'refDir')
         IF (PTR == 0) THEN
@@ -971,6 +1049,7 @@ C       7.1
         IF (PTR == 0) GO TO 10
         CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
         F71 = T
+
 C       7.2
         PTR = mxGetField(prhs(2), 1, 'numValues')
         IF (PTR == 0) THEN
@@ -979,21 +1058,25 @@ C       7.2
           CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
           F72 = T
         END IF
+
 C       7.3
         PTR = mxGetField(prhs(2), 1, 'evenSpacing')
         IF (PTR == 0) GO TO 10
         CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
         F73 = T
+
 C       7.4
         PTR = mxGetField(prhs(2), 1, 'x0')
         IF (PTR == 0) GO TO 10
         CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
         F74 = T
+
 C       7.5
         PTR = mxGetField(prhs(2), 1, 'dx')
         IF (PTR == 0) GO TO 10
         CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
         F75 = T
+
 C       7.6
         PTR = mxGetField(prhs(2), 1, 'zAxisValue')
         IF (PTR == 0) THEN
@@ -1009,6 +1092,7 @@ C       8.1
         IF (PTR == 0) GO TO 10
         CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
         F81 = T
+
 C       8.2
         PTR = mxGetField(prhs(2), 1, 'abscLengthUnitsExponent')
         IF (PTR == 0) THEN
@@ -1017,6 +1101,7 @@ C       8.2
           CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
           F82 = T
         END IF
+
 C       8.3
         PTR = mxGetField(prhs(2), 1, 'abscForceUnitsExponent')
         IF (PTR == 0) THEN
@@ -1025,6 +1110,7 @@ C       8.3
           CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
           F83 = T
         END IF
+
 C       8.4
         PTR = mxGetField(prhs(2), 1, 'abscTempUnitsExponent')
         IF (PTR == 0) THEN
@@ -1033,10 +1119,12 @@ C       8.4
           CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
           F84 = T
         END IF
+
 C       8.5
         PTR = mxGetField(prhs(2), 1, 'abscAxisLabel')
         IF (PTR == 0) GO TO 10
         OK = mxGetString(PTR, F85, 20)
+
 C       8.6
         PTR = mxGetField(prhs(2), 1, 'abscAxisUnitLabel')
         IF (PTR == 0) GO TO 10
@@ -1048,6 +1136,7 @@ C       9.1
         IF (PTR == 0) GO TO 10
         CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
         F91 = T
+
 C       9.2
         PTR = mxGetField(prhs(2), 1, 'ordNumLengthUnitsExponent')
         IF (PTR == 0) THEN
@@ -1056,6 +1145,7 @@ C       9.2
           CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
           F92 = T
         END IF
+
 C       9.3
         PTR = mxGetField(prhs(2), 1, 'ordNumForceUnitsExponent')
         IF (PTR == 0) THEN
@@ -1064,6 +1154,7 @@ C       9.3
           CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
           F93 = T
         END IF
+
 C       9.4
         PTR = mxGetField(prhs(2), 1, 'ordNumTempUnitsExponent')
         IF (PTR == 0) THEN
@@ -1072,10 +1163,12 @@ C       9.4
           CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
           F94 = T
         END IF
+
 C       9.5
         PTR = mxGetField(prhs(2), 1, 'ordNumAxisLabel')
         IF (PTR == 0) GO TO 10
         OK = mxGetString(PTR, F95, 20)
+
 C       9.6
         PTR = mxGetField(prhs(2), 1, 'ordNumAxisUnitLabel')
         IF (PTR == 0) GO TO 10
@@ -1090,6 +1183,7 @@ C       10.1
           CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
           F101 = T
         END IF
+
 C       10.2
         PTR = mxGetField(prhs(2), 1, 'ordDenomLengthUnitsExponent')
         IF (PTR == 0) THEN
@@ -1098,6 +1192,7 @@ C       10.2
           CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
           F102 = T
         END IF
+
 C       10.3
         PTR = mxGetField(prhs(2), 1, 'ordDenomForceUnitsExponent')
         IF (PTR == 0) THEN
@@ -1106,6 +1201,7 @@ C       10.3
           CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
           F103 = T
         END IF
+
 C       10.4
         PTR = mxGetField(prhs(2), 1, 'ordDenomTempUnitsExponent')
         IF (PTR == 0) THEN
@@ -1114,6 +1210,7 @@ C       10.4
           CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
           F104 = T
         END IF
+
 C       10.5
         PTR = mxGetField(prhs(2), 1, 'ordDenomAxisLabel')
         IF (PTR == 0) THEN
@@ -1122,6 +1219,7 @@ C       10.5
           OK = mxGetString(PTR, F105, 20)
           IF (ADJUSTL(F105)==' ') F105 = 'NONE'
         END IF
+
 C       10.6
         PTR = mxGetField(prhs(2), 1, 'ordDenomAxisUnitLabel')
         IF (PTR == 0) THEN
@@ -1140,6 +1238,7 @@ C       11.1
           CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
           F111 = T
         END IF
+
 C       11.2
         PTR = mxGetField(prhs(2), 1, 'zLengthUnitsExponent')
         IF (PTR == 0) THEN
@@ -1148,6 +1247,7 @@ C       11.2
           CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
           F112 = T
         END IF
+
 C       11.3
         PTR = mxGetField(prhs(2), 1, 'zForceUnitsExponent')
         IF (PTR == 0) THEN
@@ -1156,6 +1256,7 @@ C       11.3
           CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
           F113 = T
         END IF
+
 C       11.4
         PTR = mxGetField(prhs(2), 1, 'zTempUnitsExponent')
         IF (PTR == 0) THEN
@@ -1164,6 +1265,7 @@ C       11.4
           CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
           F114 = T
         END IF
+
 C       11.5
         PTR = mxGetField(prhs(2), 1, 'zAxisLabel')
         IF (PTR == 0) THEN
@@ -1172,6 +1274,7 @@ C       11.5
           OK = mxGetString(PTR, F115, 20)
           IF (ADJUSTL(F115)==' ') F115 = 'NONE'
         END IF
+
 C       11.6
         PTR = mxGetField(prhs(2), 1, 'zAxisUnitLabel')
         IF (PTR == 0) THEN
@@ -1182,6 +1285,7 @@ C       11.6
         END IF
 
         ISEVEN = F73
+
 
 C       CHECK IF DATA SHOULD BE WRITTEN
         PTR = mxGetField(prhs(2), 1, 'data')
@@ -1217,7 +1321,7 @@ C         GET CASENUM FROM DATATYPE AND X-EVENNESS
           IF (CASENUM > 6) THEN ! COMPLEX DOUBLE
             ALLOCATE(Y_CD(NVAL))
             CALL mxCopyPtrToComplex16(mxGetComplexDoubles(PTR), Y_CD,
-     & NVAL)
+     &        NVAL)
             F71 = 6
 
           ELSE IF (CASENUM > 4) THEN ! REAL DOUBLE
@@ -1228,7 +1332,7 @@ C         GET CASENUM FROM DATATYPE AND X-EVENNESS
           ELSE IF (CASENUM > 2) THEN ! COMPLEX SINGLE
             ALLOCATE(Y_CS(NVAL))
             CALL mxCopyPtrToComplex8(mxGetComplexSingles(PTR), Y_CS,
-     & NVAL)
+     &        NVAL)
             F71 = 5
 
           ELSE ! REAL SINGLE
@@ -1247,46 +1351,57 @@ C         GET CASENUM FROM DATATYPE AND X-EVENNESS
 C ----- WRITE ALL FIELDS
 C
 C       START OF RECORD, -1
-        WRITE(LUN(LIDX),'(I6)',ERR=9) -1
+        WRITE(LUN(LIDX), '(I6)', ERR=9) -1
+
 C       DATASET NUMBER
-        WRITE(LUN(LIDX),'(I6)',ERR=9) DATASETNUM
+        WRITE(LUN(LIDX), '(I6)', ERR=9) DATASETNUM
+
 C       RECORD 1
-        WRITE(LUN(LIDX),'(A80)',ERR=9) ID1
+        WRITE(LUN(LIDX), '(A80)', ERR=9) ID1
+
 C       RECORD 2
-        WRITE(LUN(LIDX),'(A80)',ERR=9) ID2
+        WRITE(LUN(LIDX), '(A80)', ERR=9) ID2
+
 C       RECORD 3
-        WRITE(LUN(LIDX),'(A80)',ERR=9) ID3
+        WRITE(LUN(LIDX), '(A80)', ERR=9) ID3
+
 C       RECORD 4
-        WRITE(LUN(LIDX),'(A80)',ERR=9) ID4
+        WRITE(LUN(LIDX), '(A80)', ERR=9) ID4
+
 C       RECORD 5
-        WRITE(LUN(LIDX),'(A80)',ERR=9) ID5
+        WRITE(LUN(LIDX), '(A80)', ERR=9) ID5
+
 C       RECORD 6
-        WRITE(LUN(LIDX),5806,ERR=9) F61,F62,F63,F64,F65,F66,F67,F68,
-     & F69,F610
-5806    FORMAT(2(I5,I10),2(1X,A10,I10,I4))
+        WRITE(LUN(LIDX), 5806, ERR=9)
+     &    F61, F62, F63, F64, F65, F66, F67, F68, F69, F610
+5806    FORMAT(2(I5, I10), 2(1X, A10, I10, I4))
+
 C       RECORD 7
         INQUIRE(LUN(LIDX), POS=REC7POS(LIDX))
-        WRITE(LUN(LIDX),5807,ERR=9) F71,F72,F73,F74,F75,F76
-5807    FORMAT(3I10,3ES13.5)
-C       RECORD 8
-        WRITE(LUN(LIDX),5808,ERR=9) F81,F82,F83,F84,F85,F86
-5808    FORMAT(I10,3I5,2(1X,A20))
-C       RECORD 9
-        WRITE(LUN(LIDX),5809,ERR=9) F91,F92,F93,F94,F95,F96
-5809    FORMAT(I10,3I5,2(1X,A20))
-C       RECORD 10
-        WRITE(LUN(LIDX),5810,ERR=9) F101,F102,F103,F104,F105,F106
-5810    FORMAT(I10,3I5,2(1X,A20))
-C       RECORD 11
-        IF (WRITEDATA == .TRUE.) THEN
-          WRITE(LUN(LIDX),5811,ERR=9,ADVANCE='YES') F111,F112,F113,F114,
-     & F115,F116
-        ELSE
-          WRITE(LUN(LIDX),5811,ERR=9,ADVANCE='YES') F111,F112,F113,F114,
-     & F115,F116
-        END IF
-5811    FORMAT(I10,3I5,2(1X,A20))
+        WRITE(LUN(LIDX), 5807, ERR=9) F71, F72, F73, F74, F75, F76
+5807    FORMAT(3I10, 3ES13.5)
 
+C       RECORD 8
+        WRITE(LUN(LIDX), 5808, ERR=9) F81, F82, F83, F84, F85, F86
+5808    FORMAT(I10, 3I5, 2(1X,A20))
+
+C       RECORD 9
+        WRITE(LUN(LIDX), 5809, ERR=9) F91, F92, F93, F94, F95, F96
+5809    FORMAT(I10, 3I5, 2(1X, A20))
+
+C       RECORD 10
+        WRITE(LUN(LIDX), 5810, ERR=9) F101, F102, F103, F104, F105, F106
+5810    FORMAT(I10, 3I5, 2(1X, A20))
+
+C       RECORD 11
+        IF (WRITEDATA == .TRUE.) THEN ! IF DATA IS TO BE WRITTEN IN THIS CALL
+          WRITE(LUN(LIDX), 5811, ERR=9, ADVANCE='YES')
+     &      F111, F112, F113, F114, F115, F116
+        ELSE ! DATA WILL COME IN NEXT FUNCTION CALL
+          WRITE(LUN(LIDX), 5811, ERR=9, ADVANCE='NO')
+     &      F111, F112, F113, F114, F115, F116
+        END IF
+5811    FORMAT(I10, 3I5, 2(1X, A20))
 
 C       RECORD 12, DATA, IF TO BE WRITTEN
         IF (WRITEDATA == .TRUE.) THEN
@@ -1295,7 +1410,7 @@ C       RECORD 12, DATA, IF TO BE WRITTEN
 
           IF (CASENUM == 1) THEN
 1001        FORMAT(6ES13.5)
-            WRITE(LUN(LIDX),1001,ERR=9)(Y_RS(I),I=1,NVAL)
+            WRITE(LUN(LIDX), 1001, ERR=9) (Y_RS(I), I = 1,NVAL)
             N = NVAL
 
           ELSE IF (CASENUM == 2) THEN
@@ -1303,45 +1418,49 @@ C       RECORD 12, DATA, IF TO BE WRITTEN
 1002        FORMAT(6ES13.5)
             DO WHILE (N < NVAL)
               STEP = MIN(3, NVAL-N)
-              WRITE(LUN(LIDX),1002,ERR=9)(XDATA(I+N),Y_RS(I+N),I=1,STEP)
+              WRITE(LUN(LIDX), 1002, ERR=9) (XDATA(I+N), Y_RS(I+N),
+     &          I = 1,STEP)
               N = N + STEP
             END DO
 
           ELSE IF (CASENUM == 3) THEN
 1003        FORMAT(6ES13.5)
-            WRITE(LUN(LIDX),1003,ERR=9)(Y_CS(I),I=1,NVAL)
+            WRITE(LUN(LIDX), 1003, ERR=9) (Y_CS(I), I = 1,NVAL)
             N = NVAL
 
           ELSE IF (CASENUM == 4) THEN
 1004        FORMAT(6ES13.5)
             DO WHILE (N < NVAL)
               STEP = MIN(2, NVAL-N)
-              WRITE(LUN(LIDX),1004,ERR=9)(XDATA(I+N),Y_CS(I+N),I=1,STEP)
+              WRITE(LUN(LIDX), 1004, ERR=9) (XDATA(I+N), Y_CS(I+N),
+     &          I = 1,STEP)
               N = N + STEP
             END DO
 
           ELSE IF (CASENUM == 5) THEN
 1005        FORMAT(4ES20.12)
-            WRITE(LUN(LIDX),1005,ERR=9)(Y_RD(I),I=1,NVAL)
+            WRITE(LUN(LIDX), 1005, ERR=9) (Y_RD(I), I = 1,NVAL)
             N = NVAL
 
           ELSE IF (CASENUM == 6) THEN
-1006        FORMAT(2(ES13.5,ES20.12))
+1006        FORMAT(2(ES13.5, ES20.12))
             DO WHILE (N < NVAL)
               STEP = MIN(2, NVAL-N)
-              WRITE(LUN(LIDX),1006,ERR=9)(XDATA(I+N),Y_RD(I+N),I=1,STEP)
+              WRITE(LUN(LIDX), 1006, ERR=9) (XDATA(I+N), Y_RD(I+N),
+     &          I = 1,STEP)
               N = N + STEP
             END DO
 
           ELSE IF (CASENUM == 7) THEN
 1007        FORMAT(4ES20.12)
-            WRITE(LUN(LIDX),1007,ERR=9)(Y_CD(I),I=1,NVAL)
+            WRITE(LUN(LIDX), 1007, ERR=9) (Y_CD(I), I = 1,NVAL)
             N = NVAL
 
           ELSE IF (CASENUM == 8) THEN
-1008        FORMAT(ES13.5,2ES20.12)
+1008        FORMAT(ES13.5, 2ES20.12)
             DO WHILE (N < NVAL)
-              WRITE(LUN(LIDX),1008,ERR=9)(XDATA(I+N),Y_CD(N+I),I=1,1)
+              WRITE(LUN(LIDX), 1008, ERR=9)( XDATA(I+N), Y_CD(N+I),
+     &          I = 1,1)
               N = N + 1
             END DO
 
@@ -1350,17 +1469,18 @@ C       RECORD 12, DATA, IF TO BE WRITTEN
           END IF
 
 C         END OF RECORD, -1, IF DATA IS WRITTEN, OTHERWISE IT IS KEPT UNTERMINATED
-          WRITE(LUN(LIDX),'(I6)',ERR=9) -1
+          WRITE(LUN(LIDX), '(I6)', ERR=9) -1
 
 
         ELSE ! KEEP UNTERMINATED
 
 
+C         INIT. CASENUM
           CASENUM = 1
-          ISDOUBLE(1) = .FALSE.
-          ISCOMPLEX = .FALSE.
-          IF (F71==4 .OR. F71==6) ISDOUBLE(1) = .TRUE.
-          IF (F71 > 4) ISCOMPLEX = .TRUE.
+
+C         DETERMINE CASENUM
+          ISDOUBLE(1) = (F71 == 4 .OR. F71 == 6) ! IS DATA OF TYPE DOUBLE, OR NOT -> SINGLE
+          ISCOMPLEX = (F71 > 4) ! IS DATA COMPLEX- (TRUE) OR REAL-VALUED (FALSE)
           IF (NOT(ISEVEN)) CASENUM = CASENUM + 1 ! = EVEN
           IF (ISCOMPLEX) CASENUM = CASENUM + 2 ! = COMPLEX
           IF (ISDOUBLE(1)) CASENUM = CASENUM + 4 ! = DOUBLE
@@ -1387,8 +1507,8 @@ C ----- WRITIING FINISHED
 
 
 
-C --- FINISHED WRITING ---------------------------------------------------------
-C ------------------------------------------------------------------------------
+C --- FINISHED WRITING -------------------------------------------------
+C ----------------------------------------------------------------------
 
 
 
@@ -1438,8 +1558,8 @@ C     NORMAL/ASSIGNED EXIT
       END
 
 
-C ------------------------------------------------------------------------------
-C --- END OF PROGRAM -----------------------------------------------------------
-C ------------------------------------------------------------------------------
+C ----------------------------------------------------------------------
+C --- END OF PROGRAM ---------------------------------------------------
+C ----------------------------------------------------------------------
 
 
