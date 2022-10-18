@@ -52,7 +52,7 @@ C ----------------------------------------------------------------------
       mwPointer :: CELL_PTR, YPTR
       INTEGER*4, PARAMETER :: MAXRECORDS = 4096
       INTEGER*4, PARAMETER :: RECORD_STEP = 16384
-      mwPointer :: SPTR(MAXRECORDS) ! MAXIMUM NUMBER OF DATA RECORDS
+      mwPointer :: SPTR(MAXRECORDS)
       mwPointer, DIMENSION(:), ALLOCATABLE :: SPTR_1, SPTR_2 ! USE WHEN NUM. OF DATA RECORDS > MAXRECORDS
       mwSize, PARAMETER :: N1 = 1
       mwSize :: NVAL, K2, NCELL
@@ -91,6 +91,7 @@ C ----------------------------------------------------------------------
       REAL*8 :: UNITSCODE, S(1)
       INTEGER*1 :: USE_ALLOCATION
       INTEGER*4 :: STATUS_INT, OK, NOK, DATASETNUM, CASENUM, LUN, STEP
+      INTEGER*4, PARAMETER :: DATASETS(3) = (/151, 164, 58/)
       INTEGER*8 :: N, I, K, FIELDSTOUSE, MAXRECORDS_LOCAL
       LOGICAL :: STATUS_BOOL
       CHARACTER(LEN=:), ALLOCATABLE :: FILEPATH
@@ -158,9 +159,16 @@ C     CHECK IF FILEPATH EXIST
 
 
 C     OPEN FILEPATH
-      LUN = 2
-      OPEN (UNIT=LUN, FILE=FILEPATH, STATUS='OLD', IOSTAT=STATUS_INT,
-     &  POSITION='REWIND', ACTION='READ', FORM='FORMATTED')
+      LUN = 7
+      OPEN (
+     & UNIT = LUN,
+     & FILE = FILEPATH,
+     & STATUS = 'OLD',
+     & IOSTAT = STATUS_INT,
+     & POSITION = 'REWIND',
+     & ACTION = 'READ',
+     & FORM = 'FORMATTED')
+
 
 C     CHECK IF FILE OPENING FAILED -> RETURN IOSTAT CODE
       IF (STATUS_INT /= 0) THEN
@@ -194,6 +202,38 @@ C     READ DATASET NUMBER, 58B COMPATIBLE (BUT NOT SUPPORTED YET)
      &  DATASETNUM, F02, F03, F04, F05, F06, F07, F08, F09, F010
 582   FORMAT(I6, 1A1, I6,I6, I12, I12, I6, I6, I12, I12)
 
+
+
+C     RELATED TO ALL VALID DATASETS
+      IF (ANY(DATASETNUM == DATASETS)) THEN
+        NCELL = NCELL + 1
+
+C       CHECK IF STRUCT POINTER ARRAYS NEEDS TO BE RESIZED
+        IF (NCELL > MAXRECORDS_LOCAL) THEN
+          MAXRECORDS_LOCAL = MAXRECORDS_LOCAL + RECORD_STEP
+
+          SELECT CASE (USE_ALLOCATION)
+           CASE (0)
+            USE_ALLOCATION = 1
+            ALLOCATE(SPTR_1(MAXRECORDS_LOCAL))
+            SPTR_1(1:NCELL-1) = SPTR(1:NCELL-1)
+
+           CASE (1)
+            USE_ALLOCATION = 2
+            ALLOCATE(SPTR_2(MAXRECORDS_LOCAL))
+            SPTR_2(1:SIZE(SPTR_1)) = SPTR_1(:)
+            DEALLOCATE(SPTR_1)
+
+           CASE (2)
+            USE_ALLOCATION = 1
+            ALLOCATE(SPTR_1(MAXRECORDS_LOCAL))
+            SPTR_1(1:SIZE(SPTR_2)) = SPTR_2(:)
+            DEALLOCATE(SPTR_2)
+
+          END SELECT
+
+        END IF
+      END IF
 
 
 
@@ -257,13 +297,7 @@ C       FIX TEXT ALIGNMENT
         fieldnames(13) = 'fileCreatedDate'
         fieldnames(14) = 'fileCreatedTime'
 
-
-        NCELL = NCELL + 1 ! INCREMENT CELL COUNTER BY ONE
         FIELDSTOUSE = 14 ! NUMBER OF FIELDS IN DATASET 151
-
-        SPTR(NCELL) = mxCreateStructMatrix(N1, N1, FIELDSTOUSE,
-     &    fieldnames(1:FIELDSTOUSE))
-
 
         ID_PTR(1) = mxCreateDoubleScalar(DBLE(DATASETNUM)) ! dataset number
         ID_PTR(2) = mxCreateString(ID1) ! ID Line 1, model file name
@@ -283,10 +317,6 @@ C       FIX TEXT ALIGNMENT
 
         ID_PTR(13) = mxCreateString(DS151F71) ! date file written (DD-MMM-YY)
         ID_PTR(14) = mxCreateString(DS151F72) ! time file written (HH:MM:SS)
-
-        DO K = 1,FIELDSTOUSE
-          CALL mxSetField(SPTR(NCELL),N1,fieldnames(K),ID_PTR(K))
-        END DO
 
 
 
@@ -341,13 +371,7 @@ C       RECORD 2
         fieldnames(8) = 'temperature'
         fieldnames(9) = 'temperatureOffset'
 
-
-        NCELL = NCELL + 1 ! INCREMENT CELL COUNTER BY ONE
         FIELDSTOUSE = 9
-
-        SPTR(NCELL) = mxCreateStructMatrix(N1, N1, FIELDSTOUSE,
-     &    fieldnames(1:FIELDSTOUSE))
-
 
         ID_PTR(1) = mxCreateDoubleScalar(DBLE(DATASETNUM)) ! dataset number
         ID_PTR(2) = mxCreateDoubleScalar(UNITSCODE) ! units code
@@ -359,10 +383,6 @@ C       RECORD 2
         ID_PTR(8) = mxCreateDoubleScalar(DS164F23) ! temperature
         ID_PTR(9) = mxCreateDoubleScalar(DS164F24) ! temperature offset
 
-        DO K = 1,FIELDSTOUSE
-          CALL mxSetField(SPTR(NCELL),N1,fieldnames(K),ID_PTR(K))
-        END DO
-
 
 
 
@@ -371,33 +391,6 @@ C --- DATASET 58 -------------------------------------------------------
 C ----------------------------------------------------------------------
       ELSEIF (DATASETNUM == 58) THEN
 
-
-        NCELL = NCELL + 1
-
-        IF (NCELL > MAXRECORDS_LOCAL) THEN ! TOO MANY CELLS
-          MAXRECORDS_LOCAL = MAXRECORDS_LOCAL + RECORD_STEP
-
-          SELECT CASE (USE_ALLOCATION)
-           CASE (0)
-            USE_ALLOCATION = 1
-            ALLOCATE(SPTR_1(MAXRECORDS_LOCAL))
-            SPTR_1(1:NCELL-1) = SPTR(1:NCELL-1)
-
-           CASE (1)
-            USE_ALLOCATION = 2
-            ALLOCATE(SPTR_2(MAXRECORDS_LOCAL))
-            SPTR_2(1:NCELL-1) = SPTR_1(1:NCELL-1)
-            DEALLOCATE(SPTR_1)
-
-           CASE (2)
-            USE_ALLOCATION = 1
-            ALLOCATE(SPTR_1(MAXRECORDS_LOCAL))
-            SPTR_1(1:NCELL-1) = SPTR_2(1:NCELL-1)
-            DEALLOCATE(SPTR_2)
-
-          END SELECT
-
-        END IF
 
 C       READ HEADER
 
@@ -808,13 +801,19 @@ C       RECORD 11
         ID_PTR(48) = mxCreateString(F116) ! Ordinate axis units label
 
 
+      END IF
+
+
+
+C     COPY STRUCT TO CELL ARRAY, IF DATASET NUMBER IS VALID
+      IF (ANY(DATASETNUM == DATASETS)) THEN
 
         SELECT CASE (USE_ALLOCATION)
           CASE (0)
             SPTR(NCELL) = mxCreateStructMatrix(N1, N1, FIELDSTOUSE,
      &        fieldnames(1:FIELDSTOUSE))
             DO K = 1,FIELDSTOUSE
-            CALL mxSetField(SPTR(NCELL),N1,fieldnames(K),ID_PTR(K))
+              CALL mxSetField(SPTR(NCELL),N1,fieldnames(K),ID_PTR(K))
             END DO
 
           CASE (1)
@@ -825,7 +824,7 @@ C       RECORD 11
             END DO
 
           CASE (2)
-            SPTR(NCELL) = mxCreateStructMatrix(N1, N1, FIELDSTOUSE,
+            SPTR_2(NCELL) = mxCreateStructMatrix(N1, N1, FIELDSTOUSE,
      &        fieldnames(1:FIELDSTOUSE))
             DO K = 1,FIELDSTOUSE
               CALL mxSetField(SPTR_2(NCELL),N1,fieldnames(K),ID_PTR(K))
@@ -834,7 +833,8 @@ C       RECORD 11
         END SELECT
 
 
-      ELSE
+      ELSE ! INVALID OR UNSUPPORTED DATASET NUMBER
+
 
         ID1 = "0"
 
@@ -846,6 +846,7 @@ C       CHECK STRICTLY FOR THE CORRECT FORMATTING OF END TERMINATOR
 C       RETURN TO TOP, FOR NEXT DATARECORD
         GO TO 1
 
+
       END IF
 
 
@@ -853,6 +854,7 @@ C       RETURN TO TOP, FOR NEXT DATARECORD
 C     IF NOT ALREADY END OF FILE RETURN TO READING NEXT HEADER
       READ(LUN, '(A80)', END=10, ERR=9) ID1
       GO TO 1
+
 
 
 C --- FINISHED READING -------------------------------------------------
