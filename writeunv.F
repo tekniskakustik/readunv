@@ -667,10 +667,12 @@ C       4.1
         PTR = mxGetField(prhs(2), 1, 'databaseCreatedDate')
         IF (PTR == 0) GO TO 10
         OK = mxGetString(PTR, DS151F41, 10)
+
 C       4.2
         PTR = mxGetField(prhs(2), 1, 'databaseCreatedTime')
         IF (PTR == 0) GO TO 10
         OK = mxGetString(PTR, DS151F42, 10)
+
 C       4.3
         PTR = mxGetField(prhs(2), 1, 'databaseVersion1')
         IF (PTR == 0) THEN
@@ -679,6 +681,7 @@ C       4.3
           CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
           DS151F43 = T
         END IF
+
 C       4.4
         PTR = mxGetField(prhs(2), 1, 'databaseVersion2')
         IF (PTR == 0) THEN
@@ -687,6 +690,7 @@ C       4.4
           CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
           DS151F44 = T
         END IF
+
 C       4.5
         PTR = mxGetField(prhs(2), 1, 'fileType')
         IF (PTR == 0) THEN
@@ -705,6 +709,7 @@ C       5.1
         ELSE
           OK = mxGetString(PTR, DS151F51, 10)
         END IF
+
 C       5.2
         PTR = mxGetField(prhs(2), 1, 'databaseLastSavedTime')
         IF (PTR == 0) THEN
@@ -730,6 +735,7 @@ C       7.1
         ELSE
           OK = mxGetString(PTR, DS151F71, 10)
         END IF
+
 C       7.2
         PTR = mxGetField(prhs(2), 1, 'fileCreatedTime')
         IF (PTR == 0) THEN
@@ -798,33 +804,36 @@ C       1.1
         ELSE
           CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
           DS164F11 = T
-          IF (DS164F11<0 .OR. DS164F11>9) GO TO 10
+          IF (DS164F11 < 0 .OR. DS164F11 > 9) GO TO 10
         END IF
 
 C       1.2
         PTR = mxGetField(prhs(2), 1, 'unitsDescription')
         IF (PTR == 0) THEN
-          IF (DS164F11 == 1) THEN
-            DS164F12 = 'SI: Meter (newton)'
-          ELSE IF (DS164F11 == 2) THEN
-            DS164F12 = 'BG: Foot (pound f)'
-          ELSE IF (DS164F11 == 3) THEN
-            DS164F12 = 'MG: Meter (kilogram f)'
-          ELSE IF (DS164F11 == 4) THEN
-            DS164F12 = 'BA: Foot (poundal)'
-          ELSE IF (DS164F11 == 5) THEN
-            DS164F12 = 'MM: mm (milli newton)'
-          ELSE IF (DS164F11 == 6) THEN
-            DS164F12 = 'CM: cm (centi newton)'
-          ELSE IF (DS164F11 == 7) THEN
-            DS164F12 = 'IN: Inch (pound f)'
-          ELSE IF (DS164F11 == 8) THEN
-            DS164F12 = 'GM: mm (kilogram f)'
-          ELSE IF (DS164F11 == 9) THEN
-            DS164F12 = 'US: USER_DEFINED'
-          ELSE
-            GO TO 10
-          END IF
+
+          SELECT CASE (DS164F11)
+            CASE (1)
+              DS164F12 = 'SI: Meter (newton)'
+            CASE (2)
+              DS164F12 = 'BG: Foot (pound f)'
+            CASE (3)
+              DS164F12 = 'MG: Meter (kilogram f)'
+            CASE (4)
+              DS164F12 = 'BA: Foot (poundal)'
+            CASE (5)
+              DS164F12 = 'MM: mm (milli newton)'
+            CASE (6)
+              DS164F12 = 'CM: cm (centi newton)'
+            CASE (7)
+              DS164F12 = 'IN: Inch (pound f)'
+            CASE (8)
+              DS164F12 = 'GM: mm (kilogram f)'
+            CASE (9)
+              DS164F12 = 'US: USER_DEFINED'
+            CASE DEFAULT
+              GO TO 10 ! INVALID UNIT CODE
+          END SELECT
+
         ELSE
           OK = mxGetString(PTR, DS164F12, 20)
         END IF
@@ -882,12 +891,12 @@ C       DATASET NUMBER
         WRITE(LUN(LIDX), '(I6)', ERR=9) DATASETNUM
 
 C       RECORD 1
-        WRITE(LUN(LIDX), 1641, ERR=9) DS164F11,DS164F12,DS164F13
+        WRITE(LUN(LIDX), 1641, ERR=9) DS164F11, DS164F12, DS164F13
 1641    FORMAT(I10, A20, I10)
 
 C       RECORD 2
-        WRITE(LUN(LIDX), 1642, ERR=9) DS164F21,DS164F22,DS164F23,
-     &    DS164F24
+        WRITE(LUN(LIDX), 1642, ERR=9)
+     &    DS164F21, DS164F22, DS164F23, DS164F24
 1642    FORMAT(3ES25.17)
 
 C       END OF RECORD, -1

@@ -216,18 +216,18 @@ C       CHECK IF STRUCT POINTER ARRAYS NEEDS TO BE RESIZED
            CASE (0)
             USE_ALLOCATION = 1
             ALLOCATE(SPTR_1(MAXRECORDS_LOCAL))
-            SPTR_1(1:NCELL-1) = SPTR(1:NCELL-1)
+            SPTR_1(1:NCELL-1) = SPTR(:)
 
            CASE (1)
             USE_ALLOCATION = 2
             ALLOCATE(SPTR_2(MAXRECORDS_LOCAL))
-            SPTR_2(1:SIZE(SPTR_1)) = SPTR_1(:)
+            SPTR_2(1:NCELL-1) = SPTR_1(:)
             DEALLOCATE(SPTR_1)
 
            CASE (2)
             USE_ALLOCATION = 1
             ALLOCATE(SPTR_1(MAXRECORDS_LOCAL))
-            SPTR_1(1:SIZE(SPTR_2)) = SPTR_2(:)
+            SPTR_1(1:NCELL-1) = SPTR_2(:)
             DEALLOCATE(SPTR_2)
 
           END SELECT
