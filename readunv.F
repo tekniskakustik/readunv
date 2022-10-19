@@ -23,6 +23,8 @@ C       = -4,  TOO FEW INPUTS
 C       = -5,  FILEPATH IS NOT A CHAR
 C       = -6,  FILE IS ILL-FORMED
 C       = -7,  TWO OUTPUT ARGUMENTS ARE REQUIRED
+C       = -8,  DEPRECATED, AND NOT THROWN ANY MORE
+C       = -9,  ERROR WHILE READING FILE
 C       = -12, FLOATING POINT ARITHMETIC OVERFLOW (FROM IOSTAT)
 C       = >1,  ERROR CODE FROM IOSTAT WHEN OPENING FILE
 C
@@ -33,7 +35,7 @@ C ----------------------------------------------------------------------
 
       IMPLICIT NONE
 
-      mwPointer plhs(*), prhs(*)
+      mwPointer :: plhs(*), prhs(*)
       mwSize :: nlhs, nrhs
       mwPointer :: mxCreateString
       mwPointer :: mxCreateDoubleScalar
@@ -60,7 +62,7 @@ C ----------------------------------------------------------------------
 
       INTEGER*4, PARAMETER :: NFIELDS = 48 ! MAXIMUM NUMBER OF FIELDS IN USE, ADJUST WHEN NEEDED
       mwPointer :: ID_PTR(NFIELDS)
-      CHARACTER*32 :: fieldnames(NFIELDS) ! LENGTH OF LONGEST FIELDNAME, ADJUST WHEN NEEDED
+      CHARACTER*32 :: fieldnames(NFIELDS) ! LENGTH OF LONGEST FIELDNAME (32), ADJUST WHEN NEEDED
 
       CHARACTER(LEN=80) :: REC0
       CHARACTER(LEN=80) :: ID1, ID2, ID3, ID4, ID5
@@ -101,26 +103,29 @@ C ----------------------------------------------------------------------
       COMPLEX*16, DIMENSION(:), ALLOCATABLE :: Y_CD
 
 
+C     INITIALISE (NON-PARAMETRIC) VARIABLES
+      NCELL = 0 ! CELL COUNTER
+      S = 0.0 ! OUTPUT STATE
+      LUN = 0 ! FILE UNIT NUMBER
+      MAXRECORDS_LOCAL = MAXRECORDS ! MAXIMUM NUMBER OF RECORDS CURRENTLY
+      USE_ALLOCATION = 0 ! USE DYNAMIC ALLOCATION OF OUTPUT CELL ARRAY
+      CID_S = mxClassIDFromClassName('single') ! FLAG FOR SINGLE PRECISION
+      CID_D = mxClassIDFromClassName('double') ! FLAG FOR DOUBLE PRECISION
 
-      NCELL = 0 ! INITIALISE OUTPUT CELL COUNTER
-      S = 0
-      LUN = 0
-      MAXRECORDS_LOCAL = MAXRECORDS
-      USE_ALLOCATION = 0
-      CID_S = mxClassIDFromClassName('single')
-      CID_D = mxClassIDFromClassName('double')
 
 C     ONE INPUT ARGUMENT (FILEPATH) IS REQUIRED
       IF (nrhs < 1) THEN
-        S = -4
+        S = -4.0
         GO TO 10
       END IF
 
+
 C     CHECK IF TWO OUTPUT ARGUMENTS ARE USED, IF NOT -> ERROR
       IF (nlhs /= 2) THEN
-        S = -7
+        S = -7.0
         GO TO 10
       END IF
+
 
 C     CHECK IF INPUT ARGUMENT IS OF CHAR TYPE
       OK = mxIsChar(prhs(1))
@@ -133,7 +138,7 @@ C     CHECK IF INPUT ARGUMENT IS OF CHAR TYPE
 C     GET LENGTH OF INPUT STRING
       STRLEN = mxGetN(prhs(1))
       IF (STRLEN < 1) THEN ! EMPTY FILEPATH -> ERROR
-        S = -1
+        S = -1.0
         GO TO 10
       END IF
 
@@ -153,12 +158,12 @@ C     COPY INPUT STRING TO FILEPATH
 C     CHECK IF FILEPATH EXIST
       INQUIRE(FILE=FILEPATH, EXIST=STATUS_BOOL)
       IF (NOT(STATUS_BOOL)) THEN
-        S = -3
+        S = -3.0
         GO TO 10
       END IF
 
 
-C     OPEN FILEPATH
+C     OPEN FILE LOCATED AT <FILEPATH>
       LUN = 7
       OPEN (
      & UNIT = LUN,
@@ -173,7 +178,7 @@ C     OPEN FILEPATH
 C     CHECK IF FILE OPENING FAILED -> RETURN IOSTAT CODE
       IF (STATUS_INT /= 0) THEN
         IF (STATUS_INT == 1) THEN ! REMAP IOSTAT ERROR CODE 1 TO -12
-          S = -12
+          S = -12.0
         ELSE
           S = STATUS_INT
         END IF
@@ -183,30 +188,29 @@ C     CHECK IF FILE OPENING FAILED -> RETURN IOSTAT CODE
 
 
 C     READ FIRST LINE IN FILE
-1     READ(LUN, '(A80)', END=10, ERR=9) REC0
-
-
-C     CHECK IF FILE STARTS WITH -1 START/END UNV TERMINATOR, IF NOT -> RETURN ERROR
-      IF (ADJUSTL(REC0) /= "-1") THEN
-        S = -6
-        GO TO 10
-      END IF
-
-
-      S = 1.0 ! -> SUCCESS = TRUE
+      READ(LUN, '(A80)', END=10, ERR=9) REC0
 
 
 
-C     READ DATASET NUMBER, 58B COMPATIBLE (BUT NOT SUPPORTED YET)
+C ----------------------------------------------------------------------
+C     READ DATA WHILE DATARECORD IS PREPENDED WITH "-1"
+      DO WHILE (ADJUSTL(REC0) == "-1")
+
+
+
+C     READ DATASET NUMBER, 58B COMPATIBILITY PREPARED (BUT NOT SUPPORTED YET)
       READ(LUN, 582, END=10, ERR=9)
      &  DATASETNUM, F02, F03, F04, F05, F06, F07, F08, F09, F010
 582   FORMAT(I6, 1A1, I6,I6, I12, I12, I6, I6, I12, I12)
 
 
 
-C     RELATED TO ALL VALID DATASETS
+C     CODE RELATED TO ALL VALID DATASETS
       IF (ANY(DATASETNUM == DATASETS)) THEN
-        NCELL = NCELL + 1
+
+        NCELL = NCELL + 1 ! INCREMENT CELL DATA RECORD COUNTER WITH ONE
+
+        S = 1.0 ! -> SUCCESS = TRUE
 
 C       CHECK IF STRUCT POINTER ARRAYS NEEDS TO BE RESIZED
         IF (NCELL > MAXRECORDS_LOCAL) THEN
@@ -214,25 +218,26 @@ C       CHECK IF STRUCT POINTER ARRAYS NEEDS TO BE RESIZED
 
           SELECT CASE (USE_ALLOCATION)
            CASE (0)
-            USE_ALLOCATION = 1
-            ALLOCATE(SPTR_1(MAXRECORDS_LOCAL))
-            SPTR_1(1:NCELL-1) = SPTR(:)
+            USE_ALLOCATION = 1 ! USE SPTR_1
+            ALLOCATE(SPTR_1(MAXRECORDS_LOCAL)) ! RESIZE SPTR_1
+            SPTR_1(1:NCELL-1) = SPTR(:) ! COPY STATICALLY SIZED SPTR CONTENT TO SPTR_1
 
            CASE (1)
-            USE_ALLOCATION = 2
-            ALLOCATE(SPTR_2(MAXRECORDS_LOCAL))
-            SPTR_2(1:NCELL-1) = SPTR_1(:)
+            USE_ALLOCATION = 2 ! USE SPTR_2
+            ALLOCATE(SPTR_2(MAXRECORDS_LOCAL)) ! RESIZE SPTR_2
+            SPTR_2(1:NCELL-1) = SPTR_1(:) ! COPY SPTR_1 CONTENT TO SPTR_2
             DEALLOCATE(SPTR_1)
 
            CASE (2)
-            USE_ALLOCATION = 1
-            ALLOCATE(SPTR_1(MAXRECORDS_LOCAL))
-            SPTR_1(1:NCELL-1) = SPTR_2(:)
+            USE_ALLOCATION = 1 ! USE SPTR_1
+            ALLOCATE(SPTR_1(MAXRECORDS_LOCAL)) ! RESIZE SPTR_1
+            SPTR_1(1:NCELL-1) = SPTR_2(:) ! COPY SPTR_2 CONTENT TO SPTR_1
             DEALLOCATE(SPTR_2)
 
           END SELECT
 
         END IF
+
       END IF
 
 
@@ -505,7 +510,7 @@ C         SKIP FOR NOW
           DO WHILE (ID1 /= "    -1")
             READ(LUN, '(A80)', END=10, ERR=9) ID1
           END DO
-          GO TO 1 ! READ HEADER AGAIN
+C           GO TO 1 ! READ HEADER AGAIN
 
         ELSE
 
@@ -832,29 +837,31 @@ C     COPY STRUCT TO CELL ARRAY, IF DATASET NUMBER IS VALID
 
         END SELECT
 
+        READ(LUN, '(A80)', END=10, ERR=9) REC0
+        READ(LUN, '(A80)', END=10, ERR=9) REC0 ! READ TWICE
+
 
       ELSE ! INVALID OR UNSUPPORTED DATASET NUMBER
 
 
-        ID1 = "0"
+        REC0 = "0"
 
 C       CHECK STRICTLY FOR THE CORRECT FORMATTING OF END TERMINATOR
-        DO WHILE (ID1 /= "    -1")
-          READ(LUN, '(A80)', END=10, ERR=9) ID1
+        DO WHILE (REC0 /= "    -1")
+          READ(LUN, '(A80)', END=10, ERR=9) REC0
         END DO
-
-C       RETURN TO TOP, FOR NEXT DATARECORD
-        GO TO 1
 
 
       END IF
 
 
 
-C     IF NOT ALREADY END OF FILE RETURN TO READING NEXT HEADER
-      READ(LUN, '(A80)', END=10, ERR=9) ID1
-      GO TO 1
+C ----------------------------------------------------------------------
+      END DO ! END OF WHILE LOOP
+C ----------------------------------------------------------------------
 
+
+      GO TO 10 ! SKIP ERROR LABEL 9
 
 
 C --- FINISHED READING -------------------------------------------------
@@ -864,7 +871,7 @@ C ----------------------------------------------------------------------
 
 C --- RETURN ARGUMENTS AND CLOSE FILE AND VARIABLES
 
-9     S = -1.0
+9     S = -9.0
 
 10    PLHS(1) = mxCreateDoubleScalar(S)
 
@@ -942,6 +949,9 @@ C     CREATE AND ASSIGN CELL MATRIX
             CASE (-7)
               plhs(2) = mxCreateString('Two output arguments are require
      &d.')
+
+            CASE (-9)
+              plhs(2) = mxCreateString('Error while reading file.')
 
             CASE (-12)
               plhs(2) = mxCreateString('Floating point arithmetic overfl
