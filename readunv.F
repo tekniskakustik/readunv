@@ -65,7 +65,8 @@ C ----------------------------------------------------------------------
       CHARACTER*32 :: fieldnames(NFIELDS) ! LENGTH OF LONGEST FIELDNAME (32), ADJUST WHEN NEEDED
 
       CHARACTER(LEN=80) :: REC0
-      CHARACTER(LEN=80) :: ID1, ID2, ID3, ID4, ID5
+      CHARACTER(LEN=80) :: ID1, ID2, ID3, ID5
+      CHARACTER(LEN=120) :: ID4
       CHARACTER(LEN=10) :: F65, F68
       CHARACTER(LEN=10) :: DS151F41, DS151F42
       CHARACTER(LEN=10) :: DS151F51, DS151F52
@@ -409,7 +410,7 @@ C       RECORD 3, ID LINE 3
         READ(LUN, '(A80)', END=10, ERR=9) ID3
 
 C       RECORD 4, ID LINE 4
-        READ(LUN, '(A80)', END=10, ERR=9) ID4
+        READ(LUN, '(A120)', END=10, ERR=9) ID4
 
 C       RECORD 5, ID LINE 5
         READ(LUN, '(A80)', END=10, ERR=9) ID5
@@ -877,6 +878,7 @@ C ----------------------------------------------------------------------
 C --- RETURN ARGUMENTS AND CLOSE FILE AND VARIABLES
 
 9     S = -9.0
+      NCELL = NCELL - 1 ! DECREASE CELL COUNT BY ONE, SINCE LAST FAILED
 
 10    PLHS(1) = mxCreateDoubleScalar(S)
 
