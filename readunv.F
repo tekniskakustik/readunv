@@ -39,6 +39,8 @@ C ----------------------------------------------------------------------
       mwSize :: nlhs, nrhs
       mwPointer :: mxCreateString
       mwPointer :: mxCreateDoubleScalar
+      mwPointer :: mxCreateDoubleMatrix
+      REAL*8 :: mxGetScalar
       mwPointer :: mxGetDoubles
       mwPointer :: mxGetSingles
       mwPointer :: mxGetComplexDoubles
@@ -50,6 +52,8 @@ C ----------------------------------------------------------------------
       mwPointer :: mxGetN
       mwPointer :: mxGetString
       mwPointer :: mxIsChar
+      mwPointer :: mxIsDouble
+      mwPointer :: mxIsEmpty
       mwSize :: STRLEN
       mwPointer :: CELL_PTR, YPTR
       INTEGER*4, PARAMETER :: MAXRECORDS = 4096
@@ -58,6 +62,7 @@ C ----------------------------------------------------------------------
       mwPointer, DIMENSION(:), ALLOCATABLE :: SPTR_1, SPTR_2 ! USE WHEN NUM. OF DATA RECORDS > MAXRECORDS
       mwSize, PARAMETER :: N1 = 1
       mwSize :: NVAL, KMW, NCELL
+      REAL*8 :: SKIP_DATA
 
 
       INTEGER*4, PARAMETER :: NFIELDS = 48 ! MAXIMUM NUMBER OF FIELDS IN USE, ADJUST WHEN NEEDED
@@ -65,7 +70,7 @@ C ----------------------------------------------------------------------
       CHARACTER*32 :: fieldnames(NFIELDS) ! LENGTH OF LONGEST FIELDNAME (32), ADJUST WHEN NEEDED
 
       CHARACTER(LEN=80) :: REC0
-      CHARACTER(LEN=80) :: ID1, ID2, ID3, ID5
+      CHARACTER(LEN=80) :: ID0, ID1, ID2, ID3, ID5 ! ID0 IS A TEMP. VAR.
       CHARACTER(LEN=120) :: ID4
       CHARACTER(LEN=10) :: F65, F68
       CHARACTER(LEN=10) :: DS151F41, DS151F42
@@ -108,16 +113,24 @@ C     INITIALISE (NON-PARAMETRIC) VARIABLES
       NCELL = 0 ! CELL COUNTER
       S = 0.0 ! OUTPUT STATE
       LUN = 0 ! FILE UNIT NUMBER
+      SKIP_DATA = 0.0 ! SKIP READING DATA
       MAXRECORDS_LOCAL = MAXRECORDS ! MAXIMUM NUMBER OF RECORDS CURRENTLY
       USE_ALLOCATION = 0 ! USE DYNAMIC ALLOCATION OF OUTPUT CELL ARRAY
       CID_S = mxClassIDFromClassName('single') ! FLAG FOR SINGLE PRECISION
       CID_D = mxClassIDFromClassName('double') ! FLAG FOR DOUBLE PRECISION
 
 
-C     ONE INPUT ARGUMENT (FILEPATH) IS REQUIRED
+C     AT LEAST ONE INPUT ARGUMENT (FILEPATH) IS REQUIRED
       IF (nrhs < 1) THEN
         S = -4.0
         GO TO 10
+      ELSE IF (nrhs > 1) THEN
+        IF (NOT(mxIsEmpty(prhs(2))) .AND. mxIsDouble(prhs(2))) THEN
+          SKIP_DATA = DBLE(mxGetScalar(prhs(2)))
+        ELSE
+          SKIP_DATA = 0.0
+        END IF
+C         SKIP_DATA = 1.0
       END IF
 
 
@@ -195,7 +208,7 @@ C     READ FIRST LINE IN FILE
 
 C ----------------------------------------------------------------------
 C     READ DATA WHILE DATARECORD IS PREPENDED WITH "-1"
-      DO WHILE (ADJUSTL(REC0) == "-1")
+      DO WHILE (REC0 == "    -1")
 
 
 
@@ -456,7 +469,9 @@ C       RECORD 11
 
         CASENUM = 1
 
-        ALLOCATE(XDATA(NVAL))
+        IF (SKIP_DATA < 1) THEN
+          ALLOCATE(XDATA(NVAL))
+        END IF
 
         IF (ISEVEN > 0.5) THEN ! XDATA EVENLY SPACED
           IF (ABSCINCR < 1E-3 .AND. F81 == 17) THEN
@@ -466,9 +481,11 @@ C       RECORD 11
               ABSCINCR = 10.0/NINT(10.0/ABSCINCR) ! FOR SMALL DX:S APPLY ROUNDING, WHEN ABSCISSA IS TIME
             END IF
           END IF
-          DO K = 1,NVAL
-            XDATA(K) = (K-1)*ABSCINCR + ABSC0
-          END DO
+          IF (SKIP_DATA < 1) THEN
+            DO K = 1,NVAL
+              XDATA(K) = (K-1)*ABSCINCR + ABSC0
+            END DO
+          END IF
         ELSE
           CASENUM = CASENUM + 1 ! = UNEVEN XDATA
         END IF
@@ -503,7 +520,6 @@ C       FIX TEXT ALIGNMENT
 
 
 
-
         IF (F02 == 'b' .OR. F02 == 'B') THEN ! BINARY FORMAT
 
 C         SKIP FOR NOW
@@ -512,6 +528,20 @@ C         SKIP FOR NOW
             READ(LUN, '(A80)', END=10, ERR=9) ID1
           END DO
           DATASETNUM = -58
+          
+          
+        ELSE IF (SKIP_DATA > 0) THEN
+        
+C         SKIP FOR NOW
+          ID0 = "0"
+          ID_PTR(2) = mxCreateDoubleMatrix(0, 0, 0) ! CREATE EMPTY MATRIX
+          ID_PTR(3) = mxCreateDoubleMatrix(0, 0, 0) ! CREATE EMPTY MATRIX
+          DO WHILE (ID0 /= "    -1")
+            READ(LUN, '(A80)', END=11, ERR=9) ID0
+          END DO
+          READ(LUN, '(A80)', END=11, ERR=9) ID0
+          REC0 = "    -1"          
+          
 
         ELSE
 
@@ -528,10 +558,12 @@ C       CASE 1, 58
           READ(LUN, 1001, END=9, ERR=9) (Y_RS(I), I = 1,NVAL)
           N = NVAL
 
-          CXFLAG = 0
-          YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, CXFLAG)
-          CALL mxCopyReal4ToPtr(Y_RS, mxGetSingles(YPTR), NVAL)
-          ID_PTR(3) = YPTR
+          IF (SKIP_DATA < 1) THEN
+            CXFLAG = 0
+            YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, CXFLAG)
+            CALL mxCopyReal4ToPtr(Y_RS, mxGetSingles(YPTR), NVAL)
+            ID_PTR(3) = YPTR
+          END IF
 
           DEALLOCATE(Y_RS)
 
@@ -673,7 +705,7 @@ C       CASE 8, 58
 
 
 C       DATA
-        fieldnames(1) = 'datasetType'
+11      fieldnames(1) = 'datasetType'
         fieldnames(2) = 'x'
         fieldnames(3) = 'data'
 
@@ -739,12 +771,14 @@ C       RECORD 11
 
         FIELDSTOUSE = 48
 
-C       COPY XDATA TO SINGLE OUTPUT MATRIX
-        CXFLAG = 0
-        ID_PTR(2) = mxCreateNumericMatrix(NVAL, N1, CID_S, CXFLAG)
-        CALL mxCopyReal4ToPtr(XDATA, mxGetSingles(ID_PTR(2)), NVAL)
 
-        DEALLOCATE(XDATA)
+        IF (SKIP_DATA < 1 .AND. ALLOCATED(XDATA)) THEN
+C         COPY XDATA TO SINGLE OUTPUT MATRIX
+          CXFLAG = 0
+          ID_PTR(2) = mxCreateNumericMatrix(NVAL, N1, CID_S, CXFLAG)
+          CALL mxCopyReal4ToPtr(XDATA, mxGetSingles(ID_PTR(2)), NVAL)
+          DEALLOCATE(XDATA)
+        END IF
 
 C       RECORD 1-5
         ID_PTR(1) = mxCreateDoubleScalar(DBLE(DATASETNUM)) ! Dataset number
@@ -810,7 +844,6 @@ C       RECORD 11
       END IF
 
 
-
 C     COPY STRUCT TO CELL ARRAY, IF DATASET NUMBER IS VALID
       IF (ANY(DATASETNUM == DATASETS)) THEN
 
@@ -825,21 +858,23 @@ C     COPY STRUCT TO CELL ARRAY, IF DATASET NUMBER IS VALID
           CASE (1)
             SPTR_1(NCELL) = mxCreateStructMatrix(N1, N1, FIELDSTOUSE,
      &        fieldnames(1:FIELDSTOUSE))
-            DO K = 1,FIELDSTOUSE
+             DO K = 1,FIELDSTOUSE
               CALL mxSetField(SPTR_1(NCELL),N1,fieldnames(K),ID_PTR(K))
-            END DO
+             END DO
 
           CASE (2)
             SPTR_2(NCELL) = mxCreateStructMatrix(N1, N1, FIELDSTOUSE,
      &        fieldnames(1:FIELDSTOUSE))
-            DO K = 1,FIELDSTOUSE
+             DO K = 1,FIELDSTOUSE
               CALL mxSetField(SPTR_2(NCELL),N1,fieldnames(K),ID_PTR(K))
-            END DO
+             END DO
 
         END SELECT
 
-        READ(LUN, '(A80)', END=10, ERR=9) REC0
-        READ(LUN, '(A80)', END=10, ERR=9) REC0 ! READ TWICE
+        IF (SKIP_DATA < 1) THEN
+          READ(LUN, '(A80)', END=10, ERR=9) REC0        
+          READ(LUN, '(A80)', END=10, ERR=9) REC0 ! READ TWICE
+        END IF
         
         
       ELSE IF (DATASETNUM == -58) THEN
