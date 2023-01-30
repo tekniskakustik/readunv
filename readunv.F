@@ -129,7 +129,6 @@ C     AT LEAST ONE INPUT ARGUMENT (FILEPATH) IS REQUIRED
         ELSE
           SKIP_DATA = 0.0
         END IF
-C         SKIP_DATA = 1.0
       END IF
 
 
@@ -531,7 +530,7 @@ C         SKIP FOR NOW
           
         ELSE IF (SKIP_DATA > 0) THEN
         
-C         SKIP FOR NOW
+C         SKIP READING DATA, JUST METADATA
           ID0 = "0"
           ID_PTR(2) = mxCreateDoubleScalar(DBLE(1.0)) ! CREATE FAKE OUTPUT
           ID_PTR(3) = mxCreateDoubleScalar(DBLE(1.0)) ! CREATE FAKE OUTPUT
