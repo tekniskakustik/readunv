@@ -39,7 +39,6 @@ C ----------------------------------------------------------------------
       mwSize :: nlhs, nrhs
       mwPointer :: mxCreateString
       mwPointer :: mxCreateDoubleScalar
-      mwPointer :: mxCreateDoubleMatrix
       REAL*8 :: mxGetScalar
       mwPointer :: mxGetDoubles
       mwPointer :: mxGetSingles
@@ -534,8 +533,8 @@ C         SKIP FOR NOW
         
 C         SKIP FOR NOW
           ID0 = "0"
-          ID_PTR(2) = mxCreateDoubleMatrix(0, 0, 0) ! CREATE EMPTY MATRIX
-          ID_PTR(3) = mxCreateDoubleMatrix(0, 0, 0) ! CREATE EMPTY MATRIX
+          ID_PTR(2) = mxCreateDoubleScalar(DBLE(1.0)) ! CREATE FAKE OUTPUT
+          ID_PTR(3) = mxCreateDoubleScalar(DBLE(1.0)) ! CREATE FAKE OUTPUT
           DO WHILE (ID0 /= "    -1")
             READ(LUN, '(A80)', END=11, ERR=9) ID0
           END DO
