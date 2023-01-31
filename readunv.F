@@ -33,7 +33,10 @@ C ----------------------------------------------------------------------
 
       SUBROUTINE mexFunction(nlhs, plhs, nrhs, prhs)
 
+
       IMPLICIT NONE
+      
+      
 
       mwPointer :: plhs(*), prhs(*)
       mwSize :: nlhs, nrhs
@@ -45,7 +48,7 @@ C ----------------------------------------------------------------------
       mwPointer :: mxGetComplexDoubles
       mwPointer :: mxGetComplexSingles
       mwPointer :: mxCreateCellMatrix
-      INTEGER*4 :: mxClassIDFromClassName, CXFLAG, CID_S, CID_D
+      INTEGER*4 :: mxClassIDFromClassName, CXFLAG, CID_S, CID_D, FSEEK
       mwPointer :: mxCreateNumericMatrix
       mwPointer :: mxCreateStructMatrix
       mwPointer :: mxGetN
@@ -206,7 +209,7 @@ C     READ FIRST LINE IN FILE
 
 C ----------------------------------------------------------------------
 C     READ DATA WHILE DATARECORD IS PREPENDED WITH "-1"
-      DO WHILE (REC0 == "    -1")
+      DO WHILE (ADJUSTL(REC0) == "-1")
 
 
 
@@ -534,7 +537,34 @@ C         SKIP READING DATA, JUST METADATA
           ID0 = "0"
           ID_PTR(2) = mxCreateDoubleScalar(DBLE(1.0)) ! CREATE FAKE OUTPUT
           ID_PTR(3) = mxCreateDoubleScalar(DBLE(1.0)) ! CREATE FAKE OUTPUT
-          DO WHILE (ID0 /= "    -1")
+          
+          IF      (CASENUM == 1) THEN ! REAL, SINGLE, EVEN SPACING
+            STATUS_INT = FSEEK(LUN, NVAL*4-6*4, 1)
+            
+          ELSE IF (CASENUM == 2) THEN ! REAL, SINGLE, UNEVEN SPACING
+            STATUS_INT = FSEEK(LUN, NVAL*2*4-6*4, 1)
+            
+          ELSE IF (CASENUM == 3) THEN ! COMPLEX, SINGLE, EVEN SPACING
+            STATUS_INT = FSEEK(LUN, NVAL*2*4-6*4, 1)          
+          
+          ELSE IF (CASENUM == 4) THEN ! COMPLEX, SINGLE, UNEVEN SPACING
+            STATUS_INT = FSEEK(LUN, NVAL*3*4-6*4, 1)   
+          
+          ELSE IF (CASENUM == 5) THEN ! REAL, DOUBLE, EVEN SPACING
+            STATUS_INT = FSEEK(LUN, NVAL*8-4*8, 1)
+          
+          ELSE IF (CASENUM == 6) THEN ! REAL, DOUBLE, UNEVEN SPACING
+            STATUS_INT = FSEEK(LUN, NVAL*8*2-4*8, 1)
+          
+          ELSE IF (CASENUM == 7) THEN ! COMPLEX, DOUBLE, EVEN SPACING
+            STATUS_INT = FSEEK(LUN, NVAL*8*2-4*8, 1)
+          
+          ELSE IF (CASENUM == 8) THEN ! COMPLEX, DOUBLE, UNEVEN SPACING
+            STATUS_INT = FSEEK(LUN, NVAL*8*3-4*8, 1)
+          
+          END IF
+          
+          DO WHILE (ADJUSTL(ID0) /= "-1")
             READ(LUN, '(A80)', END=11, ERR=9) ID0
           END DO
           READ(LUN, '(A80)', END=11, ERR=9) ID0
