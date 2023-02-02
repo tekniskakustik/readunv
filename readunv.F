@@ -33,7 +33,7 @@ C ----------------------------------------------------------------------
 
       SUBROUTINE mexFunction(nlhs, plhs, nrhs, prhs)
 
-
+      USE IFPORT
       IMPLICIT NONE      
       
 
