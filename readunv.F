@@ -33,7 +33,7 @@ C ----------------------------------------------------------------------
 
       SUBROUTINE mexFunction(nlhs, plhs, nrhs, prhs)
 
-      USE IFPORT
+C       USE IFPORT, only: FSEEK
       IMPLICIT NONE      
       
 
@@ -47,7 +47,8 @@ C ----------------------------------------------------------------------
       mwPointer :: mxGetComplexDoubles
       mwPointer :: mxGetComplexSingles
       mwPointer :: mxCreateCellMatrix
-      INTEGER*4 :: mxClassIDFromClassName, CXFLAG, CID_S, CID_D, FSEEK
+      INTEGER*4 :: mxClassIDFromClassName, CXFLAG, CID_S, CID_D
+      INTEGER :: FSEEK
       mwPointer :: mxCreateNumericMatrix
       mwPointer :: mxCreateStructMatrix
       mwPointer :: mxGetN
@@ -65,7 +66,6 @@ C ----------------------------------------------------------------------
       mwSize :: NVAL, KMW, NCELL
       REAL*8 :: SKIP_DATA
       
-C       integer*4, parameter :: ucs4  = selected_char_kind ("ISO_10646")
 
 
       INTEGER*4, PARAMETER :: NFIELDS = 48 ! MAXIMUM NUMBER OF FIELDS IN USE, ADJUST WHEN NEEDED
@@ -554,28 +554,28 @@ C         SKIP READING DATA, JUST METADATA
           ID_PTR(3) = mxCreateDoubleScalar(DBLE(1.0)) ! CREATE FAKE OUTPUT
           
           IF      (CASENUM == 1) THEN ! REAL, SINGLE, EVEN SPACING
-            STATUS_INT = FSEEK(LUN, NVAL*4-6*4, 1)
+            STATUS_INT = FSEEK(LUN, INT4(NVAL*4-6*4), 1)
             
           ELSE IF (CASENUM == 2) THEN ! REAL, SINGLE, UNEVEN SPACING
-            STATUS_INT = FSEEK(LUN, NVAL*2*4-6*4, 1)
+            STATUS_INT = FSEEK(LUN, INT4(NVAL*2*4-6*4), 1)
             
           ELSE IF (CASENUM == 3) THEN ! COMPLEX, SINGLE, EVEN SPACING
-            STATUS_INT = FSEEK(LUN, NVAL*2*4-6*4, 1)          
+            STATUS_INT = FSEEK(LUN, INT4(NVAL*2*4-6*4), 1)          
           
           ELSE IF (CASENUM == 4) THEN ! COMPLEX, SINGLE, UNEVEN SPACING
-            STATUS_INT = FSEEK(LUN, NVAL*3*4-6*4, 1)   
+            STATUS_INT = FSEEK(LUN, INT4(NVAL*3*4-6*4), 1)   
           
           ELSE IF (CASENUM == 5) THEN ! REAL, DOUBLE, EVEN SPACING
-            STATUS_INT = FSEEK(LUN, NVAL*8-4*8, 1)
+            STATUS_INT = FSEEK(LUN, INT4(NVAL*8-4*8), 1)
           
           ELSE IF (CASENUM == 6) THEN ! REAL, DOUBLE, UNEVEN SPACING
-            STATUS_INT = FSEEK(LUN, NVAL*8*2-4*8, 1)
+            STATUS_INT = FSEEK(LUN, INT4(NVAL*8*2-4*8), 1)
           
           ELSE IF (CASENUM == 7) THEN ! COMPLEX, DOUBLE, EVEN SPACING
-            STATUS_INT = FSEEK(LUN, NVAL*8*2-4*8, 1)
+            STATUS_INT = FSEEK(LUN, INT4(NVAL*8*2-4*8), 1)
           
           ELSE IF (CASENUM == 8) THEN ! COMPLEX, DOUBLE, UNEVEN SPACING
-            STATUS_INT = FSEEK(LUN, NVAL*8*3-4*8, 1)
+            STATUS_INT = FSEEK(LUN, INT4(NVAL*8*3-4*8), 1)
           
           END IF
           

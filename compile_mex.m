@@ -9,7 +9,7 @@
 % NB: -R2018a flag is required
 if ispc
     
-    mex -R2018a COMPFLAGS='$COMPFLAGS /warn:unused -dbl /O2' readunv.F
+    mex -R2018a COMPFLAGS='$COMPFLAGS /warn:unused /O2' readunv.F
     mex -R2018a COMPFLAGS='$COMPFLAGS /warn:unused /O2 /QaxAVX2 /assume:buffered_io /Qunroll-aggressive' writeunv.F
 
 elseif ismac
