@@ -34,8 +34,7 @@ C ----------------------------------------------------------------------
       SUBROUTINE mexFunction(nlhs, plhs, nrhs, prhs)
 
 
-      IMPLICIT NONE
-      
+      IMPLICIT NONE      
       
 
       mwPointer :: plhs(*), prhs(*)
@@ -65,6 +64,8 @@ C ----------------------------------------------------------------------
       mwSize, PARAMETER :: N1 = 1
       mwSize :: NVAL, KMW, NCELL
       REAL*8 :: SKIP_DATA
+      
+C       integer*4, parameter :: ucs4  = selected_char_kind ("ISO_10646")
 
 
       INTEGER*4, PARAMETER :: NFIELDS = 48 ! MAXIMUM NUMBER OF FIELDS IN USE, ADJUST WHEN NEEDED
@@ -187,6 +188,7 @@ C     OPEN FILE LOCATED AT <FILEPATH>
      & IOSTAT = STATUS_INT,
      & POSITION = 'REWIND',
      & ACTION = 'READ',
+     & ENCODING = 'DEFAULT',
      & FORM = 'FORMATTED')
 
 
@@ -294,6 +296,11 @@ C       FIX TEXT ALIGNMENT
         ID2 = ADJUSTL(ID2)
         ID3 = ADJUSTL(ID3)
         ID4 = ADJUSTL(ID4)
+        CALL REMOVE_NON_ASCII(ID1, LEN_TRIM(ID1))
+        CALL REMOVE_NON_ASCII(ID2, LEN_TRIM(ID2))
+        CALL REMOVE_NON_ASCII(ID3, LEN_TRIM(ID3))
+        CALL REMOVE_NON_ASCII(ID4, LEN_TRIM(ID4))
+        
         DS151F41 = ADJUSTL(DS151F41)
         DS151F42 = ADJUSTL(DS151F42)
         DS151F51 = ADJUSTL(DS151F51)
@@ -317,7 +324,8 @@ C       FIX TEXT ALIGNMENT
         fieldnames(13) = 'fileCreatedDate'
         fieldnames(14) = 'fileCreatedTime'
 
-        FIELDSTOUSE = 14 ! NUMBER OF FIELDS IN DATASET 151
+        FIELDSTOUSE = 14 ! NUMBER OF FIELDS IN DATASET 151        
+        
 
         ID_PTR(1) = mxCreateDoubleScalar(DBLE(DATASETNUM)) ! dataset number
         ID_PTR(2) = mxCreateString(ID1) ! ID Line 1, model file name
@@ -507,6 +515,13 @@ C       FIX TEXT ALIGNMENT
         ID3 = ADJUSTL(ID3)
         ID4 = ADJUSTL(ID4)
         ID5 = ADJUSTL(ID5)
+        
+        CALL REMOVE_NON_ASCII(ID1, LEN_TRIM(ID1))
+        CALL REMOVE_NON_ASCII(ID2, LEN_TRIM(ID2))
+        CALL REMOVE_NON_ASCII(ID3, LEN_TRIM(ID3))
+        CALL REMOVE_NON_ASCII(ID4, LEN_TRIM(ID4))
+        CALL REMOVE_NON_ASCII(ID5, LEN_TRIM(ID5))
+        
         F65 = ADJUSTL(F65)
         F68 = ADJUSTL(F68)
         F85 = ADJUSTL(F85)
@@ -806,8 +821,8 @@ C         COPY XDATA TO SINGLE OUTPUT MATRIX
           ID_PTR(2) = mxCreateNumericMatrix(NVAL, N1, CID_S, CXFLAG)
           CALL mxCopyReal4ToPtr(XDATA, mxGetSingles(ID_PTR(2)), NVAL)
           DEALLOCATE(XDATA)
-        END IF
-
+        END IF       
+        
 C       RECORD 1-5
         ID_PTR(1) = mxCreateDoubleScalar(DBLE(DATASETNUM)) ! Dataset number
         ID_PTR(4) = mxCreateString(ID1) ! ID Line 1
@@ -1046,6 +1061,20 @@ C     IF ALLOCATION HAVE BEEN USED -> DEALLOCATE DYNAMIC STRUCT POINTERS
 
       RETURN
       END
+      
+      
+      
+      SUBROUTINE REMOVE_NON_ASCII(STR, L)
+        CHARACTER(LEN=L), INTENT(INOUT) :: STR
+        INTEGER :: K
+        
+        DO K = 1,L
+          STR(K:K) = ACHAR(MIN(IACHAR(STR(K:K)), 127))
+        END DO
+        
+        
+        
+      END SUBROUTINE REMOVE_NON_ASCII
 
 
 C ----------------------------------------------------------------------
