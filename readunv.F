@@ -33,7 +33,7 @@ C ----------------------------------------------------------------------
 
       SUBROUTINE mexFunction(nlhs, plhs, nrhs, prhs)
 
-C       USE IFPORT, only: FSEEK
+
       IMPLICIT NONE      
       
 
@@ -48,7 +48,6 @@ C       USE IFPORT, only: FSEEK
       mwPointer :: mxGetComplexSingles
       mwPointer :: mxCreateCellMatrix
       INTEGER*4 :: mxClassIDFromClassName, CXFLAG, CID_S, CID_D
-      INTEGER :: FSEEK
       mwPointer :: mxCreateNumericMatrix
       mwPointer :: mxCreateStructMatrix
       mwPointer :: mxGetN
@@ -65,7 +64,11 @@ C       USE IFPORT, only: FSEEK
       mwSize, PARAMETER :: N1 = 1
       mwSize :: NVAL, KMW, NCELL
       REAL*8 :: SKIP_DATA
-      
+#ifdef __APPLE__
+
+#else
+      INTEGER*4 :: FSEEK
+#endif
 
 
       INTEGER*4, PARAMETER :: NFIELDS = 48 ! MAXIMUM NUMBER OF FIELDS IN USE, ADJUST WHEN NEEDED
@@ -553,6 +556,9 @@ C         SKIP READING DATA, JUST METADATA
           ID_PTR(2) = mxCreateDoubleScalar(DBLE(1.0)) ! CREATE FAKE OUTPUT
           ID_PTR(3) = mxCreateDoubleScalar(DBLE(1.0)) ! CREATE FAKE OUTPUT
           
+#ifdef __APPLE__
+
+#else
           IF      (CASENUM == 1) THEN ! REAL, SINGLE, EVEN SPACING
             STATUS_INT = FSEEK(LUN, INT4(NVAL*4-6*4), 1)
             
@@ -578,7 +584,7 @@ C         SKIP READING DATA, JUST METADATA
             STATUS_INT = FSEEK(LUN, INT4(NVAL*8*3-4*8), 1)
           
           END IF
-          
+#endif
           DO WHILE (ADJUSTL(ID0) /= "-1")
             READ(LUN, '(A80)', END=11, ERR=9) ID0
           END DO
