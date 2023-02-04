@@ -878,16 +878,16 @@ C       RECORD 10
         ID_PTR(38) = mxCreateDoubleScalar(DBLE(F102)) ! Ordinate Denominator length units exponent
         ID_PTR(39) = mxCreateDoubleScalar(DBLE(F103)) ! Ordinate Denominator force units exponent
         ID_PTR(40) = mxCreateDoubleScalar(DBLE(F104)) ! Ordinate Denominator temperature units exponent
-        ID_PTR(41) = mxCreateString(F105) ! Ordinate axis label
-        ID_PTR(42) = mxCreateString(F106) ! Ordinate axis units label
+        ID_PTR(41) = mxCreateString(F105) ! Ordinate Denominator axis label
+        ID_PTR(42) = mxCreateString(F106) ! Ordinate Denominator axis units label
 
 C       RECORD 11
-        ID_PTR(43) = mxCreateDoubleScalar(DBLE(F111)) ! Ordinate Denominator Data Type
-        ID_PTR(44) = mxCreateDoubleScalar(DBLE(F112)) ! Ordinate Denominator length units exponent
-        ID_PTR(45) = mxCreateDoubleScalar(DBLE(F113)) ! Ordinate Denominator force units exponent
-        ID_PTR(46) = mxCreateDoubleScalar(DBLE(F114)) ! Ordinate Denominator temperature units exponent
-        ID_PTR(47) = mxCreateString(F115) ! Ordinate axis label
-        ID_PTR(48) = mxCreateString(F116) ! Ordinate axis units label
+        ID_PTR(43) = mxCreateDoubleScalar(DBLE(F111)) ! Z-Axis Data Type
+        ID_PTR(44) = mxCreateDoubleScalar(DBLE(F112)) ! Z-Axis length units exponent
+        ID_PTR(45) = mxCreateDoubleScalar(DBLE(F113)) ! Z-Axis force units exponent
+        ID_PTR(46) = mxCreateDoubleScalar(DBLE(F114)) ! Z-Axis temperature units exponent
+        ID_PTR(47) = mxCreateString(F115) ! Z-Axis label
+        ID_PTR(48) = mxCreateString(F116) ! Z-Axis units label
 
 
       END IF
