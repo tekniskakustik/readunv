@@ -64,6 +64,14 @@
 %        = -10, DATA IS NOT AN ARRAY, OR WRONGLY SIZED
 %        = -11, DATA CASE TYPE IS UNSUPPORTED
 %        = -12, FLOATING POINT ARITHMETIC OVERFLOW (FROM IOSTAT)
+%        = -13, FILEPATH IS INVALID OR INACCESSIBLE
+%        = -14, "dataFormatType" IS INVALID (STREAMING MODE)
+%        = -15, X-DATA FIELD NOT PRESENT OR EMPTY
+%        = -16, MISMATCHING X-DATA- AND DATA SIZES
+%        = -17, "ordNumDataType" IS INVALID
+%        = -18, INVALID "fileType" IN UNV-151
+%        = -19, INVALID "unitsCode" IN UNV-164
+%        = -20, INVALID DIRECTION NUMBER IN UNV-58, VALID RANGE: [-6 6]
 %        = >1,  ERROR CODE FROM IOSTAT WHEN OPENING FILE
 %
 %
@@ -73,7 +81,7 @@
 
 
 % read data from a test file
-[success, datacell] = readunv(['.', filesep, 'testdata', filesep, 'test3.unv']);
+[success, datacell] = readunv(['.', filesep, 'testdata', filesep, 'test3.unv']); %#ok<ASGLU>
 
 
 
@@ -91,6 +99,17 @@ for setCount = 1:length(datacell)
         break
     end
 end
+
+
+
+% test to write a file from scratch
+C = createTemplate(58);
+C.data = rand(3, 1);
+C.x = 1:3;
+C.evenSpacing = 1;
+C.x0 = 1;
+C.dx = 1;
+success = writeunv('test_template.unv', C, 1);
 
 
 
