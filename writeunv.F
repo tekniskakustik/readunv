@@ -3,27 +3,58 @@
 
 C ----------------------------------------------------------------------
 C
-C     STATE = WRITEUNV(FILEPATH, STRUCT, WRITEMODE, IDX)
+C     [STATE CASENUM] = WRITEUNV(FILEPATH, STRUCT, WRITEMODE, IDX)
 C
-C     WRITEUNV(FILEPATH, STRUCT) -> APPEND DATA (FROM STRUCT), CREATE FILE IF NEEDED
-C     WRITEUNV(FILEPATH, STRUCT, WRITEMODE) | WRITEMODE = 0 (APPEND), WRITEMODE = 1 (REPLACE), [WRITEMODE] = UINT8
-C     WRITEUNV(FILEPATH, STRUCT, 0/1, IDX) -> CREATE FILE ACCORDING TO WRITEMODE, KEEP FILE OPEN, CURRENT FILE = IDX (IDX MUST <= MAXIDX)
-C     WRITEUNV([], STRUCT, 2, IDX) -> WRITE INTO LUN(IDX), FILEPATH IS IGNORED
-C     WRITEUNV(CASENUM, DATA, 3, IDX, DATASET) -> STREAM DATA INTO <IDX>, FILEPATH IS REPLACED WITH CASENUM FOR DATA WRITING
-C     WRITEUNV(-1, DATA, 3, IDX, DATASET) -> TERMINATE FILE <IDX>, AND WRITE NUMBER OF VALUES INTO HEADER
-C     WRITEUNV() -> CLOSE ALL OPEN FILES AND ZERO LUN
-C     <STATE IS ALWAYS RETURNED>
-C     STATE FLAGS:
+C ----------------------------------------------------------------------
+C
+C
+C --- SYNTAX EXAMPLES --------------------------------------------------
+C
+C       WRITEUNV(FILEPATH, STRUCT)
+C         APPEND DATA (FROM STRUCT), CREATE FILE IF NEEDED
+C
+C       WRITEUNV(FILEPATH, STRUCT, WRITEMODE)
+C         WRITEMODE = 0 (APPEND), WRITEMODE = 1 (REPLACE), [WRITEMODE] = DOUBLE
+C
+C       WRITEUNV(FILEPATH, STRUCT, 0/1, IDX)
+C         CREATE FILE ACCORDING TO WRITEMODE, KEEP FILE OPEN, CURRENT FILE = IDX (IDX MUST <= MAXIDX)
+C
+C       WRITEUNV([], STRUCT, 2, IDX)
+C         WRITE INTO LUN(IDX), FILEPATH IS IGNORED
+C
+C       WRITEUNV(CASENUM, DATA, 3, IDX)
+C         STREAM DATA INTO <IDX>, FILEPATH IS REPLACED WITH CASENUM FOR DATA WRITING, ONLY UNV-58 SUPPORTED/ASSUMED
+C
+C       WRITEUNV(-1, DATA, 3, IDX)
+C         TERMINATE FILE <IDX>, AND WRITE NUMBER OF VALUES INTO HEADER, DATA IS IGNORED
+C
+C       WRITEUNV()
+C         CLOSE ALL OPEN FILES AND ZERO LUN/FILEHANDLES
+C
+C
+C --- INPUTS -----------------------------------------------------------
+C
+C     FILEPATH:   [CHAR] WITH RELATIVE OR ABSOLUTE PATH TO FILE TO READ
+C                 REPLACE FILEPATH WITH CASENUM [DOUBLE] WHEN WRITING STREAMING DATA
+C                 SET TO -1 [DOUBLE] TO TERMINATE FILE <IDX>
+C
+C     STRUCT:     [STRUCT] DATA TO BE WRITTEN
+C
+C     WRITEMODE:  [DOUBLE] REPLACE (1), APPEND (0) OR ADD TO OPEN FILEHANDLE/LUN (2)
+C
+C     IDX:        [DOUBLE] FILE INDEX TO FILEHANDLE, EITHER A NEW (TO OPEN), OR OLD ALREADY OPENED
+C
+C
+C --- OUTPUTS ----------------------------------------------------------
+C
+C     STATE FLAGS: (ALWAYS RETURNED)
 C       =  1,  SUCCESFUL
 C       =  0,  UNKNOWN ERROR
 C       = -1,  ERROR WRITING FIELDS/DATA
 C       = -2,  COULD NOT READ FILEPATH
 C       = -3,  UNKNOWN WRITEMODE
 C       = -4,  TOO FEW INPUTS
-C       = -5,  MISSING DATASET NUMBER
-C       = -6,  UNSUPPORTED DATASET NUMBER
 C       = -7,  EXPECTED STRUCT INPUT IS NOT A STRUCTURE
-C       = -8,  TOO FEW FIELDS, OR BADLY FORMATTED FIELDS, IN STRUCTURE
 C       = -9,  FILE LUN IS NOT OPEN
 C       = -10, DATA IS NOT AN ARRAY, OR WRONGLY SIZED
 C       = -11, DATA CASE TYPE IS UNSUPPORTED
@@ -38,6 +69,9 @@ C       = -19, INVALID "unitsCode" IN UNV-164
 C       = -20, INVALID DIRECTION NUMBER IN UNV-58, VALID RANGE: [-6 6]
 C       = >1,  ERROR CODE FROM IOSTAT WHEN OPENING FILE
 C
+C     CASENUM:  CASENUM TO USE WHEN STREAMING DATA [DOUBLE]
+C               IF NOT SUCCESSFUL -> CHAR WITH ERROR DESCRIPTION [CHAR]
+C
 C ----------------------------------------------------------------------
 
 
@@ -50,6 +84,7 @@ C ----------------------------------------------------------------------
 
 
       mwPointer :: mxCreateDoubleScalar
+      mwPointer :: mxCreateString
       mwPointer :: mxGetDoubles
       mwPointer :: mxGetSingles
       mwPointer :: mxGetComplexDoubles
@@ -225,7 +260,7 @@ C       ASSIGN DEFAULT INDEX IF MISSING OR OUT OF BOUNDS
 
 
 C       DETERMINE IF FILE IS TO BE REPLACED OR NOT (APPENDED)
-        IF (WRITEMODE /= 0) THEN
+        IF (WRITEMODE == 1) THEN
           FILEACT = 'REPLACE'
         ELSE
           FILEACT = 'OLD'
@@ -279,318 +314,309 @@ C --- ONLY WRITE STREAMING DATA ----------------------------------------
 C ----------------------------------------------------------------------
       IF (WRITEMODE == 3) THEN
 
-        IF (nrhs < 5) THEN
-          S = -5
+        IF (nrhs < 4) THEN
+          S = -4
           GO TO 10
         END IF
 
         CALL mxCopyPtrToReal8(mxGetDoubles(prhs(1)), T, N1)
         CASENUM = T
 
-        CALL mxCopyPtrToReal8(mxGetDoubles(prhs(5)), T, N1)
-        DATASETNUM = T
 
+        IF (CASENUM == -1) THEN ! FINALISE WRITING
 
-        IF (DATASETNUM == 58) THEN
+          IF (LUN(LIDX) > 0) THEN
 
-          IF (CASENUM == -1) THEN ! FINALISE WRITING
-
-            IF (LUN(LIDX) > 0) THEN
-
-              INQUIRE(UNIT=LUN(LIDX), OPENED=OK, NAME=FILESTR)
-              IF (NOT(OK)) THEN
-                S = -9
-                GO TO 10
-              END IF
-
-C             FINISH LAST LINE
-              WRITE(LUN(LIDX),'(1X)',ERR=9)
-
-C             WRITE UNV TERMINATOR, -1
-              WRITE(LUN(LIDX),'(I6)') -1
-
-C             CLOSE FILE
-              CLOSE(LUN(LIDX),STATUS='KEEP')
-
-              OPEN(
-     &          UNIT = LUN(LIDX),
-     &          FILE = FILESTR,
-     &          ACCESS = 'STREAM',
-     &          STATUS = 'OLD',
-     &          ERR = 8,
-     &          FORM = 'UNFORMATTED',
-     &          ACTION = 'WRITE')
-
-              WRITE(STR10, '(I10)') NUMPTS(LIDX)
-              WRITE(LUN(LIDX), ERR=9, POS=REC7POS(LIDX)+10) STR10
-              CLOSE(LUN(LIDX), STATUS='KEEP')
-
-              S = 1.0
-
-            ELSE
-
-              S = -9.0
-
+            INQUIRE(UNIT=LUN(LIDX), OPENED=OK, NAME=FILESTR)
+            IF (NOT(OK)) THEN
+              S = -9
+              GO TO 10
             END IF
 
-            LUN(LIDX) = 0
-            NUMPTS(LIDX) = 0
-            REMPTS(LIDX) = 0
+C           FINISH LAST LINE
+            WRITE(LUN(LIDX),'(1X)',ERR=9)
 
-            GO TO 10 ! RETURN
+C           WRITE UNV TERMINATOR, -1
+            WRITE(LUN(LIDX),'(I6)') -1
 
+C           CLOSE FILE
+            CLOSE(LUN(LIDX),STATUS='KEEP')
+
+            OPEN(
+     &        UNIT = LUN(LIDX),
+     &        FILE = FILESTR,
+     &        ACCESS = 'STREAM',
+     &        STATUS = 'OLD',
+     &        ERR = 8,
+     &        FORM = 'UNFORMATTED',
+     &        ACTION = 'WRITE')
+
+            WRITE(STR10, '(I10)') NUMPTS(LIDX)
+            WRITE(LUN(LIDX), ERR=9, POS=REC7POS(LIDX)+10) STR10
+            CLOSE(LUN(LIDX), STATUS='KEEP')
+
+            S = 1.0
 
           ELSE
 
-            NOK = mxIsEmpty(prhs(2))
-
-            IF (NOK) THEN
-              S = -10
-              GO TO 10
-            END IF
-
-            NVAL = mxGetNumberOfElements(prhs(2))
-
-            NUMPTS(LIDX) = NUMPTS(LIDX) + NVAL
-            STEP = REMPTS(LIDX)
-
-
-C --------- WRITING STREAMING DATA / CASE 1 ----------------------------
-            IF (CASENUM == 1) THEN ! REAL SINGLE, X-EVENLY-SPACED
-
-              ALLOCATE(Y_RS(NVAL))
-
-              PTLIM = 6
-
-              PTR = mxGetSingles(prhs(2))
-              CALL mxCopyPtrToReal4(PTR, Y_RS, NVAL)
-
-              IF (STEP /= 0) THEN ! IF THERE IS UNFINISHED DATA, 0 -> FINISHED ROW
-                IF (STEP >= NVAL) THEN ! IF NUMBER VALUES TO WRITE IS <= REQUIRED AMOUNT TO FINISH ROW
-                    WRITE(LUN(LIDX), 1001, ERR=9, ADVANCE='NO')
-     &                (Y_RS(I), I = 1,NVAL)
-                  REMPTS(LIDX) = REMPTS(LIDX)-NVAL
-                  S = 1.0 ! SUCCESS
-                  GO TO 10 ! RETURN
-                ELSE ! MORE DATA AVAILABLE AFTER FINISH OF CURRENT LINE
-C                   ADD PARTIAL DATA, REQUIRED AMOUNT TO FINISH ROW
-                    WRITE(LUN(LIDX), 1001, ERR=9, ADVANCE='NO')
-     &                (Y_RS(I), I = 1,STEP)
-                END IF
-              END IF
-
-              N = STEP
-
-              IF (N == NVAL) THEN
-                REMPTS(LIDX) = 0
-              ELSE
-                WRITE(LUN(LIDX), '(1X)',ERR=9) ! IF PREVIOUS WRITE WAS FINISHED, OR END OF HEADER -> ADVANCE
-                STEP = (NVAL-N) - MOD(NVAL-N, PTLIM) ! WRITE NO PARTIAL NUMBER OF LINES
-                IF (N+STEP == NVAL) THEN
-                  STEP = STEP-PTLIM ! ONLY WRITE UP UNTIL THE SECOND-TO-LAST LINE, WITH ADVANCE=YES
-                END IF
-
-C               WRITE 1:END-1 COMPLETE LINES, WITH ADVANCE
-                IF (STEP > 0) THEN
-                  WRITE(LUN(LIDX), 1001, ERR=9, ADVANCE='YES')
-     &              (Y_RS(I+N), I = 1,STEP)
-                END IF
-
-                N = N + STEP
-
-C               WRITE LAST (PARTIAL/COMPLETE) LINE, WITH NO ADVANCE
-                WRITE(LUN(LIDX), 1001, ERR=9, ADVANCE='NO')
-     &              (Y_RS(I), I = N+1,NVAL)
-
-                REMPTS(LIDX) = PTLIM-(NVAL-N) ! POINTS LEFT TO WRITE
-
-              END IF
-              S = 1.0 ! SUCCESS
-
-
-
-
-C --------- WRITING STREAMING DATA / CASE 3 ----------------------------
-            ELSEIF (CASENUM == 3) THEN ! COMPLEX SINGLE, X-EVEN
-
-              ALLOCATE(Y_CS(NVAL))
-
-              PTLIM = 3
-
-              PTR = mxGetComplexSingles(prhs(2))
-              CALL mxCopyPtrToComplex8(PTR, Y_CS, NVAL)
-
-              IF (STEP /= 0) THEN ! IF THERE IS UNFINISHED DATA, 0 -> FINISHED ROW
-                IF (STEP >= NVAL) THEN ! IF NUMBER VALUES TO WRITE IS <= REQUIRED AMOUNT TO FINISH ROW
-                    WRITE(LUN(LIDX), 1003, ERR=9, ADVANCE='NO')
-     &                (Y_CS(I), I = 1,NVAL)
-                  REMPTS(LIDX) = REMPTS(LIDX)-NVAL
-                  S = 1.0 ! SUCCESS
-                  GO TO 10 ! RETURN
-                ELSE ! MORE DATA AVAILABLE AFTER FINISH OF CURRENT LINE
-C                   ADD PARTIAL DATA, REQUIRED AMOUNT TO FINISH ROW
-                    WRITE(LUN(LIDX), 1003, ERR=9, ADVANCE='NO')
-     &                (Y_CS(I), I = 1,STEP)
-                END IF
-              END IF
-
-              N = STEP
-
-              IF (N == NVAL) THEN
-                REMPTS(LIDX) = 0
-              ELSE
-                WRITE(LUN(LIDX), '(1X)', ERR=9) ! IF PREVIOUS WRITE WAS FINISHED, OR END OF HEADER -> ADVANCE
-                STEP = (NVAL-N) - MOD(NVAL-N, PTLIM) ! WRITE NO PARTIAL NUMBER OF LINES
-                IF (N+STEP == NVAL) THEN
-                  STEP = STEP-PTLIM ! ONLY WRITE UP UNTIL THE SECOND-TO-LAST LINE, WITH ADVANCE=YES
-                END IF
-
-C               WRITE 1:END-1 COMPLETE LINES, WITH ADVANCE
-                IF (STEP > 0) THEN
-                  WRITE(LUN(LIDX), 1003, ERR=9, ADVANCE='YES')
-     &              (Y_CS(I+N), I = 1,STEP)
-                END IF
-
-                N = N + STEP
-
-C               WRITE LAST (PARTIAL/COMPLETE) LINE, WITH NO ADVANCE
-                WRITE(LUN(LIDX), 1003, ERR=9, ADVANCE='NO')
-     &              (Y_CS(I), I = N+1,NVAL)
-
-                REMPTS(LIDX) = PTLIM-(NVAL-N) ! POINTS LEFT TO WRITE
-
-              END IF
-              S = 1.0 ! SUCCESS
-
-
-
-
-C --------- WRITING STREAMING DATA / CASE 5 ----------------------------
-            ELSEIF (CASENUM == 5) THEN ! REAL DOUBLE, X-EVENLY-SPACED
-
-              ALLOCATE(Y_RD(NVAL))
-
-              PTLIM = 4
-
-              PTR = mxGetDoubles(prhs(2))
-              CALL mxCopyPtrToReal8(PTR, Y_RD, NVAL)
-
-              IF (STEP /= 0) THEN ! IF THERE IS UNFINISHED DATA, 0 -> FINISHED ROW
-                IF (STEP >= NVAL) THEN ! IF NUMBER VALUES TO WRITE IS <= REQUIRED AMOUNT TO FINISH ROW
-                    WRITE(LUN(LIDX), 1005, ERR=9, ADVANCE='NO')
-     &                (Y_RD(I), I = 1,NVAL)
-                  REMPTS(LIDX) = REMPTS(LIDX)-NVAL
-                  S = 1.0 ! SUCCESS
-                  GO TO 10 ! RETURN
-                ELSE ! MORE DATA AVAILABLE AFTER FINISH OF CURRENT LINE
-C                   ADD PARTIAL DATA, REQUIRED AMOUNT TO FINISH ROW
-                    WRITE(LUN(LIDX), 1005, ERR=9, ADVANCE='NO')
-     &                (Y_RD(I), I = 1,STEP)
-                END IF
-              END IF
-
-              N = STEP
-
-              IF (N == NVAL) THEN
-                REMPTS(LIDX) = 0
-              ELSE
-                WRITE(LUN(LIDX), '(1X)', ERR=9) ! IF PREVIOUS WRITE WAS FINISHED, OR END OF HEADER -> ADVANCE
-                STEP = (NVAL-N) - MOD(NVAL-N, PTLIM) ! WRITE NO PARTIAL NUMBER OF LINES
-                IF (N+STEP == NVAL) THEN
-                  STEP = STEP-PTLIM ! ONLY WRITE UP UNTIL THE SECOND-TO-LAST LINE, WITH ADVANCE=YES
-                END IF
-
-C               WRITE 1:END-1 COMPLETE LINES, WITH ADVANCE
-                IF (STEP > 0) THEN
-                  WRITE(LUN(LIDX), 1005, ERR=9, ADVANCE='YES')
-     &              (Y_RD(I+N), I = 1,STEP)
-                END IF
-
-                N = N + STEP
-
-C               WRITE LAST (PARTIAL/COMPLETE) LINE, WITH NO ADVANCE
-                WRITE(LUN(LIDX), 1005, ERR=9, ADVANCE='NO')
-     &              (Y_RD(I), I = N+1,NVAL)
-
-                REMPTS(LIDX) = PTLIM-(NVAL-N) ! POINTS LEFT TO WRITE
-
-              END IF
-              S = 1.0 ! SUCCESS
-
-
-
-
-C --------- WRITING STREAMING DATA / CASE 7 ----------------------------
-            ELSEIF (CASENUM == 7) THEN ! COMPLEX DOUBLE, X-EVEN
-
-              ALLOCATE(Y_CD(NVAL))
-
-              PTLIM = 2
-
-              PTR = mxGetComplexDoubles(prhs(2))
-              CALL mxCopyPtrToComplex16(PTR, Y_CD, NVAL)
-
-              IF (STEP /= 0) THEN ! IF THERE IS UNFINISHED DATA, 0 -> FINISHED ROW
-                IF (STEP >= NVAL) THEN ! IF NUMBER VALUES TO WRITE IS <= REQUIRED AMOUNT TO FINISH ROW
-                    WRITE(LUN(LIDX), 1007, ERR=9, ADVANCE='NO')
-     &                (Y_CD(I), I = 1,NVAL)
-                  REMPTS(LIDX) = REMPTS(LIDX)-NVAL
-                  S = 1.0 ! SUCCESS
-                  GO TO 10 ! RETURN
-                ELSE ! MORE DATA AVAILABLE AFTER FINISH OF CURRENT LINE
-C                   ADD PARTIAL DATA, REQUIRED AMOUNT TO FINISH ROW
-                    WRITE(LUN(LIDX), 1007, ERR=9, ADVANCE='NO')
-     &                (Y_CD(I), I = 1,STEP)
-                END IF
-              END IF
-
-              N = STEP
-
-              IF (N == NVAL) THEN
-                REMPTS(LIDX) = 0
-              ELSE
-                WRITE(LUN(LIDX), '(1X)', ERR=9) ! IF PREVIOUS WRITE WAS FINISHED, OR END OF HEADER -> ADVANCE
-                STEP = (NVAL-N) - MOD(NVAL-N, PTLIM) ! WRITE NO PARTIAL NUMBER OF LINES
-                IF (N+STEP == NVAL) THEN
-                  STEP = STEP-PTLIM ! ONLY WRITE UP UNTIL THE SECOND-TO-LAST LINE, WITH ADVANCE=YES
-                END IF
-
-C               WRITE 1:END-1 COMPLETE LINES, WITH ADVANCE
-                IF (STEP > 0) THEN
-                  WRITE(LUN(LIDX), 1007, ERR=9, ADVANCE='YES')
-     &              (Y_CD(I+N), I = 1,STEP)
-                END IF
-
-                N = N + STEP
-
-C               WRITE LAST (PARTIAL/COMPLETE) LINE, WITH NO ADVANCE
-                WRITE(LUN(LIDX), 1007, ERR=9, ADVANCE='NO')
-     &              (Y_CD(I), I = N+1,NVAL)
-
-                REMPTS(LIDX) = PTLIM-(NVAL-N) ! POINTS LEFT TO WRITE
-
-              END IF
-              S = 1.0 ! SUCCESS
-
-
-
-
-            ELSE
-              S = -11
-              GO TO 10
-
-
-            END IF
+            S = -9.0
 
           END IF
 
-          GO TO 10
+          LUN(LIDX) = 0
+          NUMPTS(LIDX) = 0
+          REMPTS(LIDX) = 0
 
-        ELSE
-          S = -6
-          GO TO 10
+          GO TO 10 ! RETURN
+
+
+        ELSE ! WRITE DATA
+
+
+          NOK = mxIsEmpty(prhs(2))
+
+          IF (NOK) THEN
+            S = -10
+            GO TO 10
+          END IF
+
+          NVAL = mxGetNumberOfElements(prhs(2))
+
+          NUMPTS(LIDX) = NUMPTS(LIDX) + NVAL
+          STEP = REMPTS(LIDX)
+
+
+C ------- WRITING STREAMING DATA / CASE 1 ----------------------------
+          IF (CASENUM == 1) THEN ! REAL SINGLE, X-EVENLY-SPACED
+
+            ALLOCATE(Y_RS(NVAL))
+
+            PTLIM = 6
+
+            PTR = mxGetSingles(prhs(2))
+            CALL mxCopyPtrToReal4(PTR, Y_RS, NVAL)
+
+            IF (STEP /= 0) THEN ! IF THERE IS UNFINISHED DATA, 0 -> FINISHED ROW
+              IF (STEP >= NVAL) THEN ! IF NUMBER VALUES TO WRITE IS <= REQUIRED AMOUNT TO FINISH ROW
+                WRITE(LUN(LIDX), 1001, ERR=9, ADVANCE='NO')
+     &            (Y_RS(I), I = 1,NVAL)
+                REMPTS(LIDX) = REMPTS(LIDX)-NVAL
+                S = 1.0 ! SUCCESS
+                GO TO 10 ! RETURN
+              ELSE ! MORE DATA AVAILABLE AFTER FINISH OF CURRENT LINE
+C               ADD PARTIAL DATA, REQUIRED AMOUNT TO FINISH ROW
+                WRITE(LUN(LIDX), 1001, ERR=9, ADVANCE='NO')
+     &            (Y_RS(I), I = 1,STEP)
+              END IF
+            END IF
+
+            N = STEP
+
+            IF (N == NVAL) THEN
+              REMPTS(LIDX) = 0
+            ELSE
+              WRITE(LUN(LIDX), '(1X)',ERR=9) ! IF PREVIOUS WRITE WAS FINISHED, OR END OF HEADER -> ADVANCE
+              STEP = (NVAL-N) - MOD(NVAL-N, PTLIM) ! WRITE NO PARTIAL NUMBER OF LINES
+              IF (N+STEP == NVAL) THEN
+                STEP = STEP-PTLIM ! ONLY WRITE UP UNTIL THE SECOND-TO-LAST LINE, WITH ADVANCE=YES
+              END IF
+
+C             WRITE 1:END-1 COMPLETE LINES, WITH ADVANCE
+              IF (STEP > 0) THEN
+                WRITE(LUN(LIDX), 1001, ERR=9, ADVANCE='YES')
+     &            (Y_RS(I+N), I = 1,STEP)
+              END IF
+
+              N = N + STEP
+
+C             WRITE LAST (PARTIAL/COMPLETE) LINE, WITH NO ADVANCE
+              WRITE(LUN(LIDX), 1001, ERR=9, ADVANCE='NO')
+     &          (Y_RS(I), I = N+1,NVAL)
+
+              REMPTS(LIDX) = PTLIM-(NVAL-N) ! POINTS LEFT TO WRITE
+
+            END IF
+            S = 1.0 ! SUCCESS
+
+
+
+
+C ------- WRITING STREAMING DATA / CASE 3 ----------------------------
+          ELSEIF (CASENUM == 3) THEN ! COMPLEX SINGLE, X-EVEN
+
+            ALLOCATE(Y_CS(NVAL))
+
+            PTLIM = 3
+
+            PTR = mxGetComplexSingles(prhs(2))
+            CALL mxCopyPtrToComplex8(PTR, Y_CS, NVAL)
+
+            IF (STEP /= 0) THEN ! IF THERE IS UNFINISHED DATA, 0 -> FINISHED ROW
+              IF (STEP >= NVAL) THEN ! IF NUMBER VALUES TO WRITE IS <= REQUIRED AMOUNT TO FINISH ROW
+                  WRITE(LUN(LIDX), 1003, ERR=9, ADVANCE='NO')
+     &              (Y_CS(I), I = 1,NVAL)
+                REMPTS(LIDX) = REMPTS(LIDX)-NVAL
+                S = 1.0 ! SUCCESS
+                GO TO 10 ! RETURN
+              ELSE ! MORE DATA AVAILABLE AFTER FINISH OF CURRENT LINE
+C                 ADD PARTIAL DATA, REQUIRED AMOUNT TO FINISH ROW
+                  WRITE(LUN(LIDX), 1003, ERR=9, ADVANCE='NO')
+     &              (Y_CS(I), I = 1,STEP)
+              END IF
+            END IF
+
+            N = STEP
+
+            IF (N == NVAL) THEN
+              REMPTS(LIDX) = 0
+            ELSE
+              WRITE(LUN(LIDX), '(1X)', ERR=9) ! IF PREVIOUS WRITE WAS FINISHED, OR END OF HEADER -> ADVANCE
+              STEP = (NVAL-N) - MOD(NVAL-N, PTLIM) ! WRITE NO PARTIAL NUMBER OF LINES
+              IF (N+STEP == NVAL) THEN
+                STEP = STEP-PTLIM ! ONLY WRITE UP UNTIL THE SECOND-TO-LAST LINE, WITH ADVANCE=YES
+              END IF
+
+C             WRITE 1:END-1 COMPLETE LINES, WITH ADVANCE
+              IF (STEP > 0) THEN
+                WRITE(LUN(LIDX), 1003, ERR=9, ADVANCE='YES')
+     &            (Y_CS(I+N), I = 1,STEP)
+              END IF
+
+              N = N + STEP
+
+C             WRITE LAST (PARTIAL/COMPLETE) LINE, WITH NO ADVANCE
+              WRITE(LUN(LIDX), 1003, ERR=9, ADVANCE='NO')
+     &          (Y_CS(I), I = N+1,NVAL)
+
+              REMPTS(LIDX) = PTLIM-(NVAL-N) ! POINTS LEFT TO WRITE
+
+            END IF
+            S = 1.0 ! SUCCESS
+
+
+
+
+C ------- WRITING STREAMING DATA / CASE 5 ----------------------------
+          ELSEIF (CASENUM == 5) THEN ! REAL DOUBLE, X-EVENLY-SPACED
+
+            ALLOCATE(Y_RD(NVAL))
+
+            PTLIM = 4
+
+            PTR = mxGetDoubles(prhs(2))
+            CALL mxCopyPtrToReal8(PTR, Y_RD, NVAL)
+
+            IF (STEP /= 0) THEN ! IF THERE IS UNFINISHED DATA, 0 -> FINISHED ROW
+              IF (STEP >= NVAL) THEN ! IF NUMBER VALUES TO WRITE IS <= REQUIRED AMOUNT TO FINISH ROW
+                WRITE(LUN(LIDX), 1005, ERR=9, ADVANCE='NO')
+     &            (Y_RD(I), I = 1,NVAL)
+                REMPTS(LIDX) = REMPTS(LIDX)-NVAL
+                S = 1.0 ! SUCCESS
+                GO TO 10 ! RETURN
+              ELSE ! MORE DATA AVAILABLE AFTER FINISH OF CURRENT LINE
+C               ADD PARTIAL DATA, REQUIRED AMOUNT TO FINISH ROW
+                WRITE(LUN(LIDX), 1005, ERR=9, ADVANCE='NO')
+     &            (Y_RD(I), I = 1,STEP)
+              END IF
+            END IF
+
+            N = STEP
+
+            IF (N == NVAL) THEN
+              REMPTS(LIDX) = 0
+            ELSE
+              WRITE(LUN(LIDX), '(1X)', ERR=9) ! IF PREVIOUS WRITE WAS FINISHED, OR END OF HEADER -> ADVANCE
+              STEP = (NVAL-N) - MOD(NVAL-N, PTLIM) ! WRITE NO PARTIAL NUMBER OF LINES
+              IF (N+STEP == NVAL) THEN
+                STEP = STEP-PTLIM ! ONLY WRITE UP UNTIL THE SECOND-TO-LAST LINE, WITH ADVANCE=YES
+              END IF
+
+C             WRITE 1:END-1 COMPLETE LINES, WITH ADVANCE
+              IF (STEP > 0) THEN
+                WRITE(LUN(LIDX), 1005, ERR=9, ADVANCE='YES')
+     &           (Y_RD(I+N), I = 1,STEP)
+              END IF
+
+              N = N + STEP
+
+C             WRITE LAST (PARTIAL/COMPLETE) LINE, WITH NO ADVANCE
+              WRITE(LUN(LIDX), 1005, ERR=9, ADVANCE='NO')
+     &          (Y_RD(I), I = N+1,NVAL)
+
+              REMPTS(LIDX) = PTLIM-(NVAL-N) ! POINTS LEFT TO WRITE
+
+            END IF
+            S = 1.0 ! SUCCESS
+
+
+
+
+C ------- WRITING STREAMING DATA / CASE 7 ----------------------------
+          ELSEIF (CASENUM == 7) THEN ! COMPLEX DOUBLE, X-EVEN
+
+            ALLOCATE(Y_CD(NVAL))
+
+            PTLIM = 2
+
+            PTR = mxGetComplexDoubles(prhs(2))
+            CALL mxCopyPtrToComplex16(PTR, Y_CD, NVAL)
+
+            IF (STEP /= 0) THEN ! IF THERE IS UNFINISHED DATA, 0 -> FINISHED ROW
+              IF (STEP >= NVAL) THEN ! IF NUMBER VALUES TO WRITE IS <= REQUIRED AMOUNT TO FINISH ROW
+                  WRITE(LUN(LIDX), 1007, ERR=9, ADVANCE='NO')
+     &              (Y_CD(I), I = 1,NVAL)
+                REMPTS(LIDX) = REMPTS(LIDX)-NVAL
+                S = 1.0 ! SUCCESS
+                GO TO 10 ! RETURN
+              ELSE ! MORE DATA AVAILABLE AFTER FINISH OF CURRENT LINE
+C                 ADD PARTIAL DATA, REQUIRED AMOUNT TO FINISH ROW
+                  WRITE(LUN(LIDX), 1007, ERR=9, ADVANCE='NO')
+     &              (Y_CD(I), I = 1,STEP)
+              END IF
+            END IF
+
+            N = STEP
+
+            IF (N == NVAL) THEN
+              REMPTS(LIDX) = 0
+            ELSE
+              WRITE(LUN(LIDX), '(1X)', ERR=9) ! IF PREVIOUS WRITE WAS FINISHED, OR END OF HEADER -> ADVANCE
+              STEP = (NVAL-N) - MOD(NVAL-N, PTLIM) ! WRITE NO PARTIAL NUMBER OF LINES
+              IF (N+STEP == NVAL) THEN
+                STEP = STEP-PTLIM ! ONLY WRITE UP UNTIL THE SECOND-TO-LAST LINE, WITH ADVANCE=YES
+              END IF
+
+C             WRITE 1:END-1 COMPLETE LINES, WITH ADVANCE
+              IF (STEP > 0) THEN
+                WRITE(LUN(LIDX), 1007, ERR=9, ADVANCE='YES')
+     &            (Y_CD(I+N), I = 1,STEP)
+              END IF
+
+              N = N + STEP
+
+C             WRITE LAST (PARTIAL/COMPLETE) LINE, WITH NO ADVANCE
+              WRITE(LUN(LIDX), 1007, ERR=9, ADVANCE='NO')
+     &            (Y_CD(I), I = N+1,NVAL)
+
+              REMPTS(LIDX) = PTLIM-(NVAL-N) ! POINTS LEFT TO WRITE
+
+            END IF
+            S = 1.0 ! SUCCESS
+
+
+
+
+          ELSE
+            S = -11
+            GO TO 10
+
+
+          END IF
 
         END IF
+
+        GO TO 10
+
 
 
 C ----------------------------------------------------------------------
@@ -625,9 +651,6 @@ C --- GET DATASET TYPE TO WRITE
 C --- DATASET 151 ------------------------------------------------------
 C ----------------------------------------------------------------------
       IF (DATASETNUM == 151) THEN
-
-
-        S = -8.0 ! DEFAULT ERROR STATE UNTIL ALL DATA EXTRACTED
 
 
 C       RECORD 1, ID LINE 1, model file name
@@ -797,7 +820,6 @@ C --- DATASET 164 ------------------------------------------------------
 C ----------------------------------------------------------------------
       ELSEIF (DATASETNUM == 164) THEN
 
-        S = -8.0 ! DEFAULT ERROR STATE UNTIL ALL DATA EXTRACTED
 
 C       RECORD 1
 C       1.1
@@ -922,9 +944,6 @@ C ----- WRITIING FINISHED
 C --- DATASET 58 -------------------------------------------------------
 C ----------------------------------------------------------------------
       ELSEIF (DATASETNUM == 58) THEN
-
-
-        S = -8.0 ! DEFAULT ERROR STATE UNTIL ALL DATA EXTRACTED
 
 
 C       RECORD 1, ID LINE 1
@@ -1619,7 +1638,73 @@ C     UNKNOWN ERROR EXIT
 C     NORMAL/ASSIGNED EXIT
 10    plhs(1) = mxCreateDoubleScalar(S)
       IF (nlhs > 1) THEN
-        plhs(2) = mxCreateDoubleScalar(DBLE(CASENUM))
+        IF (INT(S(1)) == 1) THEN ! SUCCESSFUL
+
+          plhs(2) = mxCreateDoubleScalar(DBLE(CASENUM))
+
+        ELSE ! NOT SUCCESSFUL -> RETURN ERROR DESCRIPTION
+          K = S(1)
+          SELECT CASE (K)
+            CASE (0)
+              ID1 = 'Unknown error.'
+
+            CASE (-1)
+              ID1 = 'ERROR WRITING FIELDS/DATA'
+
+            CASE (-2)
+              ID1 = 'COULD NOT READ FILEPATH'
+
+            CASE (-3)
+              ID1 = 'UNKNOWN WRITEMODE'
+
+            CASE (-4)
+              ID1 = 'TOO FEW INPUTS'
+
+            CASE (-7)
+              ID1 = 'EXPECTED STRUCT INPUT IS NOT A STRUCTURE'
+
+            CASE (-9)
+              ID1 = 'FILE LUN IS NOT OPEN'
+
+            CASE (-10)
+              ID1 = 'DATA IS NOT AN ARRAY, OR WRONGLY SIZED'
+
+            CASE (-11)
+              ID1 = 'DATA CASE TYPE IS UNSUPPORTED'
+
+            CASE (-12)
+              ID1 = 'FLOATING POINT ARITHMETIC OVERFLOW (FROM IOSTAT)'
+
+            CASE (-13)
+              ID1 = 'FILEPATH IS INVALID OR INACCESSIBLE'
+
+            CASE (-14)
+              ID1 = '"dataFormatType" IS INVALID (STREAMING MODE)'
+
+            CASE (-15)
+              ID1 = 'X-DATA FIELD NOT PRESENT OR EMPTY'
+
+            CASE (-16)
+              ID1 = 'MISMATCHING X-DATA- AND DATA SIZES'
+
+            CASE (-17)
+              ID1 = '"ordNumDataType" IS INVALID'
+
+            CASE (-18)
+              ID1 = 'INVALID "fileType" IN UNV-151'
+
+            CASE (-19)
+              ID1 = 'INVALID "unitsCode" IN UNV-164'
+
+            CASE (-20)
+              ID1 = 'INVALID DIRECTION NUMBER IN UNV-58, VALID: [-6 6]'
+
+            CASE DEFAULT
+              ID1 = 'Read error: check IOSTAT code.'
+
+          END SELECT
+          plhs(2) = mxCreateString(TRIM(ID1))
+        END IF
       END IF
 
 
