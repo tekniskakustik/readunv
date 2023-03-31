@@ -3,18 +3,20 @@
 
 C ----------------------------------------------------------------------
 C
-C     [STATE, DATACELL] = READUNV(FILEPATH)
+C     [STATE, DATACELL] = READUNV(FILEPATH, SKIP_DATA)
 C
 C     NB: ALL ARGUMENTS ARE REQUIRED (TWO OUTPUTS AND ONE INPUT)
 C
 C
-C     FILEPATH: CHAR WITH RELATIVE OR ABSOLUTE PATH TO FILE TO READ
+C     FILEPATH:   [CHAR] RELATIVE OR ABSOLUTE PATH TO FILE TO READ
 C
-C     DATACELL: CELL ARRAY FOR EACH DATASET IN FILE
-C               IF NO DATA READ -> CHAR WITH ERROR DESCRIPTION
+C     SKIP_DATA:  [DOUBLE] ONLY READ HEADER, OPTIONAL (DEFAULT IS 0)
+C
+C     DATACELL:   [CELL]/[CHAR] CELL ARRAY FOR EACH DATASET IN FILE
+C                 IF NOT SUCCESSFUL -> CHAR WITH ERROR DESCRIPTION
 C
 C     STATE FLAGS:
-C       =  1,  SUCCESFUL
+C       =  1,  SUCCESSFUL
 C       =  0,  UNKNOWN ERROR
 C       = -1,  EMPTY INPUT
 C       = -2,  COULD NOT READ FILEPATH
@@ -34,8 +36,8 @@ C ----------------------------------------------------------------------
       SUBROUTINE mexFunction(nlhs, plhs, nrhs, prhs)
 
 
-      IMPLICIT NONE      
-      
+      IMPLICIT NONE
+
 
       mwPointer :: plhs(*), prhs(*)
       mwSize :: nlhs, nrhs
@@ -303,7 +305,7 @@ C       FIX TEXT ALIGNMENT
         CALL REMOVE_NON_ASCII(ID2, LEN_TRIM(ID2))
         CALL REMOVE_NON_ASCII(ID3, LEN_TRIM(ID3))
         CALL REMOVE_NON_ASCII(ID4, LEN_TRIM(ID4))
-        
+
         DS151F41 = ADJUSTL(DS151F41)
         DS151F42 = ADJUSTL(DS151F42)
         DS151F51 = ADJUSTL(DS151F51)
@@ -327,8 +329,8 @@ C       FIX TEXT ALIGNMENT
         fieldnames(13) = 'fileCreatedDate'
         fieldnames(14) = 'fileCreatedTime'
 
-        FIELDSTOUSE = 14 ! NUMBER OF FIELDS IN DATASET 151        
-        
+        FIELDSTOUSE = 14 ! NUMBER OF FIELDS IN DATASET 151
+
 
         ID_PTR(1) = mxCreateDoubleScalar(DBLE(DATASETNUM)) ! dataset number
         ID_PTR(2) = mxCreateString(ID1) ! ID Line 1, model file name
@@ -518,13 +520,13 @@ C       FIX TEXT ALIGNMENT
         ID3 = ADJUSTL(ID3)
         ID4 = ADJUSTL(ID4)
         ID5 = ADJUSTL(ID5)
-        
+
         CALL REMOVE_NON_ASCII(ID1, LEN_TRIM(ID1))
         CALL REMOVE_NON_ASCII(ID2, LEN_TRIM(ID2))
         CALL REMOVE_NON_ASCII(ID3, LEN_TRIM(ID3))
         CALL REMOVE_NON_ASCII(ID4, LEN_TRIM(ID4))
         CALL REMOVE_NON_ASCII(ID5, LEN_TRIM(ID5))
-        
+
         F65 = ADJUSTL(F65)
         F68 = ADJUSTL(F68)
         F85 = ADJUSTL(F85)
@@ -547,50 +549,50 @@ C         SKIP FOR NOW
             READ(LUN, '(A80)', END=10, ERR=9) ID1
           END DO
           DATASETNUM = -58
-          
-          
+
+
         ELSE IF (SKIP_DATA > 0) THEN
-        
+
 C         SKIP READING DATA, JUST METADATA
           ID0 = "0"
           ID_PTR(2) = mxCreateDoubleScalar(DBLE(1.0)) ! CREATE FAKE OUTPUT
           ID_PTR(3) = mxCreateDoubleScalar(DBLE(1.0)) ! CREATE FAKE OUTPUT
-          
+
 #ifdef __APPLE__
 
 #else
           IF      (CASENUM == 1) THEN ! REAL, SINGLE, EVEN SPACING
             STATUS_INT = FSEEK(LUN, INT4(NVAL*4-6*4), 1)
-            
+
           ELSE IF (CASENUM == 2) THEN ! REAL, SINGLE, UNEVEN SPACING
             STATUS_INT = FSEEK(LUN, INT4(NVAL*2*4-6*4), 1)
-            
+
           ELSE IF (CASENUM == 3) THEN ! COMPLEX, SINGLE, EVEN SPACING
-            STATUS_INT = FSEEK(LUN, INT4(NVAL*2*4-6*4), 1)          
-          
+            STATUS_INT = FSEEK(LUN, INT4(NVAL*2*4-6*4), 1)
+
           ELSE IF (CASENUM == 4) THEN ! COMPLEX, SINGLE, UNEVEN SPACING
-            STATUS_INT = FSEEK(LUN, INT4(NVAL*3*4-6*4), 1)   
-          
+            STATUS_INT = FSEEK(LUN, INT4(NVAL*3*4-6*4), 1)
+
           ELSE IF (CASENUM == 5) THEN ! REAL, DOUBLE, EVEN SPACING
             STATUS_INT = FSEEK(LUN, INT4(NVAL*8-4*8), 1)
-          
+
           ELSE IF (CASENUM == 6) THEN ! REAL, DOUBLE, UNEVEN SPACING
             STATUS_INT = FSEEK(LUN, INT4(NVAL*8*2-4*8), 1)
-          
+
           ELSE IF (CASENUM == 7) THEN ! COMPLEX, DOUBLE, EVEN SPACING
             STATUS_INT = FSEEK(LUN, INT4(NVAL*8*2-4*8), 1)
-          
+
           ELSE IF (CASENUM == 8) THEN ! COMPLEX, DOUBLE, UNEVEN SPACING
             STATUS_INT = FSEEK(LUN, INT4(NVAL*8*3-4*8), 1)
-          
+
           END IF
 #endif
           DO WHILE (ADJUSTL(ID0) /= "-1")
             READ(LUN, '(A80)', END=11, ERR=9) ID0
           END DO
           READ(LUN, '(A80)', END=11, ERR=9) ID0
-          REC0 = "    -1"          
-          
+          REC0 = "    -1"
+
 
         ELSE
 
@@ -827,8 +829,8 @@ C         COPY XDATA TO SINGLE OUTPUT MATRIX
           ID_PTR(2) = mxCreateNumericMatrix(NVAL, N1, CID_S, CXFLAG)
           CALL mxCopyReal4ToPtr(XDATA, mxGetSingles(ID_PTR(2)), NVAL)
           DEALLOCATE(XDATA)
-        END IF       
-        
+        END IF
+
 C       RECORD 1-5
         ID_PTR(1) = mxCreateDoubleScalar(DBLE(DATASETNUM)) ! Dataset number
         ID_PTR(4) = mxCreateString(ID1) ! ID Line 1
@@ -921,14 +923,14 @@ C     COPY STRUCT TO CELL ARRAY, IF DATASET NUMBER IS VALID
         END SELECT
 
         IF (SKIP_DATA < 1) THEN
-          READ(LUN, '(A80)', END=10, ERR=9) REC0        
+          READ(LUN, '(A80)', END=10, ERR=9) REC0
           READ(LUN, '(A80)', END=10, ERR=9) REC0 ! READ TWICE
         END IF
-        
-        
+
+
       ELSE IF (DATASETNUM == -58) THEN
         REC0 = ID1
-C       DO NOTHING HERE -> REPEAT LOOP      
+C       DO NOTHING HERE -> REPEAT LOOP
 
 
       ELSE ! INVALID OR UNSUPPORTED DATASET NUMBER
@@ -1013,7 +1015,7 @@ C     CREATE AND ASSIGN CELL MATRIX
           CELL_PTR = mxCreateCellMatrix(N1, N1)
           plhs(2) = CELL_PTR ! ASSIGN POINTER TO OUTPUT ARGUMENT #2
 
-        ELSE ! CREATE EMPTY CELL IF NOTHING READ
+        ELSE ! OUTPUT ERROR STRING IF NOT SUCCESSFUL
           K = S(1)
           SELECT CASE (K)
             CASE (0)
@@ -1067,19 +1069,19 @@ C     IF ALLOCATION HAVE BEEN USED -> DEALLOCATE DYNAMIC STRUCT POINTERS
 
       RETURN
       END
-      
-      
-      
+
+
+
       SUBROUTINE REMOVE_NON_ASCII(STR, L)
         CHARACTER(LEN=L), INTENT(INOUT) :: STR
         INTEGER :: K
-        
+
         DO K = 1,L
           STR(K:K) = ACHAR(MIN(IACHAR(STR(K:K)), 127))
         END DO
-        
-        
-        
+
+
+
       END SUBROUTINE REMOVE_NON_ASCII
 
 
