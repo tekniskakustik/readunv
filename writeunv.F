@@ -148,7 +148,7 @@ C ----------------------------------------------------------------------
 
 
 
-      S = 0.0
+      S = 0.0_8
       LIDX = 0
       CASENUM = 0
       KEEPFILEOPEN = .FALSE.
@@ -165,7 +165,7 @@ C ----------------------------------------------------------------------
               LUN(K) = 0
             END IF
           END DO
-          S = 1.0
+          S = 1.0_8
         END IF
         LUN = 0
         NUMPTS = 0
@@ -174,7 +174,7 @@ C       GO TO END SECTION
         GO TO 10
 
       ELSEIF (nrhs < 2) THEN ! TOO FEW INPUTS
-        S = -4.0
+        S = -4.0_8
 C       GO TO END SECTION
         GO TO 10
 
@@ -355,11 +355,11 @@ C           CLOSE FILE
             WRITE(LUN(LIDX), ERR=9, POS=REC7POS(LIDX)+10) STR10
             CLOSE(LUN(LIDX), STATUS='KEEP')
 
-            S = 1.0
+            S = 1.0_8
 
           ELSE
 
-            S = -9.0
+            S = -9.0_8
 
           END IF
 
@@ -401,7 +401,7 @@ C ------- WRITING STREAMING DATA / CASE 1 ----------------------------
                 WRITE(LUN(LIDX), 1001, ERR=9, ADVANCE='NO')
      &            (Y_RS(I), I = 1,NVAL)
                 REMPTS(LIDX) = REMPTS(LIDX)-NVAL
-                S = 1.0 ! SUCCESS
+                S = 1.0_8 ! SUCCESS
                 GO TO 10 ! RETURN
               ELSE ! MORE DATA AVAILABLE AFTER FINISH OF CURRENT LINE
 C               ADD PARTIAL DATA, REQUIRED AMOUNT TO FINISH ROW
@@ -436,7 +436,7 @@ C             WRITE LAST (PARTIAL/COMPLETE) LINE, WITH NO ADVANCE
               REMPTS(LIDX) = PTLIM-(NVAL-N) ! POINTS LEFT TO WRITE
 
             END IF
-            S = 1.0 ! SUCCESS
+            S = 1.0_8 ! SUCCESS
 
 
 
@@ -456,7 +456,7 @@ C ------- WRITING STREAMING DATA / CASE 3 ----------------------------
                   WRITE(LUN(LIDX), 1003, ERR=9, ADVANCE='NO')
      &              (Y_CS(I), I = 1,NVAL)
                 REMPTS(LIDX) = REMPTS(LIDX)-NVAL
-                S = 1.0 ! SUCCESS
+                S = 1.0_8 ! SUCCESS
                 GO TO 10 ! RETURN
               ELSE ! MORE DATA AVAILABLE AFTER FINISH OF CURRENT LINE
 C                 ADD PARTIAL DATA, REQUIRED AMOUNT TO FINISH ROW
@@ -491,7 +491,7 @@ C             WRITE LAST (PARTIAL/COMPLETE) LINE, WITH NO ADVANCE
               REMPTS(LIDX) = PTLIM-(NVAL-N) ! POINTS LEFT TO WRITE
 
             END IF
-            S = 1.0 ! SUCCESS
+            S = 1.0_8 ! SUCCESS
 
 
 
@@ -511,7 +511,7 @@ C ------- WRITING STREAMING DATA / CASE 5 ----------------------------
                 WRITE(LUN(LIDX), 1005, ERR=9, ADVANCE='NO')
      &            (Y_RD(I), I = 1,NVAL)
                 REMPTS(LIDX) = REMPTS(LIDX)-NVAL
-                S = 1.0 ! SUCCESS
+                S = 1.0_8 ! SUCCESS
                 GO TO 10 ! RETURN
               ELSE ! MORE DATA AVAILABLE AFTER FINISH OF CURRENT LINE
 C               ADD PARTIAL DATA, REQUIRED AMOUNT TO FINISH ROW
@@ -546,7 +546,7 @@ C             WRITE LAST (PARTIAL/COMPLETE) LINE, WITH NO ADVANCE
               REMPTS(LIDX) = PTLIM-(NVAL-N) ! POINTS LEFT TO WRITE
 
             END IF
-            S = 1.0 ! SUCCESS
+            S = 1.0_8 ! SUCCESS
 
 
 
@@ -566,7 +566,7 @@ C ------- WRITING STREAMING DATA / CASE 7 ----------------------------
                   WRITE(LUN(LIDX), 1007, ERR=9, ADVANCE='NO')
      &              (Y_CD(I), I = 1,NVAL)
                 REMPTS(LIDX) = REMPTS(LIDX)-NVAL
-                S = 1.0 ! SUCCESS
+                S = 1.0_8 ! SUCCESS
                 GO TO 10 ! RETURN
               ELSE ! MORE DATA AVAILABLE AFTER FINISH OF CURRENT LINE
 C                 ADD PARTIAL DATA, REQUIRED AMOUNT TO FINISH ROW
@@ -601,7 +601,7 @@ C             WRITE LAST (PARTIAL/COMPLETE) LINE, WITH NO ADVANCE
               REMPTS(LIDX) = PTLIM-(NVAL-N) ! POINTS LEFT TO WRITE
 
             END IF
-            S = 1.0 ! SUCCESS
+            S = 1.0_8 ! SUCCESS
 
 
 
@@ -633,14 +633,14 @@ C ----------------------------------------------------------------------
 C --- GET DATASET TYPE TO WRITE
       OK = mxIsStruct(prhs(2))
       IF (NOT(OK)) THEN
-        S = -7.0
+        S = -7.0_8
         GO TO 10
       END IF
 
 
       PTR = mxGetField(prhs(2), 1, 'datasetType')
       IF (NOT(ISVALID_DOUBLE(PTR))) THEN
-        S = -5.0
+        S = -5.0_8
         GO TO 10
       END IF
       CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
@@ -810,7 +810,7 @@ C       END OF RECORD, -1
 
 C ----- WRITIING FINISHED
 
-        S = 1.0 ! SUCCESS
+        S = 1.0_8 ! SUCCESS
         GO TO 10 ! GO TO END
 
 
@@ -936,7 +936,7 @@ C ----- WRITIING FINISHED
 
 
 
-        S = 1.0 ! SUCCESS
+        S = 1.0_8 ! SUCCESS
         GO TO 10 ! GO TO END
 
 
@@ -1201,7 +1201,7 @@ C       RECORD 9
 C       9.1
         PTR = mxGetField(prhs(2), 1, 'ordNumDataType')
         IF (NOT(ISVALID_DOUBLE(PTR))) THEN
-          S = -17.0
+          S = -17.0_8
           GO TO 10
         ELSE
           CALL mxCopyPtrToReal8(mxGetDoubles(PTR), T, N1)
@@ -1369,7 +1369,7 @@ C       CHECK IF DATA SHOULD BE WRITTEN
         IF (ISEMPTY(PTR)) THEN
 
           IF (NOT(ANY(F71 == (/2,4,5,6/) ))) THEN
-            S = -14.0
+            S = -14.0_8
             GO TO 10
           END IF
 
@@ -1390,14 +1390,14 @@ C         GET CASENUM FROM DATATYPE AND X-EVENNESS
             CASENUM = CASENUM + 1 ! = UNEVEN X-DATA
             XPTR = mxGetField(prhs(2), 1, 'x')
             IF (ISEMPTY(XPTR)) THEN
-              S = -15.0
+              S = -15.0_8
               GO TO 10 ! X-DATA FIELD NOT PRESENT OR EMPTY
             END IF
 
             NVALX = mxGetNumberOfElements(XPTR)
 
             IF (NVALX /= NVAL) THEN
-              S = -16.0
+              S = -16.0_8
               GO TO 10 ! MISMATCHING X-DATA
             END IF
 
@@ -1596,13 +1596,13 @@ C         DETERMINE CASENUM
 C
 C ----- WRITIING FINISHED
 
-        S = 1.0 ! SUCCESS
+        S = 1.0_8 ! SUCCESS
         GO TO 10
 
 
       ELSE ! UNKNOWN TYPE
 
-        S = -6.0
+        S = -6.0_8
         S = DATASETNUM
         GO TO 10
 
@@ -1619,20 +1619,20 @@ C ----------------------------------------------------------------------
 
 C --- RETURN ARGUMENTS AND CLOSE FILES AND VARIABLES
 
-      S = -90.0 ! SHOULD NEVER HAPPEN -> ERROR IN CODE
+      S = -90.0_8 ! SHOULD NEVER HAPPEN -> ERROR IN CODE
       GO TO 10
 
 8     IF (OPENSTAT == 1) THEN ! REMAP IOSTAT ERROR CODE 1 TO -12
-        S = -12.0
+        S = -12.0_8
       ELSEIF (OPENSTAT == 29) THEN ! REMAP IOSTAT ERROR CODE 29 TO -13
-        S = -13.0
+        S = -13.0_8
       ELSE
         S = OPENSTAT
       END IF
       GO TO 10
 
 C     UNKNOWN ERROR EXIT
-9     S = -1.0
+9     S = -1.0_8
       KEEPFILEOPEN = .FALSE.
 
 C     NORMAL/ASSIGNED EXIT

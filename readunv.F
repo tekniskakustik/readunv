@@ -119,9 +119,9 @@ C ----------------------------------------------------------------------
 
 C     INITIALISE (NON-PARAMETRIC) VARIABLES
       NCELL = 0 ! CELL COUNTER
-      S = 0.0 ! OUTPUT STATE
+      S = 0.0_8 ! OUTPUT STATE
       LUN = 0 ! FILE UNIT NUMBER
-      SKIP_DATA = 0.0 ! SKIP READING DATA
+      SKIP_DATA = 0.0_8 ! SKIP READING DATA
       MAXRECORDS_LOCAL = MAXRECORDS ! MAXIMUM NUMBER OF RECORDS CURRENTLY
       USE_ALLOCATION = 0 ! USE DYNAMIC ALLOCATION OF OUTPUT CELL ARRAY
       CID_S = mxClassIDFromClassName('single') ! FLAG FOR SINGLE PRECISION
@@ -130,20 +130,20 @@ C     INITIALISE (NON-PARAMETRIC) VARIABLES
 
 C     AT LEAST ONE INPUT ARGUMENT (FILEPATH) IS REQUIRED
       IF (nrhs < 1) THEN
-        S = -4.0
+        S = -4.0_8
         GO TO 10
       ELSE IF (nrhs > 1) THEN
         IF (NOT(mxIsEmpty(prhs(2))) .AND. mxIsDouble(prhs(2))) THEN
           SKIP_DATA = DBLE(mxGetScalar(prhs(2)))
         ELSE
-          SKIP_DATA = 0.0
+          SKIP_DATA = 0.0_8
         END IF
       END IF
 
 
 C     CHECK IF TWO OUTPUT ARGUMENTS ARE USED, IF NOT -> ERROR
       IF (nlhs /= 2) THEN
-        S = -7.0
+        S = -7.0_8
         GO TO 10
       END IF
 
@@ -151,7 +151,7 @@ C     CHECK IF TWO OUTPUT ARGUMENTS ARE USED, IF NOT -> ERROR
 C     CHECK IF INPUT ARGUMENT IS OF CHAR TYPE
       OK = mxIsChar(prhs(1))
       IF (NOT(OK)) THEN ! CHAR TYPE IS REQUIRED
-        S = -5.0
+        S = -5.0_8
         GO TO 10
       END IF
 
@@ -159,7 +159,7 @@ C     CHECK IF INPUT ARGUMENT IS OF CHAR TYPE
 C     GET LENGTH OF INPUT STRING
       STRLEN = mxGetN(prhs(1))
       IF (STRLEN < 1) THEN ! EMPTY FILEPATH -> ERROR
-        S = -1.0
+        S = -1.0_8
         GO TO 10
       END IF
 
@@ -171,7 +171,7 @@ C     ALLOCATE FILEPATH FOR REQUIRED LENGTH
 C     COPY INPUT STRING TO FILEPATH
       NOK = mxGetString(prhs(1), FILEPATH, STRLEN)
       IF (NOK /= 0) THEN ! COPYING FAILED
-        S = -2.0
+        S = -2.0_8
         GO TO 10
       END IF
 
@@ -179,7 +179,7 @@ C     COPY INPUT STRING TO FILEPATH
 C     CHECK IF FILEPATH EXIST
       INQUIRE(FILE=FILEPATH, EXIST=STATUS_BOOL)
       IF (NOT(STATUS_BOOL)) THEN
-        S = -3.0
+        S = -3.0_8
         GO TO 10
       END IF
 
@@ -200,7 +200,7 @@ C     OPEN FILE LOCATED AT <FILEPATH>
 C     CHECK IF FILE OPENING FAILED -> RETURN IOSTAT CODE
       IF (STATUS_INT /= 0) THEN
         IF (STATUS_INT == 1) THEN ! REMAP IOSTAT ERROR CODE 1 TO -12
-          S = -12.0
+          S = -12.0_8
         ELSE
           S = STATUS_INT
         END IF
@@ -232,7 +232,7 @@ C     CODE RELATED TO ALL VALID DATASETS
 
         NCELL = NCELL + 1 ! INCREMENT CELL DATA RECORD COUNTER WITH ONE
 
-        S = 1.0 ! -> SUCCESS = TRUE
+        S = 1.0_8 ! -> SUCCESS = TRUE
 
 C       CHECK IF STRUCT POINTER ARRAYS NEEDS TO BE RESIZED
         IF (NCELL > MAXRECORDS_LOCAL) THEN
@@ -490,9 +490,9 @@ C       RECORD 11
         IF (ISEVEN > 0.5) THEN ! XDATA EVENLY SPACED
           IF (ABSCINCR < 1E-3 .AND. F81 == 17) THEN
             IF (ABSCINCR < 1E-4) THEN
-              ABSCINCR = 2.0/NINT(2.0/ABSCINCR) ! FOR SMALL DX:S APPLY ROUNDING, WHEN ABSCISSA IS TIME
+              ABSCINCR = 2.0_8/NINT(2.0_8/ABSCINCR) ! FOR SMALL DX:S APPLY ROUNDING, WHEN ABSCISSA IS TIME
             ELSE
-              ABSCINCR = 10.0/NINT(10.0/ABSCINCR) ! FOR SMALL DX:S APPLY ROUNDING, WHEN ABSCISSA IS TIME
+              ABSCINCR = 10.0_8/NINT(10.0_8/ABSCINCR) ! FOR SMALL DX:S APPLY ROUNDING, WHEN ABSCISSA IS TIME
             END IF
           END IF
           IF (SKIP_DATA < 1) THEN
@@ -555,8 +555,8 @@ C         SKIP FOR NOW
 
 C         SKIP READING DATA, JUST METADATA
           ID0 = "0"
-          ID_PTR(2) = mxCreateDoubleScalar(DBLE(1.0)) ! CREATE FAKE OUTPUT
-          ID_PTR(3) = mxCreateDoubleScalar(DBLE(1.0)) ! CREATE FAKE OUTPUT
+          ID_PTR(2) = mxCreateDoubleScalar(1.0_8) ! CREATE FAKE OUTPUT
+          ID_PTR(3) = mxCreateDoubleScalar(1.0_8) ! CREATE FAKE OUTPUT
 
 #ifdef __APPLE__
 
@@ -855,9 +855,9 @@ C       RECORD 7
         ID_PTR(19) = mxCreateDoubleScalar(ORDDATATYPE) ! Ordinate Data Type
         ID_PTR(20) = mxCreateDoubleScalar(ABSCNUM) ! Number of data pairs for uneven abscissa...
         ID_PTR(21) = mxCreateDoubleScalar(ISEVEN) ! Abscissa Spacing (0 = uneven, 1 = even)
-        ID_PTR(22) = mxCreateDoubleScalar(ABSC0) ! Abscissa minimum (0.0 if spacing uneven)
-        ID_PTR(23) = mxCreateDoubleScalar(ABSCINCR) ! Abscissa increment (0.0 if spacing uneven)
-        ID_PTR(24) = mxCreateDoubleScalar(DBLE(F76)) ! Z-axis value (0.0 if unused)
+        ID_PTR(22) = mxCreateDoubleScalar(ABSC0) ! Abscissa minimum (0 if spacing uneven)
+        ID_PTR(23) = mxCreateDoubleScalar(ABSCINCR) ! Abscissa increment (0 if spacing uneven)
+        ID_PTR(24) = mxCreateDoubleScalar(DBLE(F76)) ! Z-axis value (0 if unused)
 
 C       RECORD 8
         ID_PTR(25) = mxCreateDoubleScalar(DBLE(F81)) ! Abscissa Data Type
@@ -963,7 +963,7 @@ C ----------------------------------------------------------------------
 
 C --- RETURN ARGUMENTS AND CLOSE FILE AND VARIABLES
 
-9     S = -9.0
+9     S = -9.0_8
       NCELL = NCELL - 1 ! DECREASE CELL COUNT BY ONE, SINCE LAST FAILED
 
 10    PLHS(1) = mxCreateDoubleScalar(S)
