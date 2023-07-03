@@ -108,7 +108,7 @@
 
 
 % read data from a test file
-[success, datacell] = readunv(['.', filesep, 'testdata', filesep, 'test3.unv']); %#ok<ASGLU>
+[success, datacell] = readunv(['.', filesep, 'testdata', filesep, 'test3.unv']);
 
 
 
@@ -159,8 +159,11 @@ for setCount = 1:length(datacell)
 end
 writeunv(); % close all files
 
+fprintf('\n')
 
 % single-precision streaming
+disp('ascii streaming (single):')
+fprintf('%12s %20s %20s \n', 'step size', 'max. error', 'num. lines')
 for stp = 1:42 % try streaming with different step sizes
 
     % write header data to new file, but keep file open between calls
@@ -175,28 +178,39 @@ for stp = 1:42 % try streaming with different step sizes
     S = rmfield(S, 'data'); % remove data
     [success, casenum] = writeunv([], S, 2, idx); % 58 header
     L = size(data, 1);
-    
+
     for ii = 1:ceil(L/stp)
-        dataToWrite = data(1+(ii-1)*stp:min(ii*stp, end)); 
+        dataToWrite = data(1+(ii-1)*stp:min(ii*stp, end));
         y = writeunv(casenum, dataToWrite, 3, idx);
     end
     writeunv(-1, [], 3, idx); % terminate file
     % close all files is not needed here
-    
+
 
     fid = fopen(filepath, 'rb');
     fseek(fid, 0, 'eof');
     fileSize = ftell(fid);
     frewind(fid);
-    data = fread(fid, fileSize, 'uint8');
-    numLines = sum(data == 10) + 1; % check number of lines
-    disp([stp, numLines])
+    textdata = fread(fid, fileSize, 'uint8');
     fclose(fid);
+    numLines = sum(textdata == 10) + 1; % check number of lines
+
+
+    % read back file
+    [x, y] = readunv(filepath);
+    if x == 1
+        fprintf('%12.0f %20.9g %20.0f\n', [stp, max(abs(data-y{end}.data)), numLines])
+    else
+        disp([int2str(stp), ' ', int2str(numLines), ' ascii stream failed'])
+    end
 
 end
 
+fprintf('\n')
 
 % double-precision streaming
+disp('ascii streaming (double):')
+fprintf('%12s %20s %20s \n', 'step size', 'max. error', 'num. lines')
 for stp = 1:21 % try streaming with different step sizes
 
     % write header data to new file, but keep file open between calls
@@ -211,25 +225,104 @@ for stp = 1:21 % try streaming with different step sizes
     S.dataFormatType = 4; % 4 = double, 2 = single | required since no data is sent when writing header
     S.precision = 'DOUBLE'; % not needed
     S = rmfield(S, 'data'); % remove data
-    [success, casenum] = writeunv([], S, 2, idx); % 58 header
+    [success, casenum] = writeunv([], S, 2, idx); %#ok<*ASGLU> % 58 header
     L = size(data, 1);
-    
+
     for ii = 1:ceil(L/stp)
-        dataToWrite = data(1+(ii-1)*stp:min(ii*stp, end)); 
+        dataToWrite = data(1+(ii-1)*stp:min(ii*stp, end));
         y = writeunv(casenum, dataToWrite, 3, idx);
     end
     writeunv(-1, [], 3, idx); % terminate file
     % close all files is not needed here
-    
-    
+
+
     fid = fopen(filepath, 'rb');
     fseek(fid, 0, 'eof');
     fileSize = ftell(fid);
     frewind(fid);
-    data = fread(fid, fileSize, 'uint8');
-    numLines = sum(data == 10) + 1; % check number of lines
-    disp([stp, numLines])
+    textdata = fread(fid, fileSize, 'uint8');
     fclose(fid);
+    numLines = sum(textdata == 10) + 1; % check number of lines
+
+    % read back file
+    [x, y] = readunv(filepath);
+    if x == 1
+        fprintf('%12.0f %20.9g %20.0f\n', [stp, max(abs(data-y{end}.data)), numLines])
+    else
+        disp([int2str(stp), ' ', int2str(numLines), ' ascii stream failed'])
+    end
 
 end
+
+fprintf('\n')
+
+% single-precision streaming, binary
+disp('binary streaming (single):')
+fprintf('%12s %20s \n', 'step size', 'max. error')
+for stp = 1:42 % try streaming with different step sizes
+    idx = 5; % index number to use between calls, in order to keep multiple files open simultaneously, any number between 1 and 512 (MAXIDX)
+    filepath = ['.', filesep, 'example5.unv'];
+    writeunv(filepath, datacell{1}, 1, idx); % 151 header
+    writeunv([], datacell{2}, 2, idx); % 164 header
+    S = datacell{3};
+    S.numValues = 0; % remove correct value, for demonstration purposes
+    S.dataType = 'binary';
+    data = single(S.data);
+    S.dataFormatType = 2; % 4 = double, 2 = single | required since no data is sent when writing header
+    S.precision = 'SINGLE'; % not needed
+    S = rmfield(S, 'data'); % remove data
+    [success, casenum] = writeunv([], S, 2, idx); % 58 header
+    L = size(data, 1);
+    for ii = 1:ceil(L/stp)
+        dataToWrite = data(1+(ii-1)*stp:min(ii*stp, end));
+        y = writeunv(casenum, dataToWrite, 3, idx); %#ok<*NASGU>
+    end
+    writeunv(-1, [], 3, idx); % terminate file
+    % close all files is not needed here
+
+    % read back file
+    [x, y] = readunv(filepath);
+    if x == 1
+        fprintf('%12.0f %20.9g \n', [stp, max(abs(data-y{end}.data))])
+    else
+        disp([int2str(stp), 'binary stream failed'])
+    end
+end
+
+fprintf('\n')
+
+% double-precision streaming, binary
+disp('binary streaming (double):')
+fprintf('%12s %20s \n', 'step size', 'max. error')
+for stp = 1:21 % try streaming with different step sizes
+    idx = 5; % index number to use between calls, in order to keep multiple files open simultaneously, any number between 1 and 512 (MAXIDX)
+    filepath = ['.', filesep, 'example6.unv'];
+    writeunv(filepath, datacell{1}, 1, idx); % 151 header
+    writeunv([], datacell{2}, 2, idx); % 164 header
+    S = datacell{3};
+    S.numValues = 0; % remove correct value, for demonstration purposes
+    S.dataType = 'binary';
+    data = double(S.data);
+    S.dataFormatType = 4; % 4 = double, 2 = single | required since no data is sent when writing header
+    S.precision = 'DOUBLE'; % not needed
+    S = rmfield(S, 'data'); % remove data
+    [success, casenum] = writeunv([], S, 2, idx); % 58 header
+    L = size(data, 1);
+    for ii = 1:ceil(L/stp)
+        dataToWrite = data(1+(ii-1)*stp:min(ii*stp, end));
+        y = writeunv(casenum, dataToWrite, 3, idx); %#ok<*NASGU>
+    end
+    writeunv(-1, [], 3, idx); % terminate file
+    % close all files is not needed here
+
+    % read back file
+    [x, y] = readunv(filepath);
+    if x == 1
+        fprintf('%12.0f %20.9g \n', [stp, max(abs(data-y{end}.data))])
+    else
+        disp([int2str(stp), ' binary stream failed'])
+    end
+end
+
+
 

@@ -3,12 +3,15 @@
 Supported datasets:\
 151\
 164\
-58 (not binary variant 58b)
+58\
+58b\
+1806 (read-only)\
+2400 (read-only)\
 \
 \
 See example.m\
 \
-Prebuilt mex-files for Windows, Mac and Linux are supplied.\
+Prebuilt mex-files for Windows and Linux are supplied.\
 For compilation, see compile_mex.m\
 \
 Requires R2018a Update 3, or later.
