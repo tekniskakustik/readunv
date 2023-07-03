@@ -154,7 +154,6 @@ C ----------------------------------------------------------------------
 
 
 
-
       S = 0
       LIDX = 0
       CASENUM = 0
@@ -379,6 +378,9 @@ C           CLOSE FILE
           LUN(LIDX) = 0
           NUMPTS(LIDX) = 0
           REMPTS(LIDX) = 0
+          REC0POS(LIDX) = 0
+          REC0BYTE(LIDX) = 0
+          REC7POS(LIDX) = 0
 
           GO TO 10 ! RETURN
 
@@ -409,19 +411,18 @@ C ------- WRITING STREAMING DATA / CASE 1 ----------------------------
           IF (CASENUM == 1) THEN ! REAL SINGLE, X-EVENLY-SPACED
 
             ALLOCATE(Y_RS(NVAL))
-
             PTR = mxGetSingles(prhs(2))
             CALL mxCopyPtrToReal4(PTR, Y_RS, NVAL)
 
             IF (USE_BINARY) THEN
 
-              WRITE(LUN(LIDX), '(<NVAL>A)', ERR=9, ADVANCE='NO')
+              WRITE(LUN(LIDX), '(<NVAL>A4)', ERR=9, ADVANCE='NO')
      &          (Y_RS(I), I=1,NVAL)
               REMPTS(LIDX) = 0
 
             ELSE
 
-             PTLIM = 6
+              PTLIM = 6
 
               IF (STEP /= 0) THEN ! IF THERE IS UNFINISHED DATA, 0 -> FINISHED ROW
                 IF (STEP >= NVAL) THEN ! IF NUMBER VALUES TO WRITE IS <= REQUIRED AMOUNT TO FINISH ROW
@@ -464,10 +465,9 @@ C               WRITE LAST (PARTIAL/COMPLETE) LINE, WITH NO ADVANCE
 
               END IF
 
-            END IF
+            END IF ! END OF ASCII/BINARY SWITCH
 
             S = 1 ! SUCCESS
-
 
 
 
@@ -476,52 +476,62 @@ C ------- WRITING STREAMING DATA / CASE 3 ----------------------------
           ELSEIF (CASENUM == 3) THEN ! COMPLEX SINGLE, X-EVEN
 
             ALLOCATE(Y_CS(NVAL))
-
-            PTLIM = 3
-
             PTR = mxGetComplexSingles(prhs(2))
             CALL mxCopyPtrToComplex8(PTR, Y_CS, NVAL)
 
-            IF (STEP /= 0) THEN ! IF THERE IS UNFINISHED DATA, 0 -> FINISHED ROW
-              IF (STEP >= NVAL) THEN ! IF NUMBER VALUES TO WRITE IS <= REQUIRED AMOUNT TO FINISH ROW
-                  WRITE(LUN(LIDX), 1003, ERR=9, ADVANCE='NO')
-     &              (Y_CS(I), I=1,NVAL)
-                REMPTS(LIDX) = REMPTS(LIDX)-NVAL
-                S = 1 ! SUCCESS
-                GO TO 10 ! RETURN
-              ELSE ! MORE DATA AVAILABLE AFTER FINISH OF CURRENT LINE
+            IF (USE_BINARY) THEN
+
+              WRITE(LUN(LIDX), '(<NVAL>(A4,A4))', ERR=9, ADVANCE='NO')
+     &          (Y_CS(I), I=1,NVAL)
+              REMPTS(LIDX) = 0
+
+            ELSE
+
+              PTLIM = 3
+
+              IF (STEP /= 0) THEN ! IF THERE IS UNFINISHED DATA, 0 -> FINISHED ROW
+                IF (STEP >= NVAL) THEN ! IF NUMBER VALUES TO WRITE IS <= REQUIRED AMOUNT TO FINISH ROW
+                    WRITE(LUN(LIDX), 1003, ERR=9, ADVANCE='NO')
+     &                (Y_CS(I), I=1,NVAL)
+                  REMPTS(LIDX) = REMPTS(LIDX)-NVAL
+                  S = 1 ! SUCCESS
+                  GO TO 10 ! RETURN
+                ELSE ! MORE DATA AVAILABLE AFTER FINISH OF CURRENT LINE
 C                 ADD PARTIAL DATA, REQUIRED AMOUNT TO FINISH ROW
                   WRITE(LUN(LIDX), 1003, ERR=9, ADVANCE='NO')
      &              (Y_CS(I), I = 1,STEP)
-              END IF
-            END IF
-
-            N = STEP
-
-            IF (N == NVAL) THEN
-              REMPTS(LIDX) = 0
-            ELSE
-              WRITE(LUN(LIDX), '(1X)', ERR=9) ! IF PREVIOUS WRITE WAS FINISHED, OR END OF HEADER -> ADVANCE
-              STEP = (NVAL-N) - MOD(NVAL-N, PTLIM) ! WRITE NO PARTIAL NUMBER OF LINES
-              IF (N+STEP == NVAL) THEN
-                STEP = STEP-PTLIM ! ONLY WRITE UP UNTIL THE SECOND-TO-LAST LINE, WITH ADVANCE=YES
+                END IF
               END IF
 
-C             WRITE 1:END-1 COMPLETE LINES, WITH ADVANCE
-              IF (STEP > 0) THEN
-                WRITE(LUN(LIDX), 1003, ERR=9, ADVANCE='YES')
-     &            (Y_CS(I+N), I = 1,STEP)
+              N = STEP
+
+              IF (N == NVAL) THEN
+                REMPTS(LIDX) = 0
+              ELSE
+                WRITE(LUN(LIDX), '(1X)', ERR=9) ! IF PREVIOUS WRITE WAS FINISHED, OR END OF HEADER -> ADVANCE
+                STEP = (NVAL-N) - MOD(NVAL-N, PTLIM) ! WRITE NO PARTIAL NUMBER OF LINES
+                IF (N+STEP == NVAL) THEN
+                  STEP = STEP-PTLIM ! ONLY WRITE UP UNTIL THE SECOND-TO-LAST LINE, WITH ADVANCE=YES
+                END IF
+
+C               WRITE 1:END-1 COMPLETE LINES, WITH ADVANCE
+                IF (STEP > 0) THEN
+                  WRITE(LUN(LIDX), 1003, ERR=9, ADVANCE='YES')
+     &              (Y_CS(I+N), I = 1,STEP)
+                END IF
+
+                N = N + STEP
+
+C               WRITE LAST (PARTIAL/COMPLETE) LINE, WITH NO ADVANCE
+                WRITE(LUN(LIDX), 1003, ERR=9, ADVANCE='NO')
+     &            (Y_CS(I), I = N+1,NVAL)
+
+                REMPTS(LIDX) = PTLIM-(NVAL-N) ! POINTS LEFT TO WRITE
+
               END IF
 
-              N = N + STEP
+            END IF ! END OF ASCII/BINARY SWITCH
 
-C             WRITE LAST (PARTIAL/COMPLETE) LINE, WITH NO ADVANCE
-              WRITE(LUN(LIDX), 1003, ERR=9, ADVANCE='NO')
-     &          (Y_CS(I), I = N+1,NVAL)
-
-              REMPTS(LIDX) = PTLIM-(NVAL-N) ! POINTS LEFT TO WRITE
-
-            END IF
             S = 1 ! SUCCESS
 
 
@@ -532,51 +542,62 @@ C ------- WRITING STREAMING DATA / CASE 5 ----------------------------
 
             ALLOCATE(Y_RD(NVAL))
 
-            PTLIM = 4
-
             PTR = mxGetDoubles(prhs(2))
             CALL mxCopyPtrToReal8(PTR, Y_RD, NVAL)
 
-            IF (STEP /= 0) THEN ! IF THERE IS UNFINISHED DATA, 0 -> FINISHED ROW
-              IF (STEP >= NVAL) THEN ! IF NUMBER VALUES TO WRITE IS <= REQUIRED AMOUNT TO FINISH ROW
-                WRITE(LUN(LIDX), 1005, ERR=9, ADVANCE='NO')
-     &            (Y_RD(I), I=1,NVAL)
-                REMPTS(LIDX) = REMPTS(LIDX)-NVAL
-                S = 1 ! SUCCESS
-                GO TO 10 ! RETURN
-              ELSE ! MORE DATA AVAILABLE AFTER FINISH OF CURRENT LINE
-C               ADD PARTIAL DATA, REQUIRED AMOUNT TO FINISH ROW
-                WRITE(LUN(LIDX), 1005, ERR=9, ADVANCE='NO')
-     &            (Y_RD(I), I = 1,STEP)
-              END IF
-            END IF
+            IF (USE_BINARY) THEN
 
-            N = STEP
-
-            IF (N == NVAL) THEN
+              WRITE(LUN(LIDX), '(<NVAL>(A8))', ERR=9, ADVANCE='NO')
+     &          (Y_RD(I), I=1,NVAL)
               REMPTS(LIDX) = 0
+
             ELSE
-              WRITE(LUN(LIDX), '(1X)', ERR=9) ! IF PREVIOUS WRITE WAS FINISHED, OR END OF HEADER -> ADVANCE
-              STEP = (NVAL-N) - MOD(NVAL-N, PTLIM) ! WRITE NO PARTIAL NUMBER OF LINES
-              IF (N+STEP == NVAL) THEN
-                STEP = STEP-PTLIM ! ONLY WRITE UP UNTIL THE SECOND-TO-LAST LINE, WITH ADVANCE=YES
+
+              PTLIM = 4
+
+              IF (STEP /= 0) THEN ! IF THERE IS UNFINISHED DATA, 0 -> FINISHED ROW
+                IF (STEP >= NVAL) THEN ! IF NUMBER VALUES TO WRITE IS <= REQUIRED AMOUNT TO FINISH ROW
+                  WRITE(LUN(LIDX), 1005, ERR=9, ADVANCE='NO')
+     &              (Y_RD(I), I=1,NVAL)
+                  REMPTS(LIDX) = REMPTS(LIDX)-NVAL
+                  S = 1 ! SUCCESS
+                  GO TO 10 ! RETURN
+                ELSE ! MORE DATA AVAILABLE AFTER FINISH OF CURRENT LINE
+C                 ADD PARTIAL DATA, REQUIRED AMOUNT TO FINISH ROW
+                  WRITE(LUN(LIDX), 1005, ERR=9, ADVANCE='NO')
+     &              (Y_RD(I), I = 1,STEP)
+                END IF
               END IF
 
-C             WRITE 1:END-1 COMPLETE LINES, WITH ADVANCE
-              IF (STEP > 0) THEN
-                WRITE(LUN(LIDX), 1005, ERR=9, ADVANCE='YES')
-     &           (Y_RD(I+N), I = 1,STEP)
+              N = STEP
+
+              IF (N == NVAL) THEN
+                REMPTS(LIDX) = 0
+              ELSE
+                WRITE(LUN(LIDX), '(1X)', ERR=9) ! IF PREVIOUS WRITE WAS FINISHED, OR END OF HEADER -> ADVANCE
+                STEP = (NVAL-N) - MOD(NVAL-N, PTLIM) ! WRITE NO PARTIAL NUMBER OF LINES
+                IF (N+STEP == NVAL) THEN
+                  STEP = STEP-PTLIM ! ONLY WRITE UP UNTIL THE SECOND-TO-LAST LINE, WITH ADVANCE=YES
+                END IF
+
+C               WRITE 1:END-1 COMPLETE LINES, WITH ADVANCE
+                IF (STEP > 0) THEN
+                  WRITE(LUN(LIDX), 1005, ERR=9, ADVANCE='YES')
+     &            (Y_RD(I+N), I = 1,STEP)
+                END IF
+
+                N = N + STEP
+
+C               WRITE LAST (PARTIAL/COMPLETE) LINE, WITH NO ADVANCE
+                WRITE(LUN(LIDX), 1005, ERR=9, ADVANCE='NO')
+     &            (Y_RD(I), I = N+1,NVAL)
+
+                REMPTS(LIDX) = PTLIM-(NVAL-N) ! POINTS LEFT TO WRITE
+
               END IF
 
-              N = N + STEP
+            END IF ! END OF ASCII/BINARY SWITCH
 
-C             WRITE LAST (PARTIAL/COMPLETE) LINE, WITH NO ADVANCE
-              WRITE(LUN(LIDX), 1005, ERR=9, ADVANCE='NO')
-     &          (Y_RD(I), I = N+1,NVAL)
-
-              REMPTS(LIDX) = PTLIM-(NVAL-N) ! POINTS LEFT TO WRITE
-
-            END IF
             S = 1 ! SUCCESS
 
 
@@ -586,54 +607,63 @@ C ------- WRITING STREAMING DATA / CASE 7 ----------------------------
           ELSEIF (CASENUM == 7) THEN ! COMPLEX DOUBLE, X-EVEN
 
             ALLOCATE(Y_CD(NVAL))
-
-            PTLIM = 2
-
             PTR = mxGetComplexDoubles(prhs(2))
             CALL mxCopyPtrToComplex16(PTR, Y_CD, NVAL)
 
-            IF (STEP /= 0) THEN ! IF THERE IS UNFINISHED DATA, 0 -> FINISHED ROW
-              IF (STEP >= NVAL) THEN ! IF NUMBER VALUES TO WRITE IS <= REQUIRED AMOUNT TO FINISH ROW
-                  WRITE(LUN(LIDX), 1007, ERR=9, ADVANCE='NO')
-     &              (Y_CD(I), I=1,NVAL)
-                REMPTS(LIDX) = REMPTS(LIDX)-NVAL
-                S = 1 ! SUCCESS
-                GO TO 10 ! RETURN
-              ELSE ! MORE DATA AVAILABLE AFTER FINISH OF CURRENT LINE
-C                 ADD PARTIAL DATA, REQUIRED AMOUNT TO FINISH ROW
-                  WRITE(LUN(LIDX), 1007, ERR=9, ADVANCE='NO')
-     &              (Y_CD(I), I = 1,STEP)
-              END IF
-            END IF
+            IF (USE_BINARY) THEN
 
-            N = STEP
-
-            IF (N == NVAL) THEN
+              WRITE(LUN(LIDX), '(<NVAL>(A8,A8))', ERR=9, ADVANCE='NO')
+     &          (Y_CD(I), I=1,NVAL)
               REMPTS(LIDX) = 0
+
             ELSE
-              WRITE(LUN(LIDX), '(1X)', ERR=9) ! IF PREVIOUS WRITE WAS FINISHED, OR END OF HEADER -> ADVANCE
-              STEP = (NVAL-N) - MOD(NVAL-N, PTLIM) ! WRITE NO PARTIAL NUMBER OF LINES
-              IF (N+STEP == NVAL) THEN
-                STEP = STEP-PTLIM ! ONLY WRITE UP UNTIL THE SECOND-TO-LAST LINE, WITH ADVANCE=YES
+
+              PTLIM = 2
+
+              IF (STEP /= 0) THEN ! IF THERE IS UNFINISHED DATA, 0 -> FINISHED ROW
+                IF (STEP >= NVAL) THEN ! IF NUMBER VALUES TO WRITE IS <= REQUIRED AMOUNT TO FINISH ROW
+                    WRITE(LUN(LIDX), 1007, ERR=9, ADVANCE='NO')
+     &              (Y_CD(I), I=1,NVAL)
+                  REMPTS(LIDX) = REMPTS(LIDX)-NVAL
+                  S = 1 ! SUCCESS
+                  GO TO 10 ! RETURN
+                ELSE ! MORE DATA AVAILABLE AFTER FINISH OF CURRENT LINE
+C                   ADD PARTIAL DATA, REQUIRED AMOUNT TO FINISH ROW
+                    WRITE(LUN(LIDX), 1007, ERR=9, ADVANCE='NO')
+     &                (Y_CD(I), I = 1,STEP)
+                END IF
               END IF
 
-C             WRITE 1:END-1 COMPLETE LINES, WITH ADVANCE
-              IF (STEP > 0) THEN
-                WRITE(LUN(LIDX), 1007, ERR=9, ADVANCE='YES')
-     &            (Y_CD(I+N), I = 1,STEP)
-              END IF
+              N = STEP
 
-              N = N + STEP
+              IF (N == NVAL) THEN
+                REMPTS(LIDX) = 0
+              ELSE
+                WRITE(LUN(LIDX), '(1X)', ERR=9) ! IF PREVIOUS WRITE WAS FINISHED, OR END OF HEADER -> ADVANCE
+                STEP = (NVAL-N) - MOD(NVAL-N, PTLIM) ! WRITE NO PARTIAL NUMBER OF LINES
+                IF (N+STEP == NVAL) THEN
+                  STEP = STEP-PTLIM ! ONLY WRITE UP UNTIL THE SECOND-TO-LAST LINE, WITH ADVANCE=YES
+                END IF
 
-C             WRITE LAST (PARTIAL/COMPLETE) LINE, WITH NO ADVANCE
-              WRITE(LUN(LIDX), 1007, ERR=9, ADVANCE='NO')
+C               WRITE 1:END-1 COMPLETE LINES, WITH ADVANCE
+                IF (STEP > 0) THEN
+                  WRITE(LUN(LIDX), 1007, ERR=9, ADVANCE='YES')
+     &              (Y_CD(I+N), I = 1,STEP)
+                END IF
+
+                N = N + STEP
+
+C               WRITE LAST (PARTIAL/COMPLETE) LINE, WITH NO ADVANCE
+                WRITE(LUN(LIDX), 1007, ERR=9, ADVANCE='NO')
      &            (Y_CD(I), I = N+1,NVAL)
 
-              REMPTS(LIDX) = PTLIM-(NVAL-N) ! POINTS LEFT TO WRITE
+                REMPTS(LIDX) = PTLIM-(NVAL-N) ! POINTS LEFT TO WRITE
 
-            END IF
+              END IF
+
+            END IF ! END OF ASCII/BINARY SWITCH
+
             S = 1 ! SUCCESS
-
 
 
 
@@ -1394,6 +1424,11 @@ C       11.6
 
         ISEVEN = F73
 
+        IF (ISEVEN == .FALSE.) THEN
+          F74 = 0
+          F75 = 0
+        END IF
+
 
 C       CHECK IF DATA SHOULD BE WRITTEN
         PTR = mxGetField(prhs(2), 1, 'data')
@@ -1405,7 +1440,6 @@ C       CHECK IF DATA SHOULD BE WRITTEN
           END IF
 
           WRITEDATA = .FALSE.
-          USE_BINARY = .FALSE.
 
         ELSE
 
@@ -1507,19 +1541,20 @@ C         GET CASENUM FROM DATATYPE AND X-EVENNESS
 
           F72 = NVAL
 
-C         SHOULD BE WRITTEN AS ASCII OR BINARY?
-          PTR = mxGetField(prhs(2), 1, 'dataType')
-          IF (ISEMPTY(PTR)) THEN
-            USE_BINARY = .FALSE.
-          ELSE
-            NOK = mxGetString(PTR, DATATYPE_STR, 6)
-            IF (NOT(NOK)) THEN
-              USE_BINARY = (LOWER(DATATYPE_STR) == 'binary')
-            ELSE
-              USE_BINARY = .FALSE.
-            END IF
-          END IF
+        END IF
 
+
+C       SHOULD BE WRITTEN AS ASCII OR BINARY?
+        PTR = mxGetField(prhs(2), 1, 'dataType')
+        IF (ISEMPTY(PTR)) THEN
+          USE_BINARY = .FALSE.
+        ELSE
+          NOK = mxGetString(PTR, DATATYPE_STR, 6)
+          IF (NOT(NOK)) THEN
+            USE_BINARY = (LOWER(DATATYPE_STR) == 'binary')
+          ELSE
+            USE_BINARY = .FALSE.
+          END IF
         END IF
 
 
@@ -1540,26 +1575,27 @@ C       DATASET NUMBER
           F05 = 11
           SELECT CASE (CASENUM)
             CASE (1)
-              F06 = 4*NVAL
+              REC0BYTE(LIDX) = 4
             CASE (2)
-              F06 = 8*NVAL
+              REC0BYTE(LIDX) = 8
             CASE (3)
-              F06 = 8*NVAL
+              REC0BYTE(LIDX) = 8
             CASE (4)
-              F06 = 12*NVAL
+              REC0BYTE(LIDX) = 12
             CASE (5)
-              F06 = 8*NVAL
+              REC0BYTE(LIDX) = 8
             CASE (6)
-              F06 = 12*NVAL
+              REC0BYTE(LIDX) = 12
             CASE (7)
-              F06 = 16*NVAL
+              REC0BYTE(LIDX) = 16
             CASE (8)
-              F06 = 20*NVAL
+              REC0BYTE(LIDX) = 20
           END SELECT
+          F06 = NVAL*REC0BYTE(LIDX)
 5800      FORMAT(I6, 1A1, I6, I6, I12, I12, I6, I6, I12, I12)
           WRITE(LUN(LIDX), 5800, ERR=9) DATASETNUM, F02, F03, F04, F05,
      &      F06, 0, 0, 0, 0
-        END IF
+        END IF ! END OF ASCII/BINARY SWITCH
 
 C       RECORD 1
         WRITE(LUN(LIDX), '(A80)', ERR=9) ID1
@@ -1600,7 +1636,7 @@ C       RECORD 10
 
 C       RECORD 11
 5811    FORMAT(I10, 3I5, 2(1X, A20))
-        IF (WRITEDATA == .TRUE.) THEN ! IF DATA IS TO BE WRITTEN IN THIS CALL
+        IF (WRITEDATA) THEN ! IF DATA IS TO BE WRITTEN IN THIS CALL
           WRITE(LUN(LIDX), 5811, ERR=9, ADVANCE='YES')
      &      F111, F112, F113, F114, F115, F116
         ELSE ! DATA WILL COME IN NEXT FUNCTION CALL
@@ -1609,17 +1645,16 @@ C       RECORD 11
         END IF
 
 C       RECORD 12, DATA, IF TO BE WRITTEN
-        IF (WRITEDATA == .TRUE.) THEN
+        IF (WRITEDATA) THEN
 
           N = 0 ! INITIALISE NUMBER OF VALUES WRITTEN
           SELECT CASE (CASENUM)
-           CASE (1) ! REAL SINGLE DATA
+           CASE (1) ! REAL SINGLE DATA, EVEN X-DATA
             IF (NOT(USE_BINARY)) THEN
 1001          FORMAT(6ES13.5)
               WRITE(LUN(LIDX),1001,ERR=9) (Y_RS(I), I=1,NVAL)
             ELSE
-              REC0BYTE(LIDX) = 4
-              WRITE(LUN(LIDX),'(<NVAL>A)',ERR=9) (Y_RS(I), I=1,NVAL)
+              WRITE(LUN(LIDX),'(<NVAL>A4)',ERR=9) (Y_RS(I), I=1,NVAL)
             END IF
 
            CASE (2) ! REAL SINGLE DATA, UNEVEN X-DATA
@@ -1627,18 +1662,17 @@ C       RECORD 12, DATA, IF TO BE WRITTEN
 1002          FORMAT(6ES13.5)
               WRITE(LUN(LIDX),1002,ERR=9) (XDATA(I), Y_RS(I), I=1,NVAL)
             ELSE
-              REC0BYTE(LIDX) = 8
-              WRITE(LUN(LIDX),'(<NVAL>A)',ERR=9)
+              WRITE(LUN(LIDX),'(<NVAL>(A4,A4))',ERR=9)
      &          (XDATA(I), Y_RS(I), I=1,NVAL)
             END IF
 
-           CASE (3) ! COMPLEX SINGLE DATA
+           CASE (3) ! COMPLEX SINGLE DATA, EVEN X-DATA
             IF (NOT(USE_BINARY)) THEN
 1003          FORMAT(6ES13.5)
               WRITE(LUN(LIDX),1003,ERR=9) (Y_CS(I), I=1,NVAL)
             ELSE
-              REC0BYTE(LIDX) = 8
-              WRITE(LUN(LIDX),'(<NVAL>A)',ERR=9) (Y_CS(I), I=1,NVAL)
+              WRITE(LUN(LIDX),'(<NVAL>(A4,A4))',ERR=9)
+     &          (Y_CS(I), I=1,NVAL)
             END IF
 
            CASE (4) ! COMPLEX SINGLE DATA, UNEVEN X-DATA
@@ -1646,18 +1680,16 @@ C       RECORD 12, DATA, IF TO BE WRITTEN
 1004          FORMAT(6ES13.5)
               WRITE(LUN(LIDX),1004,ERR=9) (XDATA(I), Y_CS(I), I=1,NVAL)
             ELSE
-              REC0BYTE(LIDX) = 12
-              WRITE(LUN(LIDX),'(<NVAL>A)',ERR=9)
+              WRITE(LUN(LIDX),'(<NVAL>(A4,A4,A4))',ERR=9)
      &          (XDATA(I), Y_CS(I), I=1,NVAL)
             END IF
 
-           CASE (5) ! REAL DOUBLE DATA
+           CASE (5) ! REAL DOUBLE DATA, EVEN X-DATA
             IF (NOT(USE_BINARY)) THEN
 1005          FORMAT(4ES20.12)
               WRITE(LUN(LIDX), 1005, ERR=9) (Y_RD(I), I=1,NVAL)
             ELSE
-              REC0BYTE(LIDX) = 8
-              WRITE(LUN(LIDX),'(<NVAL>A)',ERR=9) (Y_RD(I), I=1,NVAL)
+              WRITE(LUN(LIDX),'(<NVAL>A8)',ERR=9) (Y_RD(I), I=1,NVAL)
             END IF
 
            CASE (6) ! REAL DOUBLE DATA, UNEVEN X-DATA
@@ -1665,18 +1697,17 @@ C       RECORD 12, DATA, IF TO BE WRITTEN
 1006          FORMAT(2(ES13.5, ES20.12))
               WRITE(LUN(LIDX),1006,ERR=9) (XDATA(I), Y_RD(I), I=1,NVAL)
             ELSE
-              REC0BYTE(LIDX) = 12
-              WRITE(LUN(LIDX),'(<NVAL>A)',ERR=9)
+              WRITE(LUN(LIDX),'(<NVAL>(A4, A8))',ERR=9)
      &          (XDATA(I), Y_RD(I), I=1,NVAL)
             END IF
 
-           CASE (7) ! COMPLEX DOUBLE DATA
+           CASE (7) ! COMPLEX DOUBLE DATA, EVEN X-DATA
             IF (NOT(USE_BINARY)) THEN
 1007          FORMAT(4ES20.12)
               WRITE(LUN(LIDX),1007,ERR=9) (Y_CD(I), I=1,NVAL)
             ELSE
-              REC0BYTE(LIDX) = 16
-              WRITE(LUN(LIDX),'(<NVAL>A)',ERR=9) (Y_CD(I), I=1,NVAL)
+              WRITE(LUN(LIDX),'(<NVAL>(A8,A8))',ERR=9)
+     &         (Y_CD(I), I=1,NVAL)
             END IF
 
            CASE (8) ! COMPLEX DOUBLE DATA, UNEVEN X-DATA
@@ -1684,8 +1715,7 @@ C       RECORD 12, DATA, IF TO BE WRITTEN
 1008          FORMAT(ES13.5, 2ES20.12)
               WRITE(LUN(LIDX),1008,ERR=9) (XDATA(I), Y_CD(I), I=1,NVAL)
             ELSE
-              REC0BYTE(LIDX) = 20
-              WRITE(LUN(LIDX),'(<NVAL>A)',ERR=9)
+              WRITE(LUN(LIDX),'(<NVAL>(A4,A8,A8))',ERR=9)
      &          (XDATA(I), Y_CD(I), I=1,NVAL)
             END IF
 
@@ -1699,6 +1729,10 @@ C         END OF RECORD, -1, IF DATA IS WRITTEN, OTHERWISE IT IS KEPT UNTERMINAT
 
 
         ELSE ! KEEP UNTERMINATED
+
+          IF (USE_BINARY) THEN
+            WRITE(LUN(LIDX), '(1X)', ERR=9) ! FINISH LAST LINE, BEFORE BINARY STREAM
+          END IF
 
 
 C         INIT. CASENUM
@@ -1717,6 +1751,25 @@ C         DETERMINE CASENUM
           IF (ISDOUBLE) THEN
             CASENUM = CASENUM + 4 ! = DOUBLE
           END IF
+
+          SELECT CASE (CASENUM)
+            CASE (1)
+              REC0BYTE(LIDX) = 4
+            CASE (2)
+              REC0BYTE(LIDX) = 8
+            CASE (3)
+              REC0BYTE(LIDX) = 8
+            CASE (4)
+              REC0BYTE(LIDX) = 12
+            CASE (5)
+              REC0BYTE(LIDX) = 8
+            CASE (6)
+              REC0BYTE(LIDX) = 12
+            CASE (7)
+              REC0BYTE(LIDX) = 16
+            CASE (8)
+              REC0BYTE(LIDX) = 20
+          END SELECT
 
         END IF
 

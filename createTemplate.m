@@ -3,7 +3,7 @@
 
 function dataset = createTemplate(casenum)
 
-% note: do not change data types when editing the template function output, apart from data, which can be single or double, real or complex
+% note: do not change data types when editing the template function output, apart from unv-58 data, which can be single or double, real or complex
 
 switch casenum
     case 164
@@ -32,7 +32,7 @@ switch casenum
         dataset = struct(...
             'datasetType', 58, ...                  % required
             'x', single.empty, ...                  % not needed if evenly spaced; if not even -> interleaved with data into Record 12 (single or double allowed)
-            'data', [], ...                         % Record 12, note: can't be empty
+            'data', [], ...                         % Record 12, note: can't be empty, single/double and real/complex
             'dataType', 'ASCII', ...                % write ASCII-, or BINARY (58b) data, note that binary data write is not yet supported.
             'ID1', 'NONE',...                       % Record 1,            "ID Line 1"
             'ID2', 'NONE',...                       % Record 2,            "ID Line 2"

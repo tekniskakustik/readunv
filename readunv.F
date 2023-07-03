@@ -61,8 +61,6 @@ C     FUNCTIONS
       mwPointer :: mxIsEmpty
       REAL*8    :: mxGetScalar
       INTEGER*4 :: mxClassIDFromClassName
-      INTEGER*4 :: mexPrintf
-      INTEGER*4 :: FTELL
 #ifdef __APPLE__
 C     TO DO: FIX FSEEK FOR MAC
 #else
@@ -136,16 +134,13 @@ C     DATASET 2400:
 C     ------------------------------------------------------------------
 
       REAL*8    :: S ! STATE FLAG
-      INTEGER   :: INTNUM
       INTEGER*8 :: I, K, NUMFIELDS, MAXRECORDS_LOCAL, SKIP_DATA, RECPOS
       INTEGER*4 :: VAL_INT, OK, NOK, LUN, LUN_BIN
       INTEGER*1 :: USE_ALLOCATION ! DYNAMIC ALLOCATION FLAG
       LOGICAL   :: VAL_BOOL ! LOGICAL STATUS VALUE, E.G. FOR FUNCTION STATE RETURNS
-      CHARACTER(LEN=22)  :: temp_str
 
 C     ALLOCATABLE VARIABLES
       CHARACTER(LEN=:), ALLOCATABLE         :: FILEPATH
-      INTEGER*1,  DIMENSION(:), ALLOCATABLE :: Y_BYTE
       REAL*4,     DIMENSION(:), ALLOCATABLE :: Y_RS, XDATA
       REAL*8,     DIMENSION(:), ALLOCATABLE :: Y_RD
       COMPLEX*8,  DIMENSION(:), ALLOCATABLE :: Y_CS
@@ -613,7 +608,7 @@ C       FIX TEXT ALIGNMENT
      &      POSITION = 'REWIND',
      &      ACTION = 'READ',
      &      ACCESS = 'STREAM')
-     
+
           IF (VAL_INT /= 0) THEN
             IF (VAL_INT == 1) THEN ! REMAP IOSTAT ERROR CODE 1 TO -12
               S = -12
@@ -623,9 +618,14 @@ C       FIX TEXT ALIGNMENT
             GO TO 10
           END IF
 
+
+C         --------------------------------------------------------------
           SELECT CASE (CASENUM)
-            CASE (1) ! REAL, SINGLE, EVEN SPACING     
-            
+C         --------------------------------------------------------------
+
+C           ------------------------------------------------------------
+            CASE (1) ! REAL, SINGLE, EVEN SPACING
+
               IF (NOT(ALLOCATED(Y_RS))) THEN
                 ALLOCATE(Y_RS(NVAL))
               ELSE IF(SIZE(Y_RS) /= NVAL) THEN
@@ -639,12 +639,13 @@ C       FIX TEXT ALIGNMENT
                 CXFLAG = 0 ! SET COMPLEX FLAG TO REAL (ZERO)
                 YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, CXFLAG)
                 CALL mxCopyReal4ToPtr(Y_RS, mxGetSingles(YPTR), NVAL)
-                ID_PTR(3) = YPTR         
+                ID_PTR(3) = YPTR
               END IF
 
 
+C           ------------------------------------------------------------
             CASE (2) ! REAL, SINGLE, UNEVEN SPACING
-            
+
               IF (NOT(ALLOCATED(Y_RS))) THEN
                 ALLOCATE(Y_RS(NVAL))
               ELSE IF(SIZE(Y_RS) /= NVAL) THEN
@@ -652,9 +653,9 @@ C       FIX TEXT ALIGNMENT
                 ALLOCATE(Y_RS(NVAL))
               END IF
 
-              READ(LUN_BIN, POS=RECPOS, ERR=9) 
+              READ(LUN_BIN, POS=RECPOS, ERR=9)
      &          (XDATA(I), Y_RS(I), I=1,NVAL)
-              
+
               IF (SKIP_DATA < 1) THEN
                 CXFLAG = 0 ! SET COMPLEX FLAG TO REAL (ZERO)
                 YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, CXFLAG)
@@ -663,23 +664,138 @@ C       FIX TEXT ALIGNMENT
               END IF
 
 
+C           ------------------------------------------------------------
             CASE (3) ! COMPLEX, SINGLE, EVEN SPACING
 
+              IF (NOT(ALLOCATED(Y_CS))) THEN
+                ALLOCATE(Y_CS(NVAL))
+              ELSE IF(SIZE(Y_CS) /= NVAL) THEN
+                DEALLOCATE(Y_CS)
+                ALLOCATE(Y_CS(NVAL))
+              END IF
+
+              READ(LUN_BIN, POS=RECPOS, ERR=9) (Y_CS(I), I=1,NVAL)
+
+              IF (SKIP_DATA < 1) THEN
+                CXFLAG = 1 ! SET COMPLEX FLAG TO COMPLEX (ONE)
+                YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, CXFLAG)
+                CALL mxCopyComplex8ToPtr(Y_CS, mxGetComplexSingles(YPTR)
+     &            , NVAL)
+                ID_PTR(3) = YPTR
+              END IF
 
 
+C           ------------------------------------------------------------
             CASE (4) ! COMPLEX, SINGLE, UNEVEN SPACING
 
+              IF (NOT(ALLOCATED(Y_CS))) THEN
+                ALLOCATE(Y_CS(NVAL))
+              ELSE IF(SIZE(Y_CS) /= NVAL) THEN
+                DEALLOCATE(Y_CS)
+                ALLOCATE(Y_CS(NVAL))
+              END IF
+
+              READ(LUN_BIN, POS=RECPOS, ERR=9)
+     &          (XDATA(I), Y_CS(I), I = 1,NVAL)
+
+              IF (SKIP_DATA < 1) THEN
+                CXFLAG = 1 ! SET COMPLEX FLAG TO COMPLEX (ONE)
+                YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, CXFLAG)
+                CALL mxCopyComplex8ToPtr(Y_CS, mxGetComplexSingles(YPTR)
+     &            , NVAL)
+                ID_PTR(3) = YPTR
+              END IF
+
+
+C           ------------------------------------------------------------
             CASE (5) ! REAL, DOUBLE, EVEN SPACING
 
+              IF (NOT(ALLOCATED(Y_RD))) THEN
+                ALLOCATE(Y_RD(NVAL))
+              ELSE IF(SIZE(Y_RD) /= NVAL) THEN
+                DEALLOCATE(Y_RD)
+                ALLOCATE(Y_RD(NVAL))
+              END IF
+
+              READ(LUN_BIN, POS=RECPOS, ERR=9) (Y_RD(I), I=1,NVAL)
+
+              IF (SKIP_DATA < 1) THEN
+                CXFLAG = 0 ! SET COMPLEX FLAG TO REAL (ZERO)
+                YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, CXFLAG)
+                CALL mxCopyReal8ToPtr(Y_RD, mxGetDoubles(YPTR), NVAL)
+                ID_PTR(3) = YPTR
+              END IF
+
+
+C           ------------------------------------------------------------
             CASE (6) ! REAL, DOUBLE, UNEVEN SPACING
 
+              IF (NOT(ALLOCATED(Y_RD))) THEN
+                ALLOCATE(Y_RD(NVAL))
+              ELSE IF(SIZE(Y_RD) /= NVAL) THEN
+                DEALLOCATE(Y_RD)
+                ALLOCATE(Y_RD(NVAL))
+              END IF
+
+              READ(LUN_BIN, POS=RECPOS, ERR=9)
+     &          (XDATA(I), Y_RD(I), I=1,NVAL)
+
+              IF (SKIP_DATA < 1) THEN
+                CXFLAG = 0 ! SET COMPLEX FLAG TO REAL (ZERO)
+                YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, CXFLAG)
+                CALL mxCopyReal8ToPtr(Y_RD, mxGetDoubles(YPTR), NVAL)
+                ID_PTR(3) = YPTR
+              END IF
+
+
+C           ------------------------------------------------------------
             CASE (7) ! COMPLEX, DOUBLE, EVEN SPACING
 
+              IF (NOT(ALLOCATED(Y_CD))) THEN
+                ALLOCATE(Y_CD(NVAL))
+              ELSE IF(SIZE(Y_CD) /= NVAL) THEN
+                DEALLOCATE(Y_CD)
+                ALLOCATE(Y_CD(NVAL))
+              END IF
+
+              READ(LUN_BIN, POS=RECPOS, ERR=9) (Y_CD(I), I=1,NVAL)
+
+              IF (SKIP_DATA < 1) THEN
+                CXFLAG = 1 ! SET COMPLEX FLAG TO COMPLEX (ONE)
+                YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, CXFLAG)
+                CALL mxCopyComplex16ToPtr(Y_CD,mxGetComplexDoubles(YPTR)
+     &            , NVAL)
+                ID_PTR(3) = YPTR
+              END IF
+
+
+C           ------------------------------------------------------------
             CASE (8) ! COMPLEX, DOUBLE, UNEVEN SPACING
 
-          END SELECT
-          
-          
+              IF (NOT(ALLOCATED(Y_CD))) THEN
+                ALLOCATE(Y_CD(NVAL))
+              ELSE IF(SIZE(Y_CD) /= NVAL) THEN
+                DEALLOCATE(Y_CD)
+                ALLOCATE(Y_CD(NVAL))
+              END IF
+
+              READ(LUN_BIN, POS=RECPOS, ERR=9)
+     &          (XDATA(I), Y_CD(I), I=1,NVAL)
+
+              IF (SKIP_DATA < 1) THEN
+                CXFLAG = 1 ! SET COMPLEX FLAG TO COMPLEX (ONE)
+                YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, CXFLAG)
+                CALL mxCopyComplex16ToPtr(Y_CD,mxGetComplexDoubles(YPTR)
+     &            , NVAL)
+                ID_PTR(3) = YPTR
+              END IF
+
+
+C         --------------------------------------------------------------
+          END SELECT ! END OF CASENUM SWITCH
+C         --------------------------------------------------------------
+
+C         CLOSE FILE UNIT FOR BINARY READ
           CLOSE(LUN_BIN, STATUS='KEEP')
 
 
@@ -886,8 +1002,6 @@ C        ---------------------------------------------------------------
 1008      FORMAT(ES13.5, 2ES20.12)
           READ(LUN, 1008, END=9, ERR=9) (XDATA(I), Y_CD(I), I=1,NVAL)
 
-208       CONTINUE ! EXIT FROM READ LOOP IF ANY EOF ENCOUNTERED
-
           CXFLAG = 1 ! SET COMPLEX FLAG TO COMPLEX (ONE)
           YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, CXFLAG)
           CALL mxCopyComplex16ToPtr(Y_CD,mxGetComplexDoubles(YPTR),NVAL)
@@ -905,7 +1019,7 @@ C       ----------------------------------------------------------------
 
 
         IF (PREV_DATASETNUM /= DATASETNUM) THEN
-        
+
           NUMFIELDS = 49
 
 C         DATA
@@ -972,7 +1086,7 @@ C         RECORD 11
           fieldnames(46) = 'zTempUnitsExponent'
           fieldnames(47) = 'zAxisLabel'
           fieldnames(48) = 'zAxisUnitLabel'
-        
+
         END IF
 
 
@@ -1081,7 +1195,7 @@ C       RECORD 6
 
 C       DEFINE OUTPUT DATA
         IF (PREV_DATASETNUM /= DATASETNUM) THEN
-        
+
           NUMFIELDS = 14
 
           fieldnames(1) =  'datasetType'
@@ -1110,9 +1224,9 @@ C         RECORD 5
 
 C         RECORD 6
           fieldnames(14) = 'optSwitch'
-        
+
         END IF
-        
+
 
 C       COPY DATA TO OUTPUT POINTERS
         ID_PTR(1) = mxCreateDoubleScalar(DBLE(DATASETNUM)) ! Dataset number
@@ -1182,7 +1296,7 @@ C       RECORD 6
 
 C       DEFINE OUTPUT DATA
         IF (PREV_DATASETNUM /= DATASETNUM) THEN
-        
+
           NUMFIELDS = 16
 
           fieldnames(1) =  'datasetType'
@@ -1213,7 +1327,7 @@ C         RECORD 5
 
 C         RECORD 6
           fieldnames(16) = 'sensitivity'
-        
+
         END IF
 
 C       COPY DATA TO OUTPUT POINTERS
@@ -1235,7 +1349,7 @@ C       RECORD 4
 
 C       RECORD 5
         ID_PTR(9)  = mxCreateDoubleScalar(DBLE(F1806_5_1)) ! Operating mode
-        ID_PTR(10)  = mxCreateDoubleScalar(DBLE(F1806_5_2)) ! Data type
+        ID_PTR(10) = mxCreateDoubleScalar(DBLE(F1806_5_2)) ! Data type
         ID_PTR(11) = mxCreateDoubleScalar(DBLE(F1806_5_3)) ! Type qualifier
         ID_PTR(12) = mxCreateDoubleScalar(DBLE(F1806_5_4)) ! Length units exponents
         ID_PTR(13) = mxCreateDoubleScalar(DBLE(F1806_5_4)) ! Force units exponents
@@ -1322,7 +1436,7 @@ C --- RETURN ARGUMENTS AND CLOSE FILE AND VARIABLES
 
 C     ERROR EXIT
 9     S = -9
-      NCELL = NCELL - 1 ! DECREASE CELL COUNT BY ONE, SINCE LAST FAILED
+      NCELL = NCELL - 1 ! DECREASE CELL COUNT BY ONE, SINCE THE LAST ONE FAILED
 
 10    CONTINUE ! NORMAL EXIT
 
@@ -1341,13 +1455,14 @@ C     DEALLOCATE ALLOCATED VARIABLES
 
 C     IF LUN HAVE BEEN INITIALISED
       IF (LUN /= 0) THEN
-        INQUIRE(UNIT=LUN, OPENED=OK) ! CHECK IF FILE IS OPEN
+        INQUIRE(UNIT=LUN, OPENED=OK) ! CHECK IF FILE UNIT IS OPEN
         IF (OK) THEN
           CLOSE(LUN, STATUS='KEEP') ! CLOSE IF OPEN
         END IF
       END IF
+C     IF LUN_BIN HAVE BEEN INITIALISED
       IF (LUN_BIN /= 0) THEN
-        INQUIRE(UNIT=LUN_BIN, OPENED=OK) ! CHECK IF FILE IS OPEN
+        INQUIRE(UNIT=LUN_BIN, OPENED=OK) ! CHECK IF BINARY FILE UNIT IS OPEN
         IF (OK) THEN
           CLOSE(LUN_BIN, STATUS='KEEP') ! CLOSE IF OPEN
         END IF
