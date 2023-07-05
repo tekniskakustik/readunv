@@ -27,6 +27,7 @@ C       = -6,  FILE IS ILL-FORMED
 C       = -7,  TWO OUTPUT ARGUMENTS ARE REQUIRED
 C       = -8,  DEPRECATED, AND NOT THROWN ANY MORE
 C       = -9,  ERROR WHILE READING FILE
+C       = -10,  ERROR IN BINARY/ASCII READ TRANSITION
 C       = -12, FLOATING POINT ARITHMETIC OVERFLOW (FROM IOSTAT)
 C       = >1,  ERROR CODE FROM IOSTAT WHEN OPENING FILE
 C
@@ -61,11 +62,7 @@ C     FUNCTIONS
       mwPointer :: mxIsEmpty
       REAL*8    :: mxGetScalar
       INTEGER*4 :: mxClassIDFromClassName
-#ifdef __APPLE__
-C     TO DO: FIX FSEEK FOR MAC
-#else
       INTEGER*4 :: FSEEK
-#endif
 
 C     MEX. DERIVED TYPES
       mwSize    :: STRLEN, NVAL, KMW, NCELL, M, N
@@ -87,6 +84,7 @@ C     ------------------------------------------------------------------
       INTEGER*4, PARAMETER :: DATASETS(5) = (/151,164,58,1806,2400/) ! SUPPORTED DATASET TYPES
       INTEGER*4          :: DATASETNUM, PREV_DATASETNUM
       CHARACTER(LEN=80)  :: REC0, REC_TEMP
+      LOGICAL*1          :: USE_BINARY
 C     DATASET 58/58b:
       CHARACTER(LEN=1)   :: F02
       CHARACTER(LEN=80)  :: ID1, ID2, ID3, ID5
@@ -147,7 +145,6 @@ C     ALLOCATABLE VARIABLES
       COMPLEX*16, DIMENSION(:), ALLOCATABLE :: Y_CD
 
 
-
 C     ------------------------------------------------------------------
 C     END OF VARIABLE DEFINITIONS --------------------------------------
 C     ------------------------------------------------------------------
@@ -158,6 +155,7 @@ C     INITIALISE (NON-PARAMETRIC) VARIABLES
       LUN_BIN = 0                   ! FILE UNIT NUMBER, USED FOR BINARY READ (58b)
       NCELL = 0                     ! CELL COUNTER
       S = 0                         ! OUTPUT STATE
+      USE_BINARY = .FALSE.          ! DATA IS WRITTEN AS BINARY
       SKIP_DATA = 0                 ! SKIP READING DATA, DEFAULT IS FALSE (ZERO)
       MAXRECORDS_LOCAL = MAXRECORDS ! MAXIMUM NUMBER OF RECORDS CURRENTLY
       USE_ALLOCATION = 0            ! USE DYNAMIC ALLOCATION OF OUTPUT CELL ARRAY, DEFAULT IS OFF; IS TRIGGERED WHEN NUMBER OF RECORDS EXCEEDS "MAXRECORDS"
@@ -257,12 +255,11 @@ C     READ DATA WHILE DATARECORD IS PREPENDED WITH "-1", USING STRICT FORMATTING
       DO WHILE (REC0 == "    -1")
 
 
-
 C     READ DATASET NUMBER, 58B COMPATIBILITY PREPARED (BUT NOT SUPPORTED YET)
 582   FORMAT(I6, 1A1, I6, I6, I12, I12, I6, I6, I12, I12)
       READ(LUN, 582, END=10, ERR=9) DATASETNUM, F02, F03, F04, F05, F06
 
-
+      USE_BINARY = (F02 == 'b') ! NB: LOWER CASE MANDATED BY STANDARD
 
 C     CODE RELATED TO ALL VALID DATASETS
       IF (ANY(DATASETNUM == DATASETS)) THEN
@@ -588,7 +585,7 @@ C       FIX TEXT ALIGNMENT
 
 
 
-        IF (F02 == 'b') THEN ! BINARY FORMAT, NB: LOWER CASE MANDATED BY STANDARD
+        IF (USE_BINARY) THEN ! BINARY FORMAT
 
           DATATYPE = 'BINARY'
 
@@ -599,6 +596,7 @@ C       FIX TEXT ALIGNMENT
 
 
           INQUIRE(LUN, POS=RECPOS)
+          CLOSE(LUN, STATUS='KEEP')
 
           OPEN (
      &      NEWUNIT = LUN_BIN,
@@ -768,7 +766,6 @@ C           ------------------------------------------------------------
                 ID_PTR(3) = YPTR
               END IF
 
-
 C           ------------------------------------------------------------
             CASE (8) ! COMPLEX, DOUBLE, UNEVEN SPACING
 
@@ -790,13 +787,35 @@ C           ------------------------------------------------------------
                 ID_PTR(3) = YPTR
               END IF
 
-
 C         --------------------------------------------------------------
           END SELECT ! END OF CASENUM SWITCH
 C         --------------------------------------------------------------
 
+
+
+C         GET CURRENT POSITION OF BINARY FILE UNIT
+          INQUIRE(LUN_BIN, POS=RECPOS)
+
 C         CLOSE FILE UNIT FOR BINARY READ
           CLOSE(LUN_BIN, STATUS='KEEP')
+
+          OPEN (
+     &      NEWUNIT = LUN,
+     &      FILE = FILEPATH,
+     &      STATUS = 'OLD',
+     &      IOSTAT = VAL_INT,
+     &      POSITION = 'REWIND',
+     &      ACTION = 'READ',
+     &      ACCESS = 'STREAM',
+     &      ENCODING = 'DEFAULT',
+     &      FORM = 'FORMATTED')
+
+C         MOVE NEW FILE UNIT TO PREVIOUS POSITION
+          VAL_INT = FSEEK(LUN, RECPOS+1, 1)
+          IF (VAL_INT /= 0) THEN
+            S = -10
+            GO TO 10
+          END IF
 
 
 
@@ -806,9 +825,7 @@ C         CLOSE FILE UNIT FOR BINARY READ
           ID_PTR(2) = mxCreateDoubleScalar(1.0_8) ! CREATE FAKE OUTPUT FOR X/ABSCISSA
           ID_PTR(3) = mxCreateDoubleScalar(1.0_8) ! CREATE FAKE OUTPUT FOR DATA
 
-#ifdef __APPLE__
-C         NO FSEEK POSSIBILITY YET, TODO => READ ALL DATA UNTIL TERMINATOR ENCOUNTERED, BUT DO NOT STORE
-#else
+
 C         SKIP DATA
           SELECT CASE (CASENUM)
             CASE (1) ! REAL, SINGLE, EVEN SPACING
@@ -836,7 +853,7 @@ C         SKIP DATA
               VAL_INT = FSEEK(LUN, INT4(NVAL*8*3-4*8), 1)
 
           END SELECT
-#endif
+
 
           DO WHILE (REC_TEMP /= "    -1")
             READ(LUN, '(A80)', END=11, ERR=9) REC_TEMP
@@ -1011,6 +1028,7 @@ C        ---------------------------------------------------------------
 C       ----------------------------------------------------------------
         END SELECT ! END OF CASENUM SWITCH
 C       ----------------------------------------------------------------
+
 
         END IF ! END OF BINARY/ASCII SWITCH
 
