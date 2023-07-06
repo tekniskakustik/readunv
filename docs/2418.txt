@@ -1,0 +1,36 @@
+Universal Dataset Type: 2418
+
+Name: Sorted results associativity
+-----------------------------------------------------------------------
+ 
+Record 1:        FORMAT(2I10)
+                 Field 1       -- Result set number
+                 Field 2       -- Result set class
+                                   1:    Data at nodes
+                                   2:    Data on elements
+                                   3:    Data at nodes on elements
+ 
+Record 2:        FORMAT(2I10)
+                 Field 1       -- Node/Element number
+                 Field 2       -- Number of data values for Node/Element
+
+Record 3:        FORMAT(8I10)
+                 Field 1       -- Result set number 1
+                 Field 2       -- Result set number 2
+                 Field 3       -- Result set number 3
+                 Field 4       -- Result set number 4
+                 Field 5       -- Result set number 5
+                 Field 6       -- Result set number 6
+                 Field 7       -- Result set number 7
+                 Field 8       -- Result set number 8
+                                  -1:    Not used or deleted result set
+
+Note: Record 3 will be repeated to hold all values retained for all positions
+      on the entity(node or element). The number of values per node/element =
+      the number of values retained * number of postitions.  The data will be
+      written for position 1 all values retained, position 2 all values retained
+      ... 
+
+Note: Records 2 and 3 are repeated for each node/element.      
+                                                
+-----------------------------------------------------------------

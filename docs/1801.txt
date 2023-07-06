@@ -1,0 +1,19 @@
+Universal Dataset Number: 1801
+
+Name:   Record Trace
+-----------------------------------------------------------------------
+ 
+Record 1:  FORMAT (1I10,10A2,1I10)
+           Field 1       - Record Trace number
+           Field 2       - Record Trace name
+           Field 3       - number of records in trace
+ 
+Record 2:  FORMAT (40A2)
+           Field 1       - Record Trace description
+ 
+Record 3:  FORMAT (8I10)
+           Fields 1-8    - record numbers
+ 
+Repeat record 3 until all records are exhausted.
+ 
+-----------------------------------------------------------------

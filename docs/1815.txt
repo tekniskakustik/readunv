@@ -1,0 +1,183 @@
+Universal Dataset Number: 1815
+
+Name:   Order Track Overall Setup
+-----------------------------------------------------------------
+
+Record 1:  FORMAT (I12, 10A2)
+           Field 1       - Overall setup number
+           Field 2       - Overall setup name
+
+Record 2:  FORMAT (1P2E15.7)
+           Field 1       - Minimum RPM
+           Field 2       - Maximum RPM
+
+Record 3:  FORMAT (2(1I2,1I6),1I12)
+           Field 1       - Manual arm switch
+           Field 2       - Trigger type
+                           0 = free run
+                           1 = time trigger
+                           2 = rpm trigger
+                           3 = channel trigger
+           Field 3       - Duplicate RPM switch
+           Field 4       - Duplicate RPM option
+                           1 = keep first
+                           2 = keep last
+           Field 5       - RPM channel
+
+Record 4:  FORMAT (1P2E15.7)
+           Field 1       - change in time
+           Field 2       - change in RPM
+
+Record 5:  FORMAT (1P2E15.7)
+           Field 1       - pulses per revolution
+           Field 2       - pulse level percent
+
+Record 6:  FORMAT (1P3E15.7,1I12,1I2)
+           Field 1       - tracking ratio
+           Field 2       - maximum order
+           Field 3       - order resolution
+           Field 4       - frame size
+           Field 5       - order subset switch
+
+Record 7:  FORMAT (1P1E15.7,1I2,1I12,1I6)
+           Field 1       - tape replay ratio
+           Field 2       - phase reference switch
+           Field 3       - phase reference channel
+           Field 4       - window
+                           0 = none
+                           1 = hanning narrow
+                           2 = hanning broad
+                           3 = flat top
+
+Record 8:  FORMAT (1I12)
+           Field 1       - Trigger channel
+
+Record 9:  FORMAT (1I6,1P1E15.7)
+           Field 1       - Trigger Slope
+                          -1 = negative slope
+                           0 = any slope
+                           1 = positive slope
+           Field 2       - Level percent
+
+Record 10: FORMAT (1I2,1I6,1I12,1P2E15.7)
+           Field 1       - Trigger bell switch
+           Field 2       - delay type
+                           1 = no delay
+                           2 = pre-trigger
+                           3 = post-trigger
+           Field 3       - delay samples
+           Field 4       - delay time
+           Field 5       - delay percent
+
+Record 11: FORMAT (1I2,1I6,1P3E15.7)
+           Field 1       - preview autorange switch
+           Field 2       - autorange method
+                           1 = overall amplitude
+                           2 = frame by frame
+           Field 3       - percent overload
+           Field 4       - upper limit (V)
+           Field 5       - upper limit (pC)
+
+Record 12: FORMAT (3I6,8I2)
+
+           Field 1       - Acquisition results
+                           2 = throughput
+                           3 = time to adf
+                           5 = spectra
+                           6 = spectra to adf
+                           7 = auto-spectra
+                           8 = spectral matrix
+                           9 = auto-correlation
+                          10 = correlation matrix
+                          11 = frf
+                          12 = time average
+                          13 = order track spectra
+                          14 = acoustic intensity
+           Field 2       - composite power accumulation
+                           0 = off
+                           1 = on
+                           2 = no DC
+           Field 3       - amplitude units
+                           0 = unknown
+                           1 = half peak
+                           2 = peak
+                           3 = rms
+           Field 4       - spectra write switch
+           Field 5       - order write switch
+           Field 6       - RPM vs time write switch
+           Field 7       - composite power write switch
+           Field 8       - phase reference channel write switch
+           Field 9       - tach channel write switch
+           Field 10      - test log switch
+           Field 11      - function logging switch
+
+Record 13: FORMAT (10A2)
+           Field 1       - Test log name
+
+Record 14: FORMAT (40A2)
+           Field 1       - Measurement description
+
+Record 15: FORMAT (1I12,3I6,1I2)
+           Field 1       - Number of display channels
+           Field 2       - Display units
+                           1 = volts
+                           2 = engineering units
+           Field 3       - Background grid
+                           0 = none
+                           1 = centerline
+                           2 = partial grid
+                           3 = full grid
+           Field 4       - Acquistion monitor
+                           0 = none
+                           1 = time
+                           2 = windowed
+                           3 = time and windowed
+                           4 = spectra
+                           5 = time and spectra
+                           6 = time min-max
+                           7 = current average
+                           8 = spectra waterfall
+                           9 = accumulated order
+           Field 5       - Acquistion monitor switch
+
+Record 16: FORMAT (1I6,1P2E15.7)
+           Field 1       - Range indicators
+           Field 2       - Upper limit %
+           Field 3       - Lower Limit %
+
+Record 17: FORMAT (1I2,1I12,1P1E15.7)
+           Field 1       - Hidden line switch
+           Field 2       - Number of functions
+           Field 3       - Start amplitude percent
+
+Record 18: FORMAT (1I2)
+           Field 1       - Overall Shutdown switch
+
+Record 19: FORMAT (2I2,1I12)
+           Field 1       - Composite power display switch
+           Field 2       - multiple orders display switch
+           Field 3       - orders displayed per channel
+
+Record 20: FORMAT (6I12)
+           Fields 1-6    - not used
+
+Record 21: FORMAT (6I12)
+           Fields 1-6    - not used
+
+Record 22: FORMAT (1P5E15.7)
+           Fields 1-5    - not used
+
+Record 23: FORMAT (1P5E15.7)
+           Fields 1-5    - not used
+
+Record 24: FORMAT (2I12)
+           Field 1       - number of orders
+           Field 2       - number of display orders
+
+Record 25: FORMAT (1P5E15.7)
+           Fields 1-n    - orders
+
+Record 26: FORMAT (1P5E15.7)
+           Fields 1-n    - display orders
+
+-----------------------------------------------------------------

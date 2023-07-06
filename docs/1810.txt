@@ -1,0 +1,217 @@
+Universal Dataset Number: 1810
+
+Name:   Measurement Overall Setup
+-----------------------------------------------------------------
+
+Record 1:  FORMAT (I12, 10A2)
+           Field 1       - Overall setup number
+           Field 2       - Overall setup name
+
+Record 2:  FORMAT (2I12)
+           Field 1       - Number of spectral lines
+           Field 2       - Frame size
+
+Record 3:  FORMAT (1P4E15.7)
+           Field 1       - Maximum frequency
+           Field 2       - Delta time
+           Field 3       - Tape replay ratio
+           Field 4       - Filter cutoff percent
+
+Record 4:  FORMAT (1I12)
+           Field 1       - Trigger method
+                           0 = Free run
+                           1 = first frame
+                           2 = every frame
+                           3 = source trigger
+
+Record 5:  FORMAT (1I6,1I12)
+           Field 1       - Trigger source
+                          -2 = manual trigger
+                          -1 = external input
+                           n = channel
+           Field 2       - Trigger channel
+       
+Record 6:  FORMAT (1I6,1P1E15.7)
+           Field 1       - Trigger slope
+                          -1 = negative slope
+                           0 = any slope
+                           1 = positive slope
+           Field 2       - Level percent
+
+Record 7:  FORMAT (1I2,1I6,1I12,1P2E15.7)
+           Field 1       - Trigger bell switch
+           Field 2       - Trigger delay
+                           1 = no delay
+                           2 = pre-trigger
+                           3 = post-trigger
+           Field 3       - Number of samples
+           Field 4       - delay time
+           Field 5       - delay percent
+
+Record 8:  FORMAT (2I2,1I6,1P4E15.7)
+           Field 1       - Autorange before preview switch
+           Field 2       - Autorange before acquire switch
+           Field 3       - Autorange method
+                           1 = overall amplitude
+                           2 = frame by frame
+           Field 4       - Percent frame
+           Field 5       - Percent overhead
+           Field 6       - upper limit v
+           Field 7       - upper limit pc
+
+Record 9:  FORMAT (1I6,1I2,1P2E15.7)
+           Field 1       - Reference / Response window
+                           0 = no window
+                           1 = hanning narrow
+                           2 = hanning broad
+                           3 = flat top
+                           4 = exponential 
+           Field 2       - Impact window on reference switch
+           Field 3       - Impact width percent
+           Field 4       - decay rate percent
+
+Record 10: FORMAT (2I6,2I12,1P1E15.7)
+           Field 1       - Averaging method
+                           1 = stable
+                           2 = exponential
+                           3 = peak hold
+           Field 2       - Frame acceptance
+                           0 = accept all
+                           1 = automatic
+                           2 = manual
+           Field 3       - Frames per average
+           Field 4       - Exponential average constant
+           Field 5       - Overlap percent
+
+Record 11: FORMAT (4I6,7I2)
+           Field 1       - Acquistion results
+                           2 = throughput
+                           3 = time to adf
+                           5 = spectra
+                           6 = spectra to adf
+                           7 = auto-spectra
+                           8 = spectral matrix
+                           9 = auto-correlation
+                          10 = correlation matrix
+                          11 = frf
+                          12 = time average
+                          13 = order track spectra
+                          14 = acoustic intensity
+           Field 2       - Normalization
+                           0 = unknown 
+                           1 = units squared
+                           2 = units squared / Hz
+                           3 = units squared sec / Hz
+           Field 3       - Amplitude units
+                           0 = unknown
+                           1 = half peak
+                           2 = peak
+                           3 = rms
+           Field 4       - FRF method
+                           1 = H1 Gyx/Gxx
+                           2 = H2 Gyy/Gxy
+                           3 = H3 (H1+H2)/2
+                           4 = HV optimal scaling
+           Field 5       - Auto write switch
+           Field 6       - Cross write switch
+           Field 7       - Coherence write switch
+           Field 8       - Reference coherence write switch
+           Field 9       - FRF write switch
+           Field 10      - Test log switch
+           Field 11      - Function logging switch
+
+Record 12: FORMAT (10A2)
+           Field 1       - Test log name
+
+Record 13: FORMAT (1P2E15.7)
+           Field 1       - Clear lower frequency
+           Field 2       - Clear upper frequency
+
+Record 14: FORMAT (40A2)
+           Field 1       - Measurement description
+
+Record 15: FORMAT (1I12,3I6,1I2)
+           Field 1       - Number of display channels
+           Field 2       - Display units
+                           1 = volts
+                           2 = engineering units
+           Field 3       - Background grid
+                           0 = none
+                           1 = centerline
+                           2 = partial grid
+                           3 = full grid
+           Field 4       - Acquistion monitor
+                           0 = none
+                           1 = time
+                           2 = windowed
+                           3 = time and windowed
+                           4 = spectra
+                           5 = time and spectra
+                           6 = time min-max
+                           7 = current average
+                           8 = spectra waterfall
+           Field 5       - Acquistion monitor switch
+
+Record 16: FORMAT (1I6,1P2E15.7)
+           Field 1       - Range indicators
+           Field 2       - Upper limit %
+           Field 3       - Lower Limit %
+
+Record 17: FORMAT (1I2,1I12,1P1E15.7)
+           Field 1       - Hidden line switch
+           Field 2       - Number of functions
+           Field 3       - Start amplitude percent
+
+Record 18: FORMAT (1I2)
+           Field 1       - Overall Shutdown switch
+
+Record 19: FORMAT (1I6)
+           Field 1       - Sine measurement type
+                           1 = step sine
+                           2 = sine reduction
+
+Record 20: FORMAT (1P2E15.7)
+           Field 1       - Minimum frequency
+           Field 2       - Maximum frequency
+
+Record 21: FORMAT (1P2E15.7,2I6)
+           Field 1       - Linear sweep increment
+           Field 2       - Sweep points per decade
+           Field 3       - Sweep direction
+                           1 = up
+                           2 = down
+           Field 4       - Sweep type
+                           1 = linear
+                           2 = log
+
+Record 22: FORMAT (1P2E15.7,1I6)
+           Field 1       - seconds for settling
+           Field 2       - cycles for settling
+           Field 3       - setling time option
+                           0 = none
+                           1 = seconds
+                           2 = cycles
+
+Record 23: FORMAT (1P4E15.7,1I6)
+           Field 1       - percent overhead
+           Field 2       - percent overload
+           Field 3       - minimum(V)
+           Field 4       - minimum(pC)
+           Field 5       - Frame autorange type
+                           0 = off
+                           1 = up only
+                           2 = up or down
+
+Record 24: FORMAT (6I12)
+           Fields 1-6    - not used
+
+Record 25: FORMAT (6I12)
+           Fields 1-6    - not used
+
+Record 26: FORMAT (1P5E15.7)
+           Fields 1-5    - not used
+
+Record 27: FORMAT (1P5E15.7)
+           Fields 1-5    - not used
+
+-----------------------------------------------------------------

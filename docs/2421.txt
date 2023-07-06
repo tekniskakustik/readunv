@@ -1,0 +1,55 @@
+Universal Dataset Number: 2421
+
+Name:   Geometry Based Boundary Conditions
+---------------------------------------------------------------------------
+-
+
+Record 1:        FORMAT(4I12) Boundary Condition/ID Cross Reference
+                 Field 1       -- Boundary Condition Set Number
+                 Field 2       -- Boundary Condition Type
+                 Field 3       -- Major ID
+                 Field 4       -- Minor ID
+ 
+Record 2:        FORMAT(6I12) Associated Time Variation Labels
+                 Field 1       -- Time Variation Label for X Axis Translation
+                 Field 2       -- Time Variation Label for Y Axis Translation
+                 Field 3       -- Time Variation Label for Z Axis Translation
+                 Field 4       -- Time Variation Label for X Axis Rotation
+                 Field 5       -- Time Variation Label for Y Axis Rotation
+                 Field 6       -- Time Variation Label for Z Axis Rotation
+
+Record 3:        FORMAT(1I12) Associated Temperature Variation Labels
+                 Field 1       -- Temperature Variation Label
+
+Record 4:        FORMAT(6I12) Associated Data Surface Labels
+                 Field 1       -- Associated Data Surface Label for X Axis
+                                  Translation
+                 Field 2       -- Associated Data Surface Label for Y Axis
+                                  Translation
+                 Field 3       -- Associated Data Surface Label for Z Axis
+                                  Translation
+                 Field 4       -- Associated Data Surface Label for X Axis
+                                  Rotation
+                 Field 5       -- Associated Data Surface Label for Y Axis
+                                  Rotation
+                 Field 6       -- Associated Data Surface Label for Z Axis
+                                  Rotation
+
+Record 5:        FORMAT(6I12) Associated Data Edge Labels
+                 Field 1       -- Associated Data Edge Label for X Axis
+                                  Translation
+                 Field 2       -- Associated Data Edge Label for Y Axis
+                                  Translation
+                 Field 3       -- Associated Data Edge Label for Z Axis
+                                  Translation
+                 Field 4       -- Associated Data Edge Label for X Axis
+                                  Rotation
+                 Field 5       -- Associated Data Edge Label for Y Axis
+                                  Rotation
+                 Field 6       -- Associated Data Edge Label for Z Axis
+                                  Rotation
+
+Records 1 to 5 are repeated for each boundary condition in the model. Records 
+2 through 5 are output only if valid for the boundary condition type.
+
+----------------------------------------------------------------------------

@@ -1,0 +1,60 @@
+Universal Dataset Number: 158
+
+Name:   L3 XY Plot Options
+-----------------------------------------------------------------------
+ 
+Record 1:       FORMAT(I10,20A1)
+                Field 1      -- label number
+                Field 2      -- name
+Record 2:       FORMAT(20A1)
+                Field 1      -- plot subtitle
+Record 3:       FORMAT(8I10)
+                Field 1      -- complex option
+                Field 2      -- special option
+                Field 3      -- X-axis type
+                Field 4      -- Y-axis type
+                Field 5      -- Grid color index
+                Field 6      -- Grod fill color index
+                Field 7      -- autoscale switch
+                Field 8      -- symbol switch
+                Field 9      -- grid visibility switch
+                Field 10     -- ticmark switch
+                Field 11     -- text switch
+Record 4:       FORMAT(4E13.5)
+                Field 1-2    -- User window minimums
+                Field 3-4    -- User window maximums
+Record 5:       FORMAT(8I10)
+                Field 1      -- Function user color override
+                Field 2      -- Function line color
+                Field 3      -- Function line style
+                Field 4      -- Function symbol
+                Field 5      -- Function symbol resolution
+                Field 6      -- Function bar switch
+                Field 7      -- Function bar outline switch
+                Field 8      -- Function bar fill color
+                Field 9      -- Function bar fill switch
+ 
+Record 6:       FORMAT(2E13.5)
+                Field 1      -- Function bar width
+                Field 2      -- Function bar offset
+ 
+Records 7-14 are records 5 and 6 repeated for each function.
+There are 5 functions.
+ 
+Record 15:      FORMAT(2I10)
+                Field 1     -- Number of tags (NTAG)
+                Field 2     -- Number of notes (NNOTE)
+ 
+Record 16-N     FORMAT(I10,2E13.5)
+                Field 1     -- Tag number
+                Field 2     -- X position of tag
+                Field 3     -- Y position of tag
+ 
+Record N+1-M    FORMAT(I10,2E13.5)
+                Field 1     -- Note number
+                Field 2     -- X position of note
+                Field 3     -- Y position of note
+                FORMAT(20A1)
+                Field 1     -- Note text
+ 
+-----------------------------------------------------------------

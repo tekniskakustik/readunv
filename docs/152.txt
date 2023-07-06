@@ -1,0 +1,51 @@
+Universal Dataset Number: 152
+
+Name:   View
+-----------------------------------------------------------------------
+ 
+Record 1:       FORMAT(I10,20A1)
+                Field 1      -- View number
+                Field 2      -- 20 character view description
+Record 2:       FORMAT(6I10)
+                Field 1      -- Z-Clip flag
+                                Z-clipping (front and back clipping
+                                distances) enabled (1) or disabled (0).
+                Field 2      -- Perspective flag
+                                = 0 - disabled.
+                                = 1 - enabled.
+                Field 3      -- Perspective value type
+                                = 0 - by field of view angle
+                                = 1 - by distance
+                Field 4      -- Pre-transformed world clip flag
+                                = 0 - disabled.
+                                = 1 - enabled.
+Record 3:       FORMAT(6E13.5)
+                Field 1-3    -- View target
+                                The 3D world location to place in
+                                the center of the screen. All screen
+                                and dial rotations are done about the
+                                objects target.
+                Field 4-12   -- Rotation matrix
+                                3X3 roation matrix gives rotation of
+                                object about the view target.
+                Field 13     -- Window radius
+                                Defines the size of the short axis of
+                                the view window in world units.
+                Field 14     -- Front clipping distance
+                                Defines the world distance from target
+                                to front clipping plane.
+                Field 15     -- Back clipping distance
+                                Defines the world distance from target
+                                to back clipping plane.
+                Field 16     -- Perspective value
+                                If perspective flag = 0,
+                                   view angle in degrees (5.0 < X < 85)
+                                Else if perspective flag = 1,
+                                   world distance of eye from target
+                                   along the screen Z axis
+                Field 17-22  -- Pre-transformed world clip boundaries
+                                The world clip box is specified by the
+                                rear, lower, left-hand corner (MIN) and
+                                front, upper, right-hand corner (MAX).
+ 
+-----------------------------------------------------------------

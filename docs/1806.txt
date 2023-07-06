@@ -1,0 +1,33 @@
+Universal Dataset Number: 1806
+
+Name:   Transducer
+-----------------------------------------------------------------
+
+Record 1:  FORMAT (10A2)
+           Field 1       - Serial number
+
+Record 2:  FORMAT (10A2,2X,10A2)
+           Field 1       - Manufacturer
+           Field 2       - Model
+
+Record 3:  FORMAT (10A2,2X,10A2,2X,10A2)
+           Field 1       - Calibration by
+           Field 2       - Calibration date
+           Field 3       - Calibration due date
+
+Record 4:  FORMAT (40A2)
+           Field 1       - Transducer description
+
+Record 5:  FORMAT (3I12,3I6,10A2)
+           Field 1       - Operating mode
+           Field 2       - Data type
+           Field 3       - Type qualifier
+           Field 4       - Length units exponents
+           Field 5       - Force units exponents
+           Field 6       - Temperature exponents
+           Field 7       - Units label
+
+Record 6:  FORMAT (1P1E15.7)
+           Field 1       - Sensitivity (mV/EU)
+
+-----------------------------------------------------------------

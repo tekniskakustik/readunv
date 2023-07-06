@@ -1,0 +1,64 @@
+Universal Dataset Number: 2413
+
+Name:   Result type definition
+-----------------------------------------------------------------------
+
+Record 1:        FORMAT(2I10)
+                 Field 1       -- result type number
+                 Field 2       -- data characteristic of result type
+                                   0: Unknown
+                                   1: Scalar
+                                   2: 3DOF Vector
+                                   3: 6DOF Vector
+                                   4: Symmetric tensor
+                                   6: Stress resultant
+
+Record 2:        FORMAT(20A2)
+                 Field 1       -- Result type full name
+
+Record 3:        FORMAT(7A2)
+                 Field 1       -- Result type short name
+
+Record 4:        FORMAT(9I5)
+                 Field 1-9     -- Unit code for data components
+
+
+Note: User defined result types begin with a tag of 1000.
+
+      Unit codes for record 4 
+
+                -1: Unused
+                 0: No conversion
+                 1: Length           
+                 2: Force            
+                 3: Temperature      
+                 4: Area             
+                 5: Volume           
+                 6: Mass             
+                 7: Mass density     
+                 8: Energy (work)    
+                 9: Pressure               
+                 10: Area moment of inertia 
+                 11: Mass moment of inertia 
+                 12: Compliance             
+                 13: Torque                 
+                 14: Force/Length           
+                 15: Force/Volume           
+                 16: Convection coefficient 
+                 17: Conductivity           
+                 18: Heat source            
+                 19: Heat flux/Area         
+                 20: Heat flux/Length       
+                 21: Enthalpy               
+                 22: Mass/Length            
+                 23: Length ** 6            
+                 24: Mass/Area              
+                 25: Coef. of thermal exp   
+                 26: Force/(Length ** 2)    
+                 27: Heat flux/Volume       
+                 28: Coeff. of torsional stress               
+                 29: Specific heat          
+                 30: Thermal capacity per unit area              
+                 31: Temperature/Length     
+
+-----------------------------------------------------------------------
