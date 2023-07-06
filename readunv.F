@@ -164,6 +164,9 @@ C     INITIALISE (NON-PARAMETRIC) VARIABLES
       CID_D = mxClassIDFromClassName('double') ! MX FLAG FOR DOUBLE PRECISION
 
 
+80    FORMAT(A80)
+
+
 C     AT LEAST ONE INPUT ARGUMENT (FILEPATH) IS REQUIRED
       IF (nrhs < 1) THEN
         S = -4
@@ -246,7 +249,7 @@ C     CHECK IF FILE OPENING FAILED -> RETURN IOSTAT CODE
 
 
 C     READ FIRST LINE IN FILE
-      READ(LUN, '(A80)', END=10, ERR=9) REC0
+      READ(LUN, 80, END=10, ERR=9) REC0
 
 
 
@@ -261,41 +264,6 @@ C     READ DATASET NUMBER, 58B COMPATIBILITY PREPARED (BUT NOT SUPPORTED YET)
 
       USE_BINARY = (F02 == 'b') ! NB: LOWER CASE MANDATED BY STANDARD
 
-C     CODE RELATED TO ALL VALID DATASETS
-      IF (ANY(DATASETNUM == DATASETS)) THEN
-
-        NCELL = NCELL + 1 ! INCREMENT CELL DATA RECORD COUNTER WITH ONE
-
-        S = 1 ! -> SUCCESS = TRUE
-
-C       CHECK IF STRUCT POINTER ARRAYS NEEDS TO BE RESIZED
-        IF (NCELL > MAXRECORDS_LOCAL) THEN
-          MAXRECORDS_LOCAL = MAXRECORDS_LOCAL + RECORD_STEP
-
-          SELECT CASE (USE_ALLOCATION)
-           CASE (0)
-            USE_ALLOCATION = 1 ! USE SPTR_1
-            ALLOCATE(SPTR_1(MAXRECORDS_LOCAL)) ! RESIZE SPTR_1
-            SPTR_1(1:NCELL-1) = SPTR(:) ! COPY STATICALLY SIZED SPTR CONTENT TO SPTR_1
-
-           CASE (1)
-            USE_ALLOCATION = 2 ! USE SPTR_2
-            ALLOCATE(SPTR_2(MAXRECORDS_LOCAL)) ! RESIZE SPTR_2
-            SPTR_2(1:NCELL-1) = SPTR_1(:) ! COPY SPTR_1 CONTENT TO SPTR_2
-            DEALLOCATE(SPTR_1)
-
-           CASE (2)
-            USE_ALLOCATION = 1 ! USE SPTR_1
-            ALLOCATE(SPTR_1(MAXRECORDS_LOCAL)) ! RESIZE SPTR_1
-            SPTR_1(1:NCELL-1) = SPTR_2(:) ! COPY SPTR_2 CONTENT TO SPTR_1
-            DEALLOCATE(SPTR_2)
-
-          END SELECT
-
-        END IF
-
-      END IF
-
 
 C --- HANDLE DATABLOCK ACCORDING TO DATASET NUMBER ---------------------
 C ----------------------------------------------------------------------
@@ -306,13 +274,13 @@ C ----------------------------------------------------------------------
       CASE (151)
 
 C       RECORD 1, ID LINE 1, model file name
-        READ(LUN, '(A80)', END=10, ERR=9) ID1
+        READ(LUN, 80, END=10, ERR=9) ID1
 
 C       RECORD 2, ID LINE 2, model file description
-        READ(LUN, '(A80)', END=10, ERR=9) ID2
+        READ(LUN, 80, END=10, ERR=9) ID2
 
 C       RECORD 3, ID LINE 3, program which created DB
-        READ(LUN, '(A80)', END=10, ERR=9) ID3
+        READ(LUN, 80, END=10, ERR=9) ID3
 
 C       RECORD 4
 1514    FORMAT(A10, A10, 3I10)
@@ -325,7 +293,7 @@ C       RECORD 5
      &    DS151F51, DS151F52
 
 C       RECORD 6, ID LINE 6, program which created unv-file
-        READ(LUN, '(A80)', END=10, ERR=9) ID4
+        READ(LUN, 80, END=10, ERR=9) ID4
 
 C       RECORD 7
 1517    FORMAT(A10, A10)
@@ -465,19 +433,19 @@ C ----------------------------------------------------------------------
 C       READ HEADER
 
 C       RECORD 1, ID LINE 1
-        READ(LUN, '(A80)', END=10, ERR=9) ID1
+        READ(LUN, 80, END=10, ERR=9) ID1
 
 C       RECORD 2, ID LINE 2
-        READ(LUN, '(A80)', END=10, ERR=9) ID2
+        READ(LUN, 80, END=10, ERR=9) ID2
 
 C       RECORD 3, ID LINE 3
-        READ(LUN, '(A80)', END=10, ERR=9) ID3
+        READ(LUN, 80, END=10, ERR=9) ID3
 
 C       RECORD 4, ID LINE 4
         READ(LUN, '(A120)', END=10, ERR=9) ID4
 
 C       RECORD 5, ID LINE 5
-        READ(LUN, '(A80)', END=10, ERR=9) ID5
+        READ(LUN, 80, END=10, ERR=9) ID5
 
 C       RECORD 6
 5806    FORMAT(2(I5, I10), 2(1X, A10, I10, I4))
@@ -856,9 +824,9 @@ C         SKIP DATA
 
 
           DO WHILE (REC_TEMP /= "    -1")
-            READ(LUN, '(A80)', END=11, ERR=9) REC_TEMP
+            READ(LUN, 80, END=11, ERR=9) REC_TEMP
           END DO
-          READ(LUN, '(A80)', END=11, ERR=9) REC_TEMP
+          READ(LUN, 80, END=11, ERR=9) REC_TEMP
           REC0 = "    -1"
 
 
@@ -1386,6 +1354,36 @@ C       RECORD 6
 
 C     CREATE AND COPY STRUCT TO CELL ARRAY, IF DATASET NUMBER IS SUPPORTED
       IF (ANY(DATASETNUM == DATASETS)) THEN
+        
+        S = 1 ! -> SUCCESS = TRUE
+      
+        NCELL = NCELL + 1 ! INCREMENT CELL DATA RECORD COUNTER WITH ONE
+        
+C       CHECK IF STRUCT POINTER ARRAYS NEEDS TO BE RESIZED
+        IF (NCELL > MAXRECORDS_LOCAL) THEN
+          MAXRECORDS_LOCAL = MAXRECORDS_LOCAL + RECORD_STEP
+
+          SELECT CASE (USE_ALLOCATION)
+           CASE (0)
+            USE_ALLOCATION = 1 ! USE SPTR_1
+            ALLOCATE(SPTR_1(MAXRECORDS_LOCAL)) ! RESIZE SPTR_1
+            SPTR_1(1:NCELL-1) = SPTR(:) ! COPY STATICALLY SIZED SPTR CONTENT TO SPTR_1
+
+           CASE (1)
+            USE_ALLOCATION = 2 ! USE SPTR_2
+            ALLOCATE(SPTR_2(MAXRECORDS_LOCAL)) ! RESIZE SPTR_2
+            SPTR_2(1:NCELL-1) = SPTR_1(:) ! COPY SPTR_1 CONTENT TO SPTR_2
+            DEALLOCATE(SPTR_1)
+
+           CASE (2)
+            USE_ALLOCATION = 1 ! USE SPTR_1
+            ALLOCATE(SPTR_1(MAXRECORDS_LOCAL)) ! RESIZE SPTR_1
+            SPTR_1(1:NCELL-1) = SPTR_2(:) ! COPY SPTR_2 CONTENT TO SPTR_1
+            DEALLOCATE(SPTR_2)
+
+          END SELECT
+
+        END IF
 
         SELECT CASE (USE_ALLOCATION)
           CASE (0)
@@ -1412,8 +1410,8 @@ C     CREATE AND COPY STRUCT TO CELL ARRAY, IF DATASET NUMBER IS SUPPORTED
         END SELECT
 
         IF (SKIP_DATA < 0.5 .OR. USE_BINARY) THEN
-          READ(LUN, '(A80)', END=10, ERR=9) REC0
-          READ(LUN, '(A80)', END=10, ERR=9) REC0 ! NB: READ TWICE
+          READ(LUN, 80, END=10, ERR=9) REC0
+          READ(LUN, 80, END=10, ERR=9) REC0 ! NB: READ TWICE
         END IF
 
 
@@ -1423,13 +1421,11 @@ C       DO NOTHING HERE -> REPEAT LOOP
 
 
       ELSE ! INVALID OR UNSUPPORTED DATASET NUMBER
-
-
         REC0 = "0"
 
 C       CHECK STRICTLY FOR THE CORRECTLY FORMATTED END TERMINATOR
         DO WHILE (REC0 /= "    -1")
-          READ(LUN, '(A80)', END=10, ERR=9) REC0
+          READ(LUN, 80, END=10, ERR=9) REC0
         END DO
 
 
@@ -1454,7 +1450,7 @@ C --- RETURN ARGUMENTS AND CLOSE FILE AND VARIABLES
 
 C     ERROR EXIT
 9     S = -9
-      NCELL = NCELL - 1 ! DECREASE CELL COUNT BY ONE, SINCE THE LAST ONE FAILED
+C       NCELL = NCELL - 1 ! DECREASE CELL COUNT BY ONE, SINCE THE LAST ONE FAILED
 
 10    CONTINUE ! NORMAL EXIT
 
