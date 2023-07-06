@@ -1,0 +1,16 @@
+Universal Dataset Number: 15
+
+Name:   Nodes
+-----------------------------------------------------------------------
+ 
+             Record 1: FORMAT(4I10,1P3E13.5)
+                       Field 1 -    node label
+                       Field 2 -    definition coordinate system number
+                       Field 3 -    displacement coordinate system number
+                       Field 4 -    color
+                       Field 5-7 -  3 - Dimensional coordinates of node
+                                    in the definition system
+ 
+             NOTE:  Repeat record for each node
+ 
+------------------------------------------------------------------------------

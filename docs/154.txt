@@ -1,0 +1,21 @@
+Universal Dataset Number: 154
+
+Name:   Layout
+-----------------------------------------------------------------------
+ 
+Record 1:       FORMAT(I10,20A1)
+                Field 1      -- label number
+                Field 2      -- name
+Record 2:       FORMAT(I10)
+                Field 1      -- number of viewports
+Record 3:       FORMAT(4E13.5)
+                Field 1      -- X min of viewport in LDC.
+                Field 2      -- X max of viewport in LDC.
+                Field 3      -- Y min of viewport in LDC.
+                Field 4      -- Y max of viewport in LDC.
+                LDC is local device coordinates. LDC coordinates
+                range from 0.0 to 1.0.
+ 
+         Records 3 repeated for each viewport in the layout.
+ 
+-----------------------------------------------------------------

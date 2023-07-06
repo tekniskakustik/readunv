@@ -1,0 +1,58 @@
+Universal Dataset Number: 1808
+
+Name:   Channel Table
+-----------------------------------------------------------------
+
+Record 1:  FORMAT (6I12)
+           Field 1       - Channel Application Type
+                           0 - Measurements
+                           1 - Post Processing
+           Field 2       - Update channels option
+           Field 3       - Update method
+           Field 4       - Number of reference channels
+           Field 5       - Number of response channels
+           Field 6       - Number of parametric channels
+
+Record 2:  FORMAT (40A2)
+           Field 1       - Channel description
+
+Record 3:  FORMAT (1I12,2A2,2X,20A2)
+           Field 1       - Coordinate node number
+           Field 2       - Coordinate direction
+           Field 3       - Transducer serial number 
+                           "None" for no transducer
+
+Record 4:  FORMAT (1I2,1I12,1P2E15.7)
+           Field 1       - Autorange switch
+           Field 2       - Coupling
+           Field 3       - Input range
+           Field 4       - Gain
+
+Record 5:  FORMAT (1I2,1P1E15.7)
+           Field 1       - Shutdown switch
+           Field 2       - Shutdown level
+
+Record 6:  FORMAT (6I12)
+           Field 1       - External weighting
+                           0 = None
+                           1 = A External
+                           2 = B External
+                           3 = C External
+           Field 2       - Channel sampling type
+                           0 = Dynamic
+                           1 = Front end static
+                          10 = static emulated
+                          11 = RPM form tach
+                          12 = Frequency from tach
+           Field 3       - Sampling divider
+           Fields 4-6    - Not used
+
+Record 7:  FORMAT (1P5E15.7)
+           Field 1       - Scale offset
+           Field 2       - Tach - pulses per revolution
+           Field 3       - Tach - level percent
+           Fields 4-5    - Not used
+
+Records 2 - 7 would be repeated for each channel.
+
+-----------------------------------------------------------------

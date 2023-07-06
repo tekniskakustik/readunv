@@ -1,0 +1,21 @@
+Universal Dataset Number: 1804
+
+Name:   Node Map
+-----------------------------------------------------------------
+
+Record 1:  FORMAT (5I12,1P1E15.7)
+           Field 1       - Test bin number
+           Field 2       - Test model number
+           Field 3       - Analysis bin number
+           Field 4       - Analysis model number
+           Field 5       - Number of test / analysis pairs
+           Field 6       - Tolerance
+
+Record 2:  FORMAT (2I12,1P1E15.7)
+           Field 1       - Test node label
+           Field 2       - Analysis node label
+           Field 3       - Distance
+
+Record 2 is repeated for each Test / Analysis node pair.
+
+-----------------------------------------------------------------

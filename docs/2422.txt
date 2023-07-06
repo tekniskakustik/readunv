@@ -1,0 +1,12 @@
+Universal Dataset Number: 2422
+
+Name:   Geometry Element Order
+-------------------------------------------------------------------------
+
+Record 1:        FORMAT(4I12)
+                 Field 1       -- major ID
+                 Field 2       -- minor ID
+                 Field 3       -- component ID
+                 Field 4       -- element order
+
+-------------------------------------------------------------------------

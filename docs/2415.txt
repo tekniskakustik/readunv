@@ -1,0 +1,37 @@
+Universal Dataset Number: 2415
+
+Name:   Laminate Definitions
+-----------------------------------------------------------------------
+ 
+Record 1:        FORMAT (4I10)
+                 Field 1       -- laminate property table number
+                 Field 2       -- material table number for laminate
+                                  constitutive properties
+                 Field 3       -- number of plies in the laminate
+                 Field 4       -- failure theory
+                               = 1 - Hill failure theory
+                               = 2 - Hoffman failure theory
+                               = 3 - Tsai-Wu failure theory
+                               = 4 - maximum stress failure theory
+                               = 5 - maximum strain failure theory
+                               = 6 - other
+ 
+Record 2:        FORMAT (20A2)
+                 Field 1       -- laminate property table name
+ 
+Record 3:        FORMAT (3(1PE15.7))
+                 Field 1       -- bottom fiber distance
+                 Field 2       -- allowable stress for bonding
+                 Field 3       -- inter-action term (f12)
+ 
+Record 4-4+N:    FORMAT (2I10,2(1PE15.7))
+                 Field 1       -- ply material table number for
+                                  ply no. n
+                 Field 2       -- ply color index for ply no. n
+                 Field 3       -- ply thickness for ply no. n
+                 Field 4       -- material orientation angle in
+                                  degrees for ply no. n
+ 
+Record 4 is repeated for each ply in the laminate.
+ 
+-----------------------------------------------------------------------------

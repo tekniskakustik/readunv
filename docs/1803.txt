@@ -1,0 +1,20 @@
+Universal Dataset Number: 1803
+
+Name:   Mode Order Trace
+-----------------------------------------------------------------
+
+Record 1:  FORMAT (1I12,10A2,1I12)
+           Field 1       - Mode Order Trace number
+           Field 2       - Mode Order Trace name
+           Field 3       - Number of mode order pairs
+
+Record 2:  FORMAT (40A2)
+           Field 1       - Mode Order Trace description
+
+Record 3:  FORMAT (2I12)
+           Field 1       - Mode Number for Column 1
+           Field 2       - Mode Number for Column 2
+
+Record 3 is repeated until all the mode numbers have been written.
+
+-----------------------------------------------------------------

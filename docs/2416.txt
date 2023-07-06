@@ -1,0 +1,20 @@
+Universal Dataset Number: 2416
+
+Name:   Trace Lines
+----------------------------------------------------------------------------
+ 
+             Record 1: FORMAT(3I10)
+                       Field 1 -    trace line number
+                       Field 2 -    number of nodes defining trace line
+                                    (maximum of 250)
+                       Field 3 -    color
+ 
+             Record 2: FORMAT(8I10)
+                       Field 1 -    nodes defining trace line
+                               =   >0 - draw a line to the node
+                               =    0 - move to the node (a break in the 
+                                        trace line)
+                                              
+     Records 1 and 2 repeat for each trace line.
+
+-----------------------------------------------------------------------------

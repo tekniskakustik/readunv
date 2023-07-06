@@ -1,0 +1,326 @@
+Universal Dataset Number: 56
+
+Name:   Data on Elements
+-----------------------------------------------------------------------
+ 
+          RECORD 1:      Format (40A2)
+               FIELD 1:          ID Line 1
+ 
+          RECORD 2:      Format (40A2)
+ 
+               FIELD 1:          ID Line 2
+ 
+          RECORD 3:      Format (40A2)
+               FIELD 1:          ID Line 3
+ 
+          RECORD 4:      Format (40A2)
+               FIELD 1:          ID Line 4
+ 
+          RECORD 5:      Format (40A2)
+ 
+               FIELD 1:          ID Line 5
+ 
+          RECORD 6:      Format (6I10)
+ 
+          Data Definition Parameters
+ 
+               FIELD 1: Model Type
+                           0:   Unknown
+                           1:   Structural
+                           2:   Heat Transfer
+                           3:   Fluid Flow
+ 
+               FIELD 2: Analysis Type
+                           0:   Unknown
+                           1:   Static
+                           2:   Normal mode
+                           3:   Complex eigenvalue first order
+                           4:   Transient
+                           5:   Frequency response
+                           6:   Buckling
+                           7:   Complex eigenvalue second order
+                           9:   Static non-linear
+
+               FIELD 3: Data Characteristic
+                           0:   Unknown
+                           1:   Scalar
+                           2:   3 DOF global translation vector
+                           3:   6 DOF global translation & rotation vector
+                           4:   Symmetric global tensor
+                           5:   General global tensor
+                           6:   Stress resultants
+                          
+               FIELD 4: Specfic Data Type
+                           2:   Stress
+                           3:   Strain
+                           4:   Element force
+                           5:   Temperature
+                           6:   Heat flux
+                           7:   Strain energy
+                           8:   Displacement
+                           9:   Reaction force
+                           10:  Kinetic energy
+                           11:  Velocity
+                           12:  Acceleration
+                           13:  Strain energy density
+                           14:  Kinetic energy density
+                           15:  Hydro-static pressure
+                           16:  Heat gradient
+                           17:  Code checking value
+                           18:  Coefficient of pressure
+                           19:  Ply stress
+                           20:  Ply strain
+                           21:  Failure index for ply
+                           22:  Failure index for bonding
+                           23:  Reaction heat flow
+                           24:  Stress error density
+                           25:  Stress variation
+                           27:  Shell and plate elem stress resultant
+                           28:  Length
+                           29:  Area
+                           30:  Volume
+                           31:  Mass
+                           32:  Constraint forces
+                           34:  Plastic strain
+                           35:  Creep strain
+                           36:  Strain energy error
+                           37:  Dynamic stress at nodes
+                           93:  Unknown
+                           94:  Unknown scalar
+                           95:  Unknown 3DOF vector
+                           96:  Unknown 6DOF vector
+                           97:  Unknown symmetric tensor
+                           98:  Unknown global tensor
+                           99:  Unknown shell and plate resultant
+ 
+               FIELD 5: Data Type
+                           1:   Integer
+                           2:   Single precision floating point
+                           4:   Double precision floating point
+                           5:   Single precision complex
+                           6:   Double precision complex    
+
+               FIELD 6: Number Of Data Values For Each Position On
+                         The Element (NDV)
+ 
+          Records 7 And 8 Are Analysis Type Specific
+ 
+          General Form
+ 
+          RECORD 7:      Format (8I10)
+               FIELD 1:          Number Of Integer Data Values
+                           1< Or = NINT < Or = 10
+               FIELD 2:          Number Of Real Data Values
+                           1< Or = NRAL< Or = 12
+ 
+               FIELDS 3-N:       Type Specific Integer Parameters
+ 
+          RECORD 8:      Format (6E13.5)
+               FIELDS 1-N:       Type Specific Real Parameters
+ 
+ 
+          For Analysis Type = 0, Unknown
+ 
+          RECORD 7:
+ 
+               FIELD 1:    1
+               FIELD 2:    1
+               FIELD 3:    ID Number
+ 
+          RECORD 8:
+ 
+               FIELD 1:    0.0
+ 
+          For Analysis Type = 1, Static
+ 
+          RECORD 7:
+ 
+               FIELD 1:    1
+               FIELD 2:    1
+               FIELD 3:    Load Case Number
+ 
+          RECORD 8:
+ 
+               FIELD 1: 0.0
+ 
+          For Analysis Type = 2, Normal Mode
+ 
+          RECORD 7:
+               FIELD 1:    2
+               FIELD 2:    3
+ 
+               FIELD 3:    Load Case Number
+               FIELD 4:    Mode Number
+ 
+          RECORD 8:
+ 
+               FIELD 1:    Frequency (Hertz)
+               FIELD 2:    Modal Mass
+               FIELD 3:    Modal Damping
+ 
+          For Analysis Type = 3, Complex Eigenvalue
+ 
+          RECORD 7:
+ 
+               FIELD 1:    2
+               FIELD 2:    6
+               FIELD 3:    Load Case Number
+               FIELD 4:    Mode Number
+ 
+          RECORD 8:
+               FIELD 1:    Real Part Eigenvalue
+               FIELD 2:    Imaginary Part Eigenvalue
+               FIELD 3:    Real Part Of Modal A
+               FIELD 4:    Imaginary Pat Of Modal A
+               FIELD 5:    Real Part Of Modal B
+               FIELD 6:    Imaginary Part Of Modal B
+ 
+          For Analysis Type = 4, Transient
+ 
+          RECORD 7:
+               FIELD 1:    2
+               FIELD 2:    1
+               FIELD 3:    Load Case Number
+               FIELD 4:    Time Step Number
+ 
+          RECORD 8:
+ 
+               FIELD 1:    Time (Seconds)
+ 
+          For Analysis Type = 5, Frequency Response
+ 
+          RECORD 7:
+               FIELD 1:    2
+               FIELD 2:    1
+               FIELD 3:    Load Case Number
+               FIELD 4:    Frequency Step Number
+ 
+            RECORD 8:
+               FIELD 1: Frequency (Hertz)
+ 
+          For Analysis Type = 6, Buckling
+ 
+          RECORD 7:
+ 
+               FIELD 1:1
+               FIELD 2:1
+               FIELD 3: Load Case Number
+ 
+          RECORD 8:
+               FIELD 1: Eigenvalue
+ 
+          RECORD 9:      Format (2I10)
+ 
+               Field 1:          Element Number
+               Field 2:          Number Of Data Values For This
+                         Element (NVAL)
+ 
+          RECORD 10:     Format (6E13.5)
+ 
+               Fields 1-N:       Data On Element (NVAL Real Or
+                         Complex Values)
+ 
+          Records 9 And 10 Are Repeated For All Elements.
+ 
+          NOTES:
+          1        ID Lines May Not Be Blank.  If No Information Is
+                      Required, The Word "None" Must Appear In Columns
+                      1-4.
+          2        For Complex Data There Will Be 2*Nval Data Items. The
+                      Order Is Real Part For Value 1, Imaginary Part For
+                      Value 1, Real Part For Value 2, Imaginary Part For
+                      Value 2, Etc.
+ 
+          3        The Order Of Values For Various Data Characteristics
+                      Is:
+ 
+             3 DOF Global Vector:
+                          X, Y, Z
+ 
+ 
+             6 DOF Global Vector:
+                  X, Y, Z
+                  Rx, Ry, Rz
+ 
+             Symmetric Global Tensor:
+                  Sxx, Sxy, Syy,
+                  Sxz, Syz, Szz
+ 
+             General Global Tensor:
+                  Sxx, Syx, Szx,
+                  Sxy, Syy, Szy,
+                  Sxz, Syz, Szz
+ 
+             Shell And Plate Element Load:
+                  Fx, Fy, Fxy,
+                  Mx, My, Mxy,
+                  Vx, Vy
+ 
+          4        ID Line 1 Always Appears On Plots In Output Display.
+          5        If Specific Data Type Is "Unknown," ID Line 2 Is
+                      Displayed As Data Type In Output Display.
+          6        Typical Fortran I/O Statements For The Data Sections
+                      Are:
+ 
+                                  READ (LUN, 1000) NUM, NVAL
+                                  WRITE
+                      1000        FORMAT (2I10)
+                          READ (LUN, 1010) (VAL(I),I=1,NVAL)
+                                  WRITE
+                      1010        FORMAT (6E13.5)
+ 
+                      Where:      NUM   Is Element Number
+                          NVAL Is Number Of Real Or Complex Data Values
+                                      For This Element (Max = 90)
+                          VAL    Is Real Or Complex Data Array
+ 
+          7        Data Characteristic Values Imply The Following Values
+                      Of Ndv:
+ 
+                      Scalar: 1
+ 
+                      3 DOF Global Vector: 3
+                      6 DOF Global Vector: 6
+                      Symmetric Global Tensor: 6
+                      General Global Tensor: 9
+          8        Data On 2d Type Elements May Have Multiple Values
+                      Through The Element Thickness.  In These Cases,
+                      NVAL = NDV*NPOS Where NPOS Is Number Of Positions
+                      Through Element.  NPOS Is Always 1 For Solids.  The
+                      Order Of The Data Is NDV Values For Position 1,  NDV
+                      Values For Position 2, Etc.  The Order Of The Nodes
+                      Defines An Outward Normal Which Specifies The Order
+                      From Position 1 To NPOS.
+ 
+          9        Any Record With All 0.0's Data Entries Need Not (But
+                      May) Appear.
+          10       A Direct Result Of 9 Is That If No Record 9 & 10
+                      Appears, All Data For The Data Set Is 0.0.
+          11       When New Analysis Types Are Added, Record 7 Fields 1
+                      And 2 Are Always > Or = 1 With Dummy Interger And
+                      Real Zero Data If Data Is Not Required.  If Complex
+                      Data Is Needed, It Is Treated As Two Real Numbers,
+                      Real Part Followed By Imaginary Point.
+          12       Dataloaders Use The Following Id Line Convention
+             a.      (80A1) Model Identification
+             b.      (80A1) Run Identification
+ 
+             c.      (80A1) Run Date/Time
+             d.      (80A1) Load Case Name
+                   For Static:
+                      e.   (17h Load Case Number;, I10)
+ 
+                      For Normal Mode:
+ 
+                      e.   (10h Mode Same, I10, 10h Frequency, E13.5)
+          13       Maximum Value For Ndv Is 9.  Maximum Value For Nval Is
+                      90.
+          14       Typical Fortran I/O Statements For Processing Records 7
+                      And 8.
+ 
+                          READ (LUN, 1000) NINT, NRVAL, (IPAR(I),I=1,NINT)
+                  1000    FORMAT (8I10)
+                                  READ (LUN,1010) (NRVAL(I),I=1,NRVAL)
+                          1010    FORMAT (6E13.5)
+ 
+----------------------------------------------------------------------

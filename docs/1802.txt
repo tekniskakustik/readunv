@@ -1,0 +1,21 @@
+Universal Dataset Number: 1802
+
+Name:   Coordinate Trace
+-----------------------------------------------------------------------
+ 
+Record 1:  FORMAT (1I10,10A2,1I10)
+           Field 1       - Coordinate Trace number
+           Field 2       - Coordinate Trace name
+           Field 3       - number of coordinates in trace
+ 
+Record 2:  FORMAT (40A2)
+           Field 1       - Coordinate Trace description
+ 
+Record 3:  FORMAT (5(I10,2A2))
+           Field 1       - node number
+           Field 2       - direction
+           Fields 3-10   - repeat fields 1 and 2
+ 
+Repeat Record 3 until all coordinates are exhausted.
+ 
+-----------------------------------------------------------------

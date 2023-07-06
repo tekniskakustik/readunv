@@ -1,9 +1,6 @@
-Universal Dataset
-Number: 1858
+Universal Dataset Number: 1858
+
 Name:   Dataset 58 qualifiers
-Status: Current
-Owner:  Test
-Revision Date: 18-Nov-2002
 ----------------------------------------------------------------------------
  
 Record 1:     FORMAT(6I12)
@@ -61,26 +58,20 @@ Record 2:     FORMAT(12I6)
                               1 - Rotation
                               2 - Translation Squared
                               3 - Rotation Squared
+
               Field 9       - Sampling Type
                               0 - Dynamic
                               1 - Static
                               2 - RPM from Tach
                               3 - Frequency from tach
-                              4 - Octave
-              Field 10      - Time Average
-                              0 - None
-                              1 - Fast
-                              2 - Slow
-                              3 - Impulse
-                              4 - Linear
-              Fields 11-12  - not used (fill with zeros)
+              Fields 10-12  - not used (fill with zeros)
          
 Record 3:     FORMAT  (1P5E15.7)
               Field 1       - Z RPM value
               Field 2       - Z Time value
               Field 3       - Z Order value
               Field 4       - Number of samples
-              Field 5       - Not used
+              Field 5       - not used (fill with zero)
       
 Record 4:     FORMAT  (1P5E15.7)
               Field 1       - User value 1
@@ -90,14 +81,13 @@ Record 4:     FORMAT  (1P5E15.7)
               Field 5       - Exponential window damping factor
 
 Record 5:     FORMAT  (1P5E15.7)
-              Field 1       - Overall RMS
-              Field 2       - Weighted RMS
-              Fields 3-5    - not used (fill with zeros)
+              Fields 1-5    - not used (fill with zeros)
 
 Record 6:     FORMAT  (2A2,2X,2A2)
               Field 1       - Response direction
               Field 2       - Reference direction
  
 Record 7:     FORMAT  (40A2)
-              Field 1       - Time Stamp
+              Field 1       - not used
+
 ----------------------------------------------------------------------------
