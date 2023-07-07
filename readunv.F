@@ -64,7 +64,9 @@ C     FUNCTIONS
 C     MEX. DERIVED TYPES
       mwSize    :: STRLEN, NVAL, KMW, NCELL
       mwPointer :: CELL_PTR, YPTR
-      INTEGER*4 :: CXFLAG, CID_S, CID_D
+      INTEGER*4 :: CID_S, CID_D
+      INTEGER*4, PARAMETER :: FLAG_R = 0
+      INTEGER*4, PARAMETER :: FLAG_C = 1
       mwPointer, DIMENSION(:), ALLOCATABLE :: SPTR_1, SPTR_2 ! USE WHEN NUM. OF DATA RECORDS > MAXRECORDS
       mwSize, PARAMETER :: N1 = 1
 
@@ -493,8 +495,7 @@ C           ------------------------------------------------------------
               READ(LUN_BIN, POS=RECPOS, ERR=9) (Y_RS(I), I=1,NVAL)
 
               IF (SKIP_DATA < 1) THEN
-                CXFLAG = 0 ! SET COMPLEX FLAG TO REAL (ZERO)
-                YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, CXFLAG)
+                YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, FLAG_R)
                 CALL mxCopyReal4ToPtr(Y_RS, mxGetSingles(YPTR), NVAL)
                 ID_PTR(3) = YPTR
               END IF
@@ -514,8 +515,7 @@ C           ------------------------------------------------------------
      &          (XDATA(I), Y_RS(I), I=1,NVAL)
 
               IF (SKIP_DATA < 1) THEN
-                CXFLAG = 0 ! SET COMPLEX FLAG TO REAL (ZERO)
-                YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, CXFLAG)
+                YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, FLAG_R)
                 CALL mxCopyReal4ToPtr(Y_RS, mxGetSingles(YPTR), NVAL)
                 ID_PTR(3) = YPTR
               END IF
@@ -534,8 +534,7 @@ C           ------------------------------------------------------------
               READ(LUN_BIN, POS=RECPOS, ERR=9) (Y_CS(I), I=1,NVAL)
 
               IF (SKIP_DATA < 1) THEN
-                CXFLAG = 1 ! SET COMPLEX FLAG TO COMPLEX (ONE)
-                YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, CXFLAG)
+                YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, FLAG_C)
                 CALL mxCopyComplex8ToPtr(Y_CS, mxGetComplexSingles(YPTR)
      &            , NVAL)
                 ID_PTR(3) = YPTR
@@ -556,8 +555,7 @@ C           ------------------------------------------------------------
      &          (XDATA(I), Y_CS(I), I = 1,NVAL)
 
               IF (SKIP_DATA < 1) THEN
-                CXFLAG = 1 ! SET COMPLEX FLAG TO COMPLEX (ONE)
-                YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, CXFLAG)
+                YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, FLAG_C)
                 CALL mxCopyComplex8ToPtr(Y_CS, mxGetComplexSingles(YPTR)
      &            , NVAL)
                 ID_PTR(3) = YPTR
@@ -577,8 +575,7 @@ C           ------------------------------------------------------------
               READ(LUN_BIN, POS=RECPOS, ERR=9) (Y_RD(I), I=1,NVAL)
 
               IF (SKIP_DATA < 1) THEN
-                CXFLAG = 0 ! SET COMPLEX FLAG TO REAL (ZERO)
-                YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, CXFLAG)
+                YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, FLAG_R)
                 CALL mxCopyReal8ToPtr(Y_RD, mxGetDoubles(YPTR), NVAL)
                 ID_PTR(3) = YPTR
               END IF
@@ -598,8 +595,7 @@ C           ------------------------------------------------------------
      &          (XDATA(I), Y_RD(I), I=1,NVAL)
 
               IF (SKIP_DATA < 1) THEN
-                CXFLAG = 0 ! SET COMPLEX FLAG TO REAL (ZERO)
-                YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, CXFLAG)
+                YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, FLAG_R)
                 CALL mxCopyReal8ToPtr(Y_RD, mxGetDoubles(YPTR), NVAL)
                 ID_PTR(3) = YPTR
               END IF
@@ -618,8 +614,7 @@ C           ------------------------------------------------------------
               READ(LUN_BIN, POS=RECPOS, ERR=9) (Y_CD(I), I=1,NVAL)
 
               IF (SKIP_DATA < 1) THEN
-                CXFLAG = 1 ! SET COMPLEX FLAG TO COMPLEX (ONE)
-                YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, CXFLAG)
+                YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, FLAG_C)
                 CALL mxCopyComplex16ToPtr(Y_CD,mxGetComplexDoubles(YPTR)
      &            , NVAL)
                 ID_PTR(3) = YPTR
@@ -639,8 +634,7 @@ C           ------------------------------------------------------------
      &          (XDATA(I), Y_CD(I), I=1,NVAL)
 
               IF (SKIP_DATA < 1) THEN
-                CXFLAG = 1 ! SET COMPLEX FLAG TO COMPLEX (ONE)
-                YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, CXFLAG)
+                YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, FLAG_C)
                 CALL mxCopyComplex16ToPtr(Y_CD,mxGetComplexDoubles(YPTR)
      &            , NVAL)
                 ID_PTR(3) = YPTR
@@ -738,8 +732,7 @@ C        ---------------------------------------------------------------
 1001      FORMAT(6ES13.5)
           READ(LUN, 1001, END=9, ERR=9) (Y_RS(I), I=1,NVAL)
 
-          CXFLAG = 0 ! SET COMPLEX FLAG TO REAL (ZERO)
-          YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, CXFLAG)
+          YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, FLAG_R)
           CALL mxCopyReal4ToPtr(Y_RS, mxGetSingles(YPTR), NVAL)
           ID_PTR(3) = YPTR
 
@@ -757,8 +750,7 @@ C        ---------------------------------------------------------------
 1002      FORMAT(6ES13.5)
           READ(LUN, 1002, END=9, ERR=9) (XDATA(I), Y_RS(I), I=1,NVAL)
 
-          CXFLAG = 0 ! SET COMPLEX FLAG TO REAL (ZERO)
-          YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, CXFLAG)
+          YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, FLAG_R)
           CALL mxCopyReal4ToPtr(Y_RS, mxGetSingles(YPTR), NVAL)
           ID_PTR(3) = YPTR
 
@@ -776,8 +768,7 @@ C        ---------------------------------------------------------------
 1003      FORMAT(6ES13.5)
           READ(LUN, 1003, END=9, ERR=9) (Y_CS(I), I=1,NVAL)
 
-          CXFLAG = 1 ! SET COMPLEX FLAG TO COMPLEX (ONE)
-          YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, CXFLAG)
+          YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, FLAG_C)
           CALL mxCopyComplex8ToPtr(Y_CS, mxGetComplexSingles(YPTR),NVAL)
           ID_PTR(3) = YPTR
 
@@ -795,8 +786,7 @@ C        ---------------------------------------------------------------
 1004      FORMAT(6ES13.5)
           READ(LUN, 1004, END=9, ERR=9) (XDATA(I), Y_CS(I), I = 1,NVAL)
 
-          CXFLAG = 1 ! SET COMPLEX FLAG TO COMPLEX (ONE)
-          YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, CXFLAG)
+          YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, FLAG_C)
           CALL mxCopyComplex8ToPtr(Y_CS, mxGetComplexSingles(YPTR),NVAL)
           ID_PTR(3) = YPTR
 
@@ -814,8 +804,7 @@ C        ---------------------------------------------------------------
 1005      FORMAT(4ES20.12)
           READ(LUN, 1005, END=9, ERR=9) (Y_RD(I), I=1,NVAL)
 
-          CXFLAG = 0 ! SET COMPLEX FLAG TO REAL (ZERO)
-          YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, CXFLAG)
+          YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, FLAG_R)
           CALL mxCopyReal8ToPtr(Y_RD, mxGetDoubles(YPTR), NVAL)
           ID_PTR(3) = YPTR
 
@@ -833,8 +822,7 @@ C        ---------------------------------------------------------------
 1006      FORMAT(2(ES13.5, ES20.12))
           READ(LUN, 1006, END=9, ERR=9) (XDATA(I), Y_RD(I), I=1,NVAL)
 
-          CXFLAG = 0 ! SET COMPLEX FLAG TO REAL (ZERO)
-          YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, CXFLAG)
+          YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, FLAG_R)
           CALL mxCopyReal8ToPtr(Y_RD, mxGetDoubles(YPTR), NVAL)
           ID_PTR(3) = YPTR
 
@@ -852,8 +840,7 @@ C        ---------------------------------------------------------------
 1007      FORMAT(4ES20.12)
           READ(LUN, 1007, END=9, ERR=9) (Y_CD(I), I=1,NVAL)
 
-          CXFLAG = 1 ! SET COMPLEX FLAG TO COMPLEX (ONE)
-          YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, CXFLAG)
+          YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, FLAG_C)
           CALL mxCopyComplex16ToPtr(Y_CD,mxGetComplexDoubles(YPTR),NVAL)
           ID_PTR(3) = YPTR
 
@@ -871,8 +858,7 @@ C        ---------------------------------------------------------------
 1008      FORMAT(ES13.5, 2ES20.12)
           READ(LUN, 1008, END=9, ERR=9) (XDATA(I), Y_CD(I), I=1,NVAL)
 
-          CXFLAG = 1 ! SET COMPLEX FLAG TO COMPLEX (ONE)
-          YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, CXFLAG)
+          YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, FLAG_C)
           CALL mxCopyComplex16ToPtr(Y_CD,mxGetComplexDoubles(YPTR),NVAL)
           ID_PTR(3) = YPTR
 
@@ -884,8 +870,6 @@ C       ----------------------------------------------------------------
 
         END IF ! END OF BINARY/ASCII SWITCH
 
-
-C 11      CONTINUE ! CONTINUE WITH PREPARING OUTPUT STRUCTURE
 
 
         IF (PREV_DATASETNUM /= DATASETNUM) THEN
@@ -964,29 +948,28 @@ C         RECORD 11
 
         IF (SKIP_DATA < 0.5 .AND. ALLOCATED(XDATA)) THEN
 C         COPY XDATA TO SINGLE OUTPUT MATRIX
-          CXFLAG = 0 ! SET COMPLEX FLAG TO REAL (ZERO)
-          ID_PTR(2) = mxCreateNumericMatrix(NVAL, N1, CID_S, CXFLAG)
+          ID_PTR(2) = mxCreateNumericMatrix(NVAL, N1, CID_S, FLAG_R)
           CALL mxCopyReal4ToPtr(XDATA, mxGetSingles(ID_PTR(2)), NVAL)
         END IF
 
 C       RECORD 1-5
-        ID_PTR(4) = mxCreateString(ID1)                    ! ID Line 1
-        ID_PTR(5) = mxCreateString(ID2)                    ! ID Line 2
-        ID_PTR(6) = mxCreateString(ID3)                    ! ID Line 3 (date)
-        ID_PTR(7) = mxCreateString(ID4)                    ! ID Line 4
-        ID_PTR(8) = mxCreateString(ID5)                    ! ID Line 5
+        ID_PTR(4) = mxCreateString(ID1)                ! ID Line 1
+        ID_PTR(5) = mxCreateString(ID2)                ! ID Line 2
+        ID_PTR(6) = mxCreateString(ID3)                ! ID Line 3 (date)
+        ID_PTR(7) = mxCreateString(ID4)                ! ID Line 4
+        ID_PTR(8) = mxCreateString(ID5)                ! ID Line 5
 
 C       RECORD 6
-        ID_PTR(9) =  mxCreateDoubleScalar(DBLE(F61))  ! Function Type
-        ID_PTR(10) = mxCreateDoubleScalar(DBLE(F62))  ! Function Identification Number
-        ID_PTR(11) = mxCreateDoubleScalar(DBLE(F63))  ! Version Number, or sequence number
-        ID_PTR(12) = mxCreateDoubleScalar(DBLE(F64))  ! Load Case Identification Number
-        ID_PTR(13) = mxCreateString(F65)              ! Response Entity Name
-        ID_PTR(14) = mxCreateDoubleScalar(DBLE(F66))  ! Response Node
-        ID_PTR(15) = mxCreateDoubleScalar(DBLE(F67))  ! Response Direction
-        ID_PTR(16) = mxCreateString(F68)              ! Reference Entity Name
-        ID_PTR(17) = mxCreateDoubleScalar(DBLE(F69))  ! Reference Node
-        ID_PTR(18) = mxCreateDoubleScalar(DBLE(F610)) ! Reference Direction
+        ID_PTR(9) =  mxCreateDoubleScalar(DBLE(F61))   ! Function Type
+        ID_PTR(10) = mxCreateDoubleScalar(DBLE(F62))   ! Function Identification Number
+        ID_PTR(11) = mxCreateDoubleScalar(DBLE(F63))   ! Version Number, or sequence number
+        ID_PTR(12) = mxCreateDoubleScalar(DBLE(F64))   ! Load Case Identification Number
+        ID_PTR(13) = mxCreateString(F65)               ! Response Entity Name
+        ID_PTR(14) = mxCreateDoubleScalar(DBLE(F66))   ! Response Node
+        ID_PTR(15) = mxCreateDoubleScalar(DBLE(F67))   ! Response Direction
+        ID_PTR(16) = mxCreateString(F68)               ! Reference Entity Name
+        ID_PTR(17) = mxCreateDoubleScalar(DBLE(F69))   ! Reference Node
+        ID_PTR(18) = mxCreateDoubleScalar(DBLE(F610))  ! Reference Direction
 
 C       RECORD 7
         ID_PTR(19) = mxCreateDoubleScalar(ORDDATATYPE) ! Ordinate Data Type
@@ -997,39 +980,39 @@ C       RECORD 7
         ID_PTR(24) = mxCreateDoubleScalar(DBLE(F76))   ! Z-axis value (0 if unused)
 
 C       RECORD 8
-        ID_PTR(25) = mxCreateDoubleScalar(DBLE(F81)) ! Abscissa Data Type
-        ID_PTR(26) = mxCreateDoubleScalar(DBLE(F82)) ! Length units exponent
-        ID_PTR(27) = mxCreateDoubleScalar(DBLE(F83)) ! Force units exponent
-        ID_PTR(28) = mxCreateDoubleScalar(DBLE(F84)) ! Temperature units exponent
-        ID_PTR(29) = mxCreateString(F85)             ! Axis label
-        ID_PTR(30) = mxCreateString(F86)             ! Axis units label
+        ID_PTR(25) = mxCreateDoubleScalar(DBLE(F81))   ! Abscissa Data Type
+        ID_PTR(26) = mxCreateDoubleScalar(DBLE(F82))   ! Length units exponent
+        ID_PTR(27) = mxCreateDoubleScalar(DBLE(F83))   ! Force units exponent
+        ID_PTR(28) = mxCreateDoubleScalar(DBLE(F84))   ! Temperature units exponent
+        ID_PTR(29) = mxCreateString(F85)               ! Axis label
+        ID_PTR(30) = mxCreateString(F86)               ! Axis units label
 
 C       RECORD 9
-        ID_PTR(31) = mxCreateDoubleScalar(DBLE(F91)) ! Ordinate Data Type
-        ID_PTR(32) = mxCreateDoubleScalar(DBLE(F92)) ! Ordinate length units exponent
-        ID_PTR(33) = mxCreateDoubleScalar(DBLE(F93)) ! Ordinate force units exponent
-        ID_PTR(34) = mxCreateDoubleScalar(DBLE(F94)) ! Ordinate temperature units exponent
-        ID_PTR(35) = mxCreateString(F95)             ! Ordinate axis label
-        ID_PTR(36) = mxCreateString(F96)             ! Ordinate axis units label
+        ID_PTR(31) = mxCreateDoubleScalar(DBLE(F91))   ! Ordinate Data Type
+        ID_PTR(32) = mxCreateDoubleScalar(DBLE(F92))   ! Ordinate length units exponent
+        ID_PTR(33) = mxCreateDoubleScalar(DBLE(F93))   ! Ordinate force units exponent
+        ID_PTR(34) = mxCreateDoubleScalar(DBLE(F94))   ! Ordinate temperature units exponent
+        ID_PTR(35) = mxCreateString(F95)               ! Ordinate axis label
+        ID_PTR(36) = mxCreateString(F96)               ! Ordinate axis units label
 
 C       RECORD 10
-        ID_PTR(37) = mxCreateDoubleScalar(DBLE(F101)) ! Ordinate Denominator Data Type
-        ID_PTR(38) = mxCreateDoubleScalar(DBLE(F102)) ! Ordinate Denominator length units exponent
-        ID_PTR(39) = mxCreateDoubleScalar(DBLE(F103)) ! Ordinate Denominator force units exponent
-        ID_PTR(40) = mxCreateDoubleScalar(DBLE(F104)) ! Ordinate Denominator temperature units exponent
-        ID_PTR(41) = mxCreateString(F105)             ! Ordinate Denominator axis label
-        ID_PTR(42) = mxCreateString(F106)             ! Ordinate Denominator axis units label
+        ID_PTR(37) = mxCreateDoubleScalar(DBLE(F101))  ! Ordinate Denominator Data Type
+        ID_PTR(38) = mxCreateDoubleScalar(DBLE(F102))  ! Ordinate Denominator length units exponent
+        ID_PTR(39) = mxCreateDoubleScalar(DBLE(F103))  ! Ordinate Denominator force units exponent
+        ID_PTR(40) = mxCreateDoubleScalar(DBLE(F104))  ! Ordinate Denominator temperature units exponent
+        ID_PTR(41) = mxCreateString(F105)              ! Ordinate Denominator axis label
+        ID_PTR(42) = mxCreateString(F106)              ! Ordinate Denominator axis units label
 
 C       RECORD 11
-        ID_PTR(43) = mxCreateDoubleScalar(DBLE(F111)) ! Z-Axis Data Type
-        ID_PTR(44) = mxCreateDoubleScalar(DBLE(F112)) ! Z-Axis length units exponent
-        ID_PTR(45) = mxCreateDoubleScalar(DBLE(F113)) ! Z-Axis force units exponent
-        ID_PTR(46) = mxCreateDoubleScalar(DBLE(F114)) ! Z-Axis temperature units exponent
-        ID_PTR(47) = mxCreateString(F115)             ! Z-Axis label
-        ID_PTR(48) = mxCreateString(F116)             ! Z-Axis units label
+        ID_PTR(43) = mxCreateDoubleScalar(DBLE(F111))  ! Z-Axis Data Type
+        ID_PTR(44) = mxCreateDoubleScalar(DBLE(F112))  ! Z-Axis length units exponent
+        ID_PTR(45) = mxCreateDoubleScalar(DBLE(F113))  ! Z-Axis force units exponent
+        ID_PTR(46) = mxCreateDoubleScalar(DBLE(F114))  ! Z-Axis temperature units exponent
+        ID_PTR(47) = mxCreateString(F115)              ! Z-Axis label
+        ID_PTR(48) = mxCreateString(F116)              ! Z-Axis units label
 
 C       MISC
-        ID_PTR(49) = mxCreateString(DATATYPE) ! Function Type
+        ID_PTR(49) = mxCreateString(DATATYPE)          ! Function Type
 
 
 
@@ -1105,6 +1088,7 @@ C ----------------------------------------------------------------------
 
 
       GO TO 10 ! SKIP ERROR LABEL 9 => NORMAL EXIT
+
 
 
 C --- FINISHED READING -------------------------------------------------
