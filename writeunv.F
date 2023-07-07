@@ -158,7 +158,10 @@ C     MEX. DERIVED TYPES
       CHARACTER(LEN=512) :: FILESTR
 
 
+C     ------------------------------------------------------------------
 
+
+C     INITIALISE VARIABLES
       S = 0
       LIDX = 0
       CASENUM = 0
