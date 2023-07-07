@@ -79,10 +79,11 @@ C ----------------------------------------------------------------------
 
       IMPLICIT NONE
 
+C     GATEWAY VARIABLES
       mwPointer plhs(*), prhs(*)
       mwSize :: nlhs, nrhs
 
-
+C     FUNCTIONS
       mwPointer :: mxCreateDoubleScalar
       mwPointer :: mxCreateString
       mwPointer :: mxGetDoubles
@@ -98,11 +99,15 @@ C ----------------------------------------------------------------------
       INTEGER*4 :: mxIsDouble
       INTEGER*4 :: mxIsComplex
       INTEGER*4 :: mxGetString
+      LOGICAL   :: ISEMPTY
+      LOGICAL   :: ISVALID_DOUBLE
+      LOGICAL   :: ISVALID_CHAR
+
+C     MEX. DERIVED TYPES
       mwPointer :: PTR
       mwPointer :: XPTR
       mwSize    :: NVAL, NVALX, STRLEN
       mwSize, PARAMETER :: N1 = 1
-
 
       INTEGER*4, PARAMETER :: MAXIDX = 512
       CHARACTER(LEN=7)     :: FILEACT
@@ -121,7 +126,7 @@ C ----------------------------------------------------------------------
       INTEGER*4 :: F111, F112, F113, F114
       INTEGER*8 :: I, K, N, STEP, F06
       REAL*4    :: F74, F75, F76
-      REAL*8    :: S(1), T
+      REAL*8    :: S, T
       REAL*8    :: DS164F21, DS164F22, DS164F23, DS164F24
       INTEGER*1, SAVE :: REMPTS(MAXIDX) = 0
       INTEGER*1, SAVE :: REC0BYTE(MAXIDX) = 0
@@ -1822,12 +1827,12 @@ C     UNKNOWN ERROR EXIT
 
       plhs(1) = mxCreateDoubleScalar(S)
       IF (nlhs > 1) THEN
-        IF (INT(S(1)) == 1) THEN ! SUCCESSFUL
+        IF (INT(S) == 1) THEN ! SUCCESSFUL
 
           plhs(2) = mxCreateDoubleScalar(DBLE(CASENUM))
 
         ELSE ! NOT SUCCESSFUL -> RETURN ERROR DESCRIPTION
-          K = S(1)
+          K = S
           SELECT CASE (K)
             CASE (0)
               ID1 = 'Unknown error.'
@@ -1920,57 +1925,11 @@ C ----------------------------------------------------------------------
 C ----------------------------------------------------------------------
 
 
-
-
-C ----------------------------------------------------------------------
-        LOGICAL FUNCTION ISVALID_CHAR(PTR)
-
-        IMPLICIT NONE
-
-        mwPointer, INTENT(IN) :: PTR
-        INTEGER*4 :: mxIsEmpty, mxIsChar
-        LOGICAL*1 :: ISVALID
-
-        IF (PTR == 0) THEN
-          ISVALID = .FALSE.
-        ELSEIF (mxIsEmpty(PTR) .OR. NOT(mxIsChar(PTR))) THEN
-          ISVALID = .FALSE.
-        ELSE
-          ISVALID = .TRUE.
-        END IF
-
-        ISVALID_CHAR = ISVALID
-
-        END FUNCTION ISVALID_CHAR
-C ----------------------------------------------------------------------
-
-
-C ----------------------------------------------------------------------
-        LOGICAL FUNCTION ISVALID_DOUBLE(PTR)
-
-        IMPLICIT NONE
-
-        mwPointer, INTENT(IN) :: PTR
-        INTEGER*4 :: mxIsEmpty, mxIsDouble
-        LOGICAL*1 :: ISVALID
-
-        IF (PTR == 0) THEN
-          ISVALID = .FALSE.
-        ELSEIF (mxIsEmpty(PTR) .OR. NOT(mxIsDouble(PTR))) THEN
-          ISVALID = .FALSE.
-        ELSE
-          ISVALID = .TRUE.
-        END IF
-
-        ISVALID_DOUBLE = ISVALID
-
-        END FUNCTION ISVALID_DOUBLE
-C ----------------------------------------------------------------------
-
-
-C ----------------------------------------------------------------------
+C       CONVERT A WORD TO LOWER CASE
         ELEMENTAL FUNCTION LOWER(WORD) result(y)
-        ! CONVERT A WORD TO LOWER CASE
+C       ----------------------------------------------------------------
+
+        IMPLICIT NONE
 
         CHARACTER (LEN=*) , INTENT(IN) :: WORD
         CHARACTER (LEN=LEN(WORD)) :: y
@@ -1987,30 +1946,9 @@ C ----------------------------------------------------------------------
         ENDDO
 
         END FUNCTION LOWER
-C ----------------------------------------------------------------------
+C       ----------------------------------------------------------------
 
 
-C ----------------------------------------------------------------------
-        LOGICAL FUNCTION ISEMPTY(PTR)
-
-        IMPLICIT NONE
-
-        mwPointer, INTENT(IN) :: PTR
-        INTEGER*4 :: mxIsEmpty
-        LOGICAL*1 :: NOK
-
-        IF (PTR == 0) THEN
-          NOK = .TRUE.
-        ELSEIF (mxIsEmpty(PTR)) THEN
-          NOK = .TRUE.
-         ELSE
-          NOK = .FALSE.
-        END IF
-
-        ISEMPTY = NOK
-
-        END FUNCTION ISEMPTY
-C ----------------------------------------------------------------------
 
 
       END SUBROUTINE
