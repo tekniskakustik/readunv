@@ -8,7 +8,6 @@ Supported datasets:\
 1806 (read-only)\
 2400 (read-only)\
 \
-\
 See example.m\
 \
 Prebuilt mex-files for Windows and Linux are supplied.\
