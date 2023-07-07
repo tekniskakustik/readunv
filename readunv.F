@@ -79,9 +79,8 @@ C     DATABLOCK RELATED VARIABLES
 C     UNV DATASET RELATED VARIABLES
 C     ------------------------------------------------------------------
       INTEGER*4, PARAMETER :: DATASETS(5) = (/151,164,58,1806,2400/) ! SUPPORTED DATASET TYPES
-      INTEGER*4          :: DATASETNUM, PREV_DATASETNUM
-      CHARACTER(LEN=80)  :: REC0, REC_TEMP
-      LOGICAL*1          :: USE_BINARY
+      INTEGER*4            :: DATASETNUM, PREV_DATASETNUM
+      LOGICAL*1            :: USE_BINARY
 C     DATASET 58/58b:
       CHARACTER(LEN=1)   :: F02
       CHARACTER(LEN=13)  :: ENDIAN_STR
@@ -681,7 +680,6 @@ C         MOVE NEW FILE UNIT TO PREVIOUS POSITION
 
         ELSE IF (SKIP_DATA > 0.5) THEN ! SKIP READING DATA, JUST METADATA
 
-          REC_TEMP = "0"
           ID_PTR(2) = mxCreateDoubleScalar(1.0_8) ! CREATE FAKE OUTPUT FOR X/ABSCISSA
           ID_PTR(3) = mxCreateDoubleScalar(1.0_8) ! CREATE FAKE OUTPUT FOR DATA
 
