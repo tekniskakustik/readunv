@@ -53,10 +53,10 @@ C     FUNCTIONS
       mwPointer :: mxCreateNumericMatrix
       mwPointer :: mxCreateStructMatrix
       mwPointer :: mxGetN
-      mwPointer :: mxGetString
-      mwPointer :: mxIsChar
-      mwPointer :: mxIsDouble
-      mwPointer :: mxIsEmpty
+      INTEGER*4 :: mxGetString
+      INTEGER*4 :: mxIsChar
+      INTEGER*4 :: mxIsDouble
+      INTEGER*4 :: mxIsEmpty
       REAL*8    :: mxGetScalar
       INTEGER*4 :: mxClassIDFromClassName
       INTEGER*4 :: FSEEK
