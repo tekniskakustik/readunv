@@ -6,8 +6,6 @@
 %
 %     [STATE, DATACELL] = READUNV(FILEPATH, SKIP_DATA)
 %
-%     NB: ALL ARGUMENTS ARE REQUIRED (TWO OUTPUTS AND ONE INPUT)
-%
 %
 %     FILEPATH:   [CHAR] RELATIVE OR ABSOLUTE PATH TO FILE TO READ
 %
@@ -65,7 +63,7 @@
 %
 % --- INPUTS --------------------------------------------------------------
 %
-%    FILEPATH:    [CHAR] WITH RELATIVE OR ABSOLUTE PATH TO FILE TO READ
+%     FILEPATH:   [CHAR] WITH RELATIVE OR ABSOLUTE PATH TO FILE TO READ
 %                 REPLACE FILEPATH WITH CASENUM [DOUBLE] WHEN WRITING STREAMING DATA
 %                 SET TO -1 [DOUBLE] TO TERMINATE FILE <IDX>
 %
@@ -324,6 +322,5 @@ for stp = 1:21 % try streaming with different step sizes
         disp([int2str(stp), ' binary stream failed'])
     end
 end
-
 
 
