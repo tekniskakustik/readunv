@@ -13,6 +13,7 @@ switch casenum
             'temperatureMode', 1 ...
             );
 
+
     case 151
         dataset = struct( ...
             'datasetType', 151, ...
@@ -27,6 +28,7 @@ switch casenum
             'fileCreatedDate', datestr(datenummx(clock), 'DD-mmm-YY'), ...
             'fileCreatedTime', datestr(datenummx(clock), 13) ...
             ); %#ok<DATST>
+
 
     case 58
         dataset = struct( ...
@@ -81,6 +83,7 @@ switch casenum
             'zAxisUnitLabel', 'NONE'  ...           % Record 11, Field 6,  "Axis units label", 'NONE' if not used
             ); %#ok<DATST>
 
+
     case 1806
         dataset = struct( ...
             'datasetType', 1806, ...
@@ -96,8 +99,9 @@ switch casenum
             'fileCreatedTime', datestr(datenummx(clock), 13) ...
             ); %#ok<DATST>
 
+
     otherwise
-        error('createTemplate:unsupportedCaseNum', 'Only UNV types 58, 151 and 164 are currently supported.')
+        error('createTemplate:unsupportedCaseNum', 'Only UNV types 58, 151, 164 and 1806 are currently supported.')
 
 end
 

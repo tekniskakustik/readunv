@@ -1,9 +1,9 @@
 
 
 % Tested with:
-% Windows: Matlab R2023a update 3, Intel Fortran Compiler (ifort) version 2021.8.0, Visual Studio 2019 (16.11.27), Windows 11 22H2 Build 22631
-% Linux: Matlab R2022b update 4, Intel Fortran Compiler (ifort) version 2021.7.0, Clear Linux 39590
-% Mac: Matlab R2022b update 0, Intel Fortran Compiler (ifort) version 2021.7.0, Macos 12.6, Xcode 14.0.1
+% Windows: Matlab R2023b update 1, Intel Fortran Compiler (ifort) version 2021.10.0, Visual Studio 2022 (17.7.4), Windows 11 22H2 Build 23555
+% Linux:   Matlab R2023b update 1, Intel Fortran Compiler (ifort) version 2021.7.0,  GCC 13.2.1                   Clear Linux 40030
+% Mac:     Matlab R2022b update 0, Intel Fortran Compiler (ifort) version 2021.7.0,  Xcode 14.0.1,                Macos 12.6
 
 
 % NB: -R2018a flag is required
@@ -23,4 +23,5 @@ else % linux
     mex FC='ifort' -R2018a FOPTIMFLAGS='$FOPTIMFLAGS -O2 -i8 -axAVX2 -assume buffered_io -unroll-aggressive' writeunv.F ./source/write/*.F  -output writeunv
 
 end
+
 
