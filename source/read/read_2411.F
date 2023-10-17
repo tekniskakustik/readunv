@@ -4,7 +4,7 @@ C
 C Universal Dataset Number: 2411
 C
 C Name:   Nodes - Double Precision
-C ----------------------------------------------------------------------------
+C ----------------------------------------------------------------------
 C
 C Record 1:        FORMAT(4I10)
 C                  Field 1       -- node label
@@ -12,16 +12,16 @@ C                  Field 2       -- export coordinate system number
 C                  Field 3       -- displacement coordinate system number
 C                  Field 4       -- color
 C Record 2:        FORMAT(1P3D25.16)
-C                  Fields 1-3    -- node coordinates in the part coordinate
-C                                   system
+C                  Fields 1-3    -- node coordinates in the part coordinate system
 C
 C Records 1 and 2 are repeated for each node in the model.
 C
-C ----------------------------------------------------------------------------
+C ----------------------------------------------------------------------
 C
 C
+C ----------------------------------------------------------------------
       SUBROUTINE READ_2411(LUN, ID_PTR, FNAME, FNUM, NFIELDS, S)
-C     ------------------------------------------------------------------
+C ----------------------------------------------------------------------
 C
       IMPLICIT NONE
 C
@@ -52,8 +52,8 @@ C     DATASET 2411 VARIABLES:
       INTEGER*4, DIMENSION(:, :), ALLOCATABLE :: REC_1, TEMP_1
       REAL*8,    DIMENSION(:, :), ALLOCATABLE :: REC_2, TEMP_2
 C
-C     ------------------------------------------------------------------
-C     ------------------------------------------------------------------
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
 C
 C
       FNUM = 6 ! NUMBER OF FIELDS IN DATASET 2411
@@ -61,8 +61,8 @@ C     IF FNUM > NFIELDS => SEVERE ERROR (NOT CHECKED)
 C
 C
 C --- INITIALISE VARIABLES
-      N = 0 ! NUMBER OF NODES READ
-      REC_0 = ''
+      N = 0       ! NUMBER OF NODES READ
+      REC_0 = ''  ! FIRST LINE TO CHECK FOR BLOCK TERMINATOR STRING, OR DATA
 C
 C
 C --- ALLOCATE DATA
@@ -79,7 +79,7 @@ C ----- RECORD 1
 24110   FORMAT(A40) ! YOU NEVER KNOW IF A LINE IS TERMINATED WITH "-1" OR IS ACTUAL DATA, FOR THIS DATASET
         READ(LUN, 24110, ERR=9) REC_0
         IF (REC_0 == '    -1') THEN
-          EXIT
+          EXIT ! EXIT WHILE LOOP
         ELSE
           N = N + 1
         END IF
@@ -130,8 +130,11 @@ C     RECORD 2
       FNAME(6) = 'coordinate'
 C
 C
-C     COPY DATA TO OUTPUT POINTERS
-      ID_PTR(1) = mxCreateDoubleScalar(DATASETNUM)      ! Dataset number
+C --- COPY DATA TO OUTPUT POINTERS
+C ----------------------------------------------------------------------
+C
+C     Dataset number
+      ID_PTR(1) = mxCreateDoubleScalar(DATASETNUM)
 C
 C
 C --- RECORD 1
@@ -152,10 +155,14 @@ C
 C
 C --- RECORD 2
       M = 3
-      ID_PTR(6) = mxCreateDoubleMatrix(M, N, CXFLAG) ! node coordinates in the part coordinate system
+C     node coordinates in the part coordinate system      
+      ID_PTR(6) = mxCreateDoubleMatrix(M, N, CXFLAG)
       CALL mxCopyReal8ToPtr(REC_2(:, 1:N), mxGetDoubles(ID_PTR(6)), M*N)
 C
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
 C
+C     NORMAL SUCCESS STATE == 1
       S = 1
 C
       GO TO 10
@@ -165,6 +172,7 @@ C
 10    CONTINUE
 C
 C
+C --- DEALLOCATE ARRAYS IF NEEDED
       IF (ALLOCATED(TEMP_2)) DEALLOCATE(TEMP_2)
       IF (ALLOCATED(REC_2)) DEALLOCATE(REC_2)
       IF (ALLOCATED(TEMP_1)) DEALLOCATE(TEMP_1)
