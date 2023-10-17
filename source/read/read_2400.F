@@ -21,11 +21,11 @@ C     FUNCTIONS
       INTEGER*4 :: mxClassIDFromClassName
 
 C     SUPPORT VARIABLES
-      mwSize, PARAMETER:: M = 32
-      mwSize, PARAMETER:: N = 1
+      mwSize, PARAMETER    :: M = 32
+      mwSize, PARAMETER    :: N = 1
       INTEGER*4, PARAMETER :: CXFLAG = 0 ! SET COMPLEX FLAG TO REAL (ZERO)
-      INTEGER*4 :: CID
-      INTEGER*8 :: I
+      INTEGER*4            :: CID
+      INTEGER              :: I
 
 C     DATASET 2400 VARIABLES:
       REAL*8, PARAMETER :: DATASETNUM = 2400

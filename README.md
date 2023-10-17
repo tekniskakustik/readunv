@@ -7,6 +7,7 @@ Supported datasets:\
 58b\
 1806 (read-only)\
 2400 (read-only)\
+2411 (read-only)\
 \
 See example.m\
 \

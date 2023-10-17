@@ -53,7 +53,7 @@ C     FUNCTIONS
       mwPointer :: mxCreateNumericMatrix
       mwPointer :: mxCreateStructMatrix
       mwPointer :: mxGetN
-      INTEGER*4 :: mxGetString, mexPrintf
+      INTEGER*4 :: mxGetString
       INTEGER*4 :: mxIsChar
       INTEGER*4 :: mxIsDouble
       INTEGER*4 :: mxIsEmpty
@@ -80,7 +80,13 @@ C     DATABLOCK RELATED VARIABLES
 C
 C     UNV DATASET RELATED VARIABLES
 C     ------------------------------------------------------------------
-      INTEGER*4, PARAMETER :: DATASETS(5) = (/151,164,58,1806,2400/) ! SUPPORTED DATASET TYPES
+      INTEGER*4, PARAMETER :: DATASETS(6) = (/ ! SUPPORTED DATASET TYPES
+     1                                       58, 
+     2                                       151,
+     3                                       164,
+     4                                       1806,
+     5                                       2400, 
+     6                                       2411/) 
       INTEGER*4            :: DATASETNUM, PREV_DATASETNUM
       LOGICAL*1            :: USE_BINARY
       CHARACTER(LEN=6)     :: DATASET_STR
@@ -283,6 +289,14 @@ C - DATASET 2400 -------------------------------------------------------
 C ----------------------------------------------------------------------
       CASE (2400)
         CALL READ_2400(LUN, ID_PTR, FNAME, FNUM, NFIELDS, S)
+        IF (S /= 1) GO TO 10
+C
+C
+C
+C - DATASET 2411 -------------------------------------------------------
+C ----------------------------------------------------------------------
+      CASE (2411)
+        CALL READ_2411(LUN, ID_PTR, FNAME, FNUM, NFIELDS, S)
         IF (S /= 1) GO TO 10
 C
 C
