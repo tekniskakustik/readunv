@@ -6,9 +6,9 @@ C     ------------------------------------------------------------------
 
       IMPLICIT NONE
 
-C     IN/OUR ARGUMENTS
+C     IN/OUT ARGUMENTS
       INTEGER*4, INTENT(IN)     :: LUN, NFIELDS
-      INTEGER*8, INTENT(OUT)    :: FNUM
+      INTEGER, INTENT(OUT)      :: FNUM
       REAL*8, INTENT(OUT)       :: S
       CHARACTER*32, INTENT(OUT) :: FNAME(NFIELDS)
       mwPointer, INTENT(OUT)    :: ID_PTR(NFIELDS)
