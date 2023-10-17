@@ -32,16 +32,16 @@ C       = -12, FLOATING POINT ARITHMETIC OVERFLOW (FROM IOSTAT)
 C       = >1,  ERROR CODE FROM IOSTAT WHEN OPENING FILE
 C
 C ----------------------------------------------------------------------
-
-
+C
+C
       SUBROUTINE mexFunction(nlhs, plhs, nrhs, prhs)
-
+C
       IMPLICIT NONE
-
+C
 C     GATEWAY VARIABLES
       mwPointer :: plhs(*), prhs(*)
       mwSize    :: nlhs, nrhs
-
+C
 C     FUNCTIONS
       mwPointer :: mxCreateString
       mwPointer :: mxCreateDoubleScalar
@@ -53,79 +53,79 @@ C     FUNCTIONS
       mwPointer :: mxCreateNumericMatrix
       mwPointer :: mxCreateStructMatrix
       mwPointer :: mxGetN
-      INTEGER*4 :: mxGetString
+      INTEGER*4 :: mxGetString, mexPrintf
       INTEGER*4 :: mxIsChar
       INTEGER*4 :: mxIsDouble
       INTEGER*4 :: mxIsEmpty
       REAL*8    :: mxGetScalar
       INTEGER*4 :: mxClassIDFromClassName
       INTEGER*4 :: FSEEK
-
+C
 C     MEX. DERIVED TYPES
-      mwSize    :: STRLEN, NVAL, KMW, NCELL
-      mwPointer :: CELL_PTR, YPTR
-      INTEGER*4 :: CID_S, CID_D
-      INTEGER*4, PARAMETER :: FLAG_R = 0
-      INTEGER*4, PARAMETER :: FLAG_C = 1
+      mwSize                               :: STRLEN, NVAL, KMW, NCELL
+      mwPointer                            :: CELL_PTR, YPTR
+      INTEGER*4                            :: CID_S, CID_D
+      INTEGER*4, PARAMETER                 :: FLAG_R = 0
+      INTEGER*4, PARAMETER                 :: FLAG_C = 1
       mwPointer, DIMENSION(:), ALLOCATABLE :: SPTR_1, SPTR_2 ! USE WHEN NUM. OF DATA RECORDS > MAXRECORDS
-      mwSize, PARAMETER :: N1 = 1
-
+      mwSize, PARAMETER                    :: N1 = 1
+C
 C     DATABLOCK RELATED VARIABLES
       INTEGER*4, PARAMETER :: MAXRECORDS = 4096
       INTEGER*4, PARAMETER :: RECORD_STEP = 16384
-      INTEGER*4, PARAMETER :: NFIELDS = 49 ! MAXIMUM NUMBER OF FIELDS IN USE, ADJUST WHEN NEEDED
-      mwPointer    :: SPTR(MAXRECORDS)
-      mwPointer    :: ID_PTR(NFIELDS)
-      CHARACTER*32 :: FNAME(NFIELDS) ! LENGTH OF LONGEST FIELDNAME (32), ADJUST WHEN NEEDED
-
+      INTEGER*4, PARAMETER :: NFIELDS = 49 ! MAXIMUM NUMBER OF FIELDS IN USE, ADJUST AS NEEDED
+      mwPointer            :: SPTR(MAXRECORDS)
+      mwPointer            :: ID_PTR(NFIELDS)
+      CHARACTER*32         :: FNAME(NFIELDS) ! LENGTH OF LONGEST FIELDNAME (32), ADJUST AS NEEDED
+C
 C     UNV DATASET RELATED VARIABLES
 C     ------------------------------------------------------------------
       INTEGER*4, PARAMETER :: DATASETS(5) = (/151,164,58,1806,2400/) ! SUPPORTED DATASET TYPES
       INTEGER*4            :: DATASETNUM, PREV_DATASETNUM
       LOGICAL*1            :: USE_BINARY
+      CHARACTER(LEN=6)     :: DATASET_STR
 C     DATASET 58/58b:
-      CHARACTER(LEN=1)   :: F02
-      CHARACTER(LEN=13)  :: ENDIAN_STR
-      CHARACTER(LEN=80)  :: ID1, ID2, ID3, ID5
-      CHARACTER(LEN=120) :: ID4 ! EXTENDED TO 120 DUE TO SIEMENS TESTLAB BEHAVIOUR
-      CHARACTER(LEN=10)  :: F65, F68
-      CHARACTER(LEN=20)  :: F85, F86
-      CHARACTER(LEN=20)  :: F95, F96
-      CHARACTER(LEN=20)  :: F105, F106
-      CHARACTER(LEN=20)  :: F115, F116
-      CHARACTER(LEN=6)   :: DATATYPE
-      INTEGER*8          :: F06
-      INTEGER*4          :: F05, CASENUM
-      INTEGER*4          :: F61, F62, F63, F64, F66, F67, F69, F610
-      INTEGER*4          :: F71, F72, F73
-      INTEGER*4          :: F81, F82, F83, F84
-      INTEGER*4          :: F91, F92, F93, F94
-      INTEGER*4          :: F101, F102, F103, F104
-      INTEGER*4          :: F111, F112, F113, F114
-      INTEGER*1          :: F03, F04
-      REAL*4             :: F74, F75, F76
-      REAL*8             :: ISEVEN, ABSC_N, ABSC_D, ABSC_0, ORDDATATYPE
+      CHARACTER(LEN=1)     :: F02
+      CHARACTER(LEN=13)    :: ENDIAN_STR
+      CHARACTER(LEN=80)    :: ID1, ID2, ID3, ID5
+      CHARACTER(LEN=120)   :: ID4 ! EXTENDED TO 120 DUE TO SIEMENS TESTLAB BEHAVIOUR
+      CHARACTER(LEN=10)    :: F65, F68
+      CHARACTER(LEN=20)    :: F85, F86
+      CHARACTER(LEN=20)    :: F95, F96
+      CHARACTER(LEN=20)    :: F105, F106
+      CHARACTER(LEN=20)    :: F115, F116
+      CHARACTER(LEN=6)     :: DATATYPE
+      INTEGER*8            :: F06
+      INTEGER*4            :: F05, CASENUM
+      INTEGER*4            :: F61, F62, F63, F64, F66, F67, F69, F610
+      INTEGER*4            :: F71, F72, F73
+      INTEGER*4            :: F81, F82, F83, F84
+      INTEGER*4            :: F91, F92, F93, F94
+      INTEGER*4            :: F101, F102, F103, F104
+      INTEGER*4            :: F111, F112, F113, F114
+      INTEGER*1            :: F03, F04
+      REAL*4               :: F74, F75, F76
+      REAL*8               :: ISEVEN, ABSC_N, ABSC_D, ABSC_0, ORD_TYPE
 C     ------------------------------------------------------------------
-
-      REAL*8    :: S ! STATE FLAG
-      INTEGER*8 :: I, K, FNUM, MAXRECORDS_LOCAL, SKIP_DATA, RECPOS
-      INTEGER*4 :: VAL_INT, OK, NOK, LUN, LUN_BIN
-      INTEGER*1 :: USE_ALLOCATION ! DYNAMIC ALLOCATION FLAG
-      LOGICAL   :: VAL_BOOL ! LOGICAL STATUS VALUE, E.G. FOR FUNCTION STATE RETURNS
-
+C
+      REAL*8               :: S ! STATE FLAG
+      INTEGER              :: I, K, FNUM, MAXREC_LOC, SKIP_DATA, RECPOS
+      INTEGER*4            :: VAL_INT, OK, NOK, LUN, LUN_BIN
+      INTEGER*1            :: USE_ALLOCATION ! DYNAMIC ALLOCATION FLAG
+      LOGICAL              :: VAL_BOOL ! LOGICAL STATUS VALUE, E.G. FOR FUNCTION STATE RETURNS
+C
 C     ALLOCATABLE VARIABLES
       CHARACTER(LEN=:), ALLOCATABLE         :: FILEPATH
       REAL*4,     DIMENSION(:), ALLOCATABLE :: Y_RS, XDATA
       REAL*8,     DIMENSION(:), ALLOCATABLE :: Y_RD
       COMPLEX*8,  DIMENSION(:), ALLOCATABLE :: Y_CS
       COMPLEX*16, DIMENSION(:), ALLOCATABLE :: Y_CD
-
-
+C
 C     ------------------------------------------------------------------
 C     END OF VARIABLE DEFINITIONS --------------------------------------
 C     ------------------------------------------------------------------
-
-
+C
+C
 C     INITIALISE (NON-PARAMETRIC) VARIABLES
       LUN = 0                       ! FILE UNIT NUMBER, IF STILL ZERO AT END OF PROGRAM => LUN NOT PROPERLY ASSIGNED
       LUN_BIN = 0                   ! FILE UNIT NUMBER, USED FOR BINARY READ (58b)
@@ -133,14 +133,13 @@ C     INITIALISE (NON-PARAMETRIC) VARIABLES
       S = 0                         ! OUTPUT STATE
       USE_BINARY = .FALSE.          ! DATA IS WRITTEN AS BINARY
       SKIP_DATA = 0                 ! SKIP READING DATA, DEFAULT IS FALSE (ZERO)
-      MAXRECORDS_LOCAL = MAXRECORDS ! MAXIMUM NUMBER OF RECORDS CURRENTLY
+      MAXREC_LOC = MAXRECORDS       ! MAXIMUM NUMBER OF RECORDS CURRENTLY
       USE_ALLOCATION = 0            ! USE DYNAMIC ALLOCATION OF OUTPUT CELL ARRAY, DEFAULT IS OFF; IS TRIGGERED WHEN NUMBER OF RECORDS EXCEEDS "MAXRECORDS"
       PREV_DATASETNUM = 0           ! PREVIOUS DATASETNUM IN LOOP, USED TO MINIMISE UNNECESSARY RE-DEFINITIONS
       CID_S = mxClassIDFromClassName('single') ! MX FLAG FOR SINGLE PRECISION
       CID_D = mxClassIDFromClassName('double') ! MX FLAG FOR DOUBLE PRECISION
-
-
-
+C
+C
 C     ------------------------------------------------------------------
 C     CHECK INPUT ARGUMENTS
 C     ------------------------------------------------------------------
@@ -202,9 +201,8 @@ C     CHECK IF FILEPATH EXIST
 
 C     ------------------------------------------------------------------
 C     ------------------------------------------------------------------
-
-
-
+C
+C
 C     OPEN FILE LOCATED AT <FILEPATH>
       OPEN (
      & NEWUNIT  = LUN,
@@ -216,8 +214,8 @@ C     OPEN FILE LOCATED AT <FILEPATH>
      & ACCESS   = 'STREAM',
      & ENCODING = 'DEFAULT',
      & FORM     = 'FORMATTED')
-
-
+C
+C
 C     CHECK IF FILE OPENING FAILED -> RETURN IOSTAT CODE
       IF (VAL_INT /= 0) THEN
         IF (VAL_INT == 1) THEN ! REMAP IOSTAT ERROR CODE 1 TO -12
@@ -227,9 +225,8 @@ C     CHECK IF FILE OPENING FAILED -> RETURN IOSTAT CODE
         END IF
         GO TO 10
       END IF
-
-
-
+C
+C
 C     READ FIRST LINE IN FILE
 01    FORMAT(I6)
       READ(LUN, 01, END=10,ERR=9) DATASETNUM
@@ -237,121 +234,122 @@ C     READ FIRST LINE IN FILE
         S = -6
         GO TO 10
       END IF
-
-
+C
+C
 C ----------------------------------------------------------------------
 C ----------------------------------------------------------------------
 C     READ DATA WHILE DATA IS AVAILABLE
       DO WHILE (.TRUE.)
-
-
+C
+C
 C     RESET BINARY FLAG
       USE_BINARY = .FALSE.
-
-
+C
+C
 C     READ DATASET NUMBER, 58B COMPATIBILITY PREPARED (BUT NOT SUPPORTED YET)
 5800  FORMAT(I6, 1A1, I6, I6, I12, I12, I6, I6, I12, I12) ! NB: FIELDS 7-10 ARE UNUSED
       READ(LUN, 5800, END=10, ERR=9) DATASETNUM, F02, F03, F04, F05, F06
-
-
-
+C
+C
 C - HANDLE DATABLOCK ACCORDING TO DATASET NUMBER -----------------------
 C ----------------------------------------------------------------------
       SELECT CASE (DATASETNUM)
-
-
+C
+C
 C - DATASET 151 --------------------------------------------------------
 C ----------------------------------------------------------------------
       CASE (151)
         CALL READ_151(LUN, ID_PTR, FNAME, FNUM, NFIELDS, S)
         IF (S /= 1) GO TO 10
-
-
-
+C
+C
+C
 C - DATASET 164 --------------------------------------------------------
       CASE (164)
         CALL READ_164(LUN, ID_PTR, FNAME, FNUM, NFIELDS, S)
         IF (S /= 1) GO TO 10
-
-
-
+C
+C
+C
 C - DATASET 1806 -------------------------------------------------------
 C ----------------------------------------------------------------------
       CASE (1806)
         CALL READ_1806(LUN, ID_PTR, FNAME, FNUM, NFIELDS, S)
         IF (S /= 1) GO TO 10
-
-
-
+C
+C
+C
 C - DATASET 2400 -------------------------------------------------------
 C ----------------------------------------------------------------------
       CASE (2400)
         CALL READ_2400(LUN, ID_PTR, FNAME, FNUM, NFIELDS, S)
         IF (S /= 1) GO TO 10
-
-
-
+C
+C
+C
 C - DATASET 58 ---------------------------------------------------------
 C ----------------------------------------------------------------------
       CASE (58)
-
+C
         USE_BINARY = (F02 == 'b') ! NB: LOWER CASE MANDATED BY STANDARD
-
+C
 C       COMMON FORMAT
 5801    FORMAT(A80)
-
-C       READ HEADER
-
+C
+C
+C ----- READ HEADER
+C
+C
 C       RECORD 1, ID LINE 1
         READ(LUN, 5801, END=10,ERR=9) ID1
-
+C
 C       RECORD 2, ID LINE 2
         READ(LUN, 5801, END=10,ERR=9) ID2
-
+C
 C       RECORD 3, ID LINE 3
         READ(LUN, 5801, END=10,ERR=9) ID3
-
+C
 C       RECORD 4, ID LINE 4
 5804    FORMAT(A120) ! EXTENDED TO 120 DUE TO SIEMENS TESTLAB BEHAVIOUR
         READ(LUN, 5804, END=10,ERR=9) ID4
-
+C
 C       RECORD 5, ID LINE 5
         READ(LUN, 5801, END=10,ERR=9) ID5
-
+C
 C       RECORD 6
 5806    FORMAT(2(I5, I10), 2(1X, A10, I10, I4))
         READ(LUN, 5806, END=10,ERR=9)
      &    F61, F62, F63, F64, F65, F66, F67, F68, F69, F610
-
+C
 C       RECORD 7
 5807    FORMAT(3I10, 3ES13.5)
         READ(LUN, 5807, END=10,ERR=9) F71, F72, F73, F74, F75, F76
-
+C
 C       RECORD 8
 5808    FORMAT(I10, 3I5, 2(1X, A20))
         READ(LUN, 5808, END=10,ERR=9) F81, F82, F83, F84, F85, F86
-
+C
 C       RECORD 9
 5809    FORMAT(I10, 3I5, 2(1X, A20))
         READ(LUN, 5809, END=10,ERR=9) F91, F92, F93, F94, F95, F96
-
+C
 C       RECORD 10
 5810    FORMAT(I10, 3I5, 2(1X, A20))
         READ(LUN, 5810, END=10,ERR=9) F101, F102, F103, F104, F105, F106
-
+C
 C       RECORD 11
 5811    FORMAT(I10, 3I5, 2(1X, A20))
         READ(LUN, 5811, END=10,ERR=9) F111, F112, F113, F114, F115, F116
-
-
+C
+C
 C ----- DETERMINE NUMBER OF DATA VALUES, AND ABSCISSA TYPE -------------
-        ORDDATATYPE = DBLE(F71) ! ORDINATE DATA TYPE NUMBER
+        ORD_TYPE = DBLE(F71) ! ORDINATE DATA TYPE NUMBER
         ISEVEN = DBLE(F73)      ! IS X/ABSCISSA NON-REGULAR (UNEVEN) OR REGULAR (EVEN)
         ABSC_N = DBLE(F72)     ! NUMBER OF X-VALUES
         NVAL = INT8(ABSC_N)    ! NUMBER OF DATA VALUES
 C ----------------------------------------------------------------------
-
-
+C
+C
 C       ALLOCATE ABSCISSA/X DATA IF NOT ALREADY CORRECT SIZE
         IF (SKIP_DATA < 0.5) THEN
           IF (NOT(ALLOCATED(XDATA)) .OR. SIZE(XDATA) /= NVAL) THEN
@@ -359,11 +357,11 @@ C       ALLOCATE ABSCISSA/X DATA IF NOT ALREADY CORRECT SIZE
             ALLOCATE(XDATA(NVAL))
           END IF
         END IF
-
-
+C
+C
 C       INITIALISE THE CASENUM VARIABLE
         CASENUM = 1
-
+C
         IF (ISEVEN > 0.5) THEN  ! IF X-DATA EVENLY SPACED
           ABSC_0 = DBLE(F74)    ! CAST X0 TO DOUBLE
           ABSC_D = DBLE(F75)    ! CASE DELTA-X TO DOUBLE
@@ -386,11 +384,11 @@ C           FOR SMALL DX:S APPLY ROUNDING, WHEN ABSCISSA IS TIME
           CASENUM = CASENUM + 1 ! IS UNEVEN X-DATA
         END IF
 
-        IF (ORDDATATYPE > 4.5) THEN ! IS COMPLEX
+        IF (ORD_TYPE > 4.5) THEN ! IS COMPLEX
           CASENUM = CASENUM + 2
         END IF
 
-        IF (ORDDATATYPE == 4 .OR. ORDDATATYPE == 6) THEN ! IS DOUBLE
+        IF (ORD_TYPE == 4 .OR. ORD_TYPE == 6) THEN ! IS DOUBLE
           CASENUM = CASENUM + 4
         END IF
 
@@ -972,7 +970,7 @@ C       RECORD 6
         ID_PTR(18) = mxCreateDoubleScalar(DBLE(F610))  ! Reference Direction
 
 C       RECORD 7
-        ID_PTR(19) = mxCreateDoubleScalar(ORDDATATYPE) ! Ordinate Data Type
+        ID_PTR(19) = mxCreateDoubleScalar(ORD_TYPE) ! Ordinate Data Type
         ID_PTR(20) = mxCreateDoubleScalar(ABSC_N)      ! Number of data pairs for uneven abscissa...
         ID_PTR(21) = mxCreateDoubleScalar(ISEVEN)      ! Abscissa Spacing (0 = uneven, 1 = even)
         ID_PTR(22) = mxCreateDoubleScalar(ABSC_0)      ! Abscissa minimum (0 if spacing uneven)
@@ -1014,8 +1012,21 @@ C       RECORD 11
 C       MISC
         ID_PTR(49) = mxCreateString(DATATYPE)          ! Function Type
 
-
-
+      
+      
+      CASE (-1)
+        ! DO NOTHING
+      
+      
+      
+      CASE DEFAULT
+        DATASET_STR = ''
+        
+        DO WHILE (DATASET_STR /= '    -1')       
+          READ(LUN, '(A6)', END=10, ERR=9) DATASET_STR        
+        END DO
+      
+      
       END SELECT ! END OF DATA SET NUMBER SWITCH
 
 
@@ -1031,24 +1042,24 @@ C     CREATE AND COPY STRUCT TO CELL ARRAY, IF DATASET NUMBER IS SUPPORTED
 
 
 C       CHECK IF STRUCT POINTER ARRAYS NEEDS TO BE RESIZED
-        IF (NCELL > MAXRECORDS_LOCAL) THEN
-          MAXRECORDS_LOCAL = MAXRECORDS_LOCAL + RECORD_STEP
+        IF (NCELL > MAXREC_LOC) THEN
+          MAXREC_LOC = MAXREC_LOC + RECORD_STEP
 
           SELECT CASE (USE_ALLOCATION)
            CASE (0)
             USE_ALLOCATION = 1 ! USE SPTR_1
-            ALLOCATE(SPTR_1(MAXRECORDS_LOCAL)) ! RESIZE SPTR_1
+            ALLOCATE(SPTR_1(MAXREC_LOC)) ! RESIZE SPTR_1
             SPTR_1(1:NCELL-1) = SPTR(:) ! COPY STATICALLY SIZED SPTR CONTENT TO SPTR_1
 
            CASE (1)
             USE_ALLOCATION = 2 ! USE SPTR_2
-            ALLOCATE(SPTR_2(MAXRECORDS_LOCAL)) ! RESIZE SPTR_2
+            ALLOCATE(SPTR_2(MAXREC_LOC)) ! RESIZE SPTR_2
             SPTR_2(1:NCELL-1) = SPTR_1(:) ! COPY SPTR_1 CONTENT TO SPTR_2
             DEALLOCATE(SPTR_1)
 
            CASE (2)
             USE_ALLOCATION = 1 ! USE SPTR_1
-            ALLOCATE(SPTR_1(MAXRECORDS_LOCAL)) ! RESIZE SPTR_1
+            ALLOCATE(SPTR_1(MAXREC_LOC)) ! RESIZE SPTR_1
             SPTR_1(1:NCELL-1) = SPTR_2(:) ! COPY SPTR_2 CONTENT TO SPTR_1
             DEALLOCATE(SPTR_2)
 
