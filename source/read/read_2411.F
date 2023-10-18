@@ -47,7 +47,7 @@ C     SUPPORT VARIABLES
       mwSize                                  :: M, N, NSIZE
 C
 C     DATASET 2411 VARIABLES:
-      REAL*8,    PARAMETER                    :: DATASETNUM = 2411
+      REAL*8,    PARAMETER                    :: DATASETNUM = 2411.0_8
       CHARACTER(LEN=40)                       :: REC_0
       INTEGER*4, DIMENSION(:, :), ALLOCATABLE :: REC_1, TEMP_1
       REAL*8,    DIMENSION(:, :), ALLOCATABLE :: REC_2, TEMP_2
