@@ -257,7 +257,7 @@ C
 C
 C     READ DATASET NUMBER, 58B COMPATIBILITY PREPARED (BUT NOT SUPPORTED YET)
 5800  FORMAT(I6, 1A1, I6, I6, I12, I12, I6, I6, I12, I12) ! NB: FIELDS 7-10 ARE UNUSED
-      READ(LUN, 5800, END=10,ERR=99) DATASETNUM, F02, F03, F04, F05, F06
+      READ(LUN, 5800, END=10, ERR=9) DATASETNUM, F02, F03, F04, F05, F06
 C
 C
 C - HANDLE DATABLOCK ACCORDING TO DATASET NUMBER -----------------------
@@ -1124,39 +1124,34 @@ C       CHECK IF STRUCT POINTER ARRAYS NEEDS TO BE RESIZED
             DO K = 1,FNUM
               CALL mxSetField(SPTR_2(NCELL),N1,FNAME(K),ID_PTR(K))
             END DO
-
+C
         END SELECT
-
+C
       END IF
-
-
-
+C
+C
 C ----------------------------------------------------------------------
       END DO ! END OF WHILE LOOP
 C ----------------------------------------------------------------------
-
-
+C
+C
       GO TO 10 ! SKIP ERROR LABEL 9 => NORMAL EXIT
-
-99    S = -99
-      GO TO 10
-
+C
+C
 C --- FINISHED READING -------------------------------------------------
 C ----------------------------------------------------------------------
-
-
-
+C
+C
 C --- RETURN ARGUMENTS AND CLOSE FILE AND VARIABLES
-
+C
 C     ERROR EXIT
 9     S = -9
-C       NCELL = NCELL - 1 ! DECREASE CELL COUNT BY ONE, SINCE THE LAST ONE FAILED
-
+C
 10    CONTINUE ! NORMAL EXIT
-
+C
       plhs(1) = mxCreateDoubleScalar(S) ! CREATE FIRST RETURN ARGUMENT: STATE
-
-
+C
+C
 C     DEALLOCATE ALLOCATED VARIABLES
       IF (ALLOCATED(FILEPATH)) DEALLOCATE(FILEPATH)
       IF (ALLOCATED(XDATA)) DEALLOCATE(XDATA)
@@ -1165,8 +1160,8 @@ C     DEALLOCATE ALLOCATED VARIABLES
       IF (ALLOCATED(Y_CS)) DEALLOCATE(Y_CS)
       IF (ALLOCATED(Y_CD)) DEALLOCATE(Y_CD)
       IF (ALLOCATED(Y_CD)) DEALLOCATE(Y_CD)
-
-
+C
+C
 C     IF LUN HAVE BEEN INITIALISED
       IF (LUN /= 0) THEN
         INQUIRE(UNIT=LUN, OPENED=OK) ! CHECK IF FILE UNIT IS OPEN
@@ -1181,8 +1176,8 @@ C     IF LUN_BIN HAVE BEEN INITIALISED
           CLOSE(LUN_BIN, STATUS='KEEP') ! CLOSE IF OPEN
         END IF
       END IF
-
-
+C
+C
 C     CREATE AND ASSIGN CELL MATRIX
       IF (nlhs > 1) THEN
         IF (NCELL > 0) THEN
@@ -1192,62 +1187,69 @@ C     CREATE AND ASSIGN CELL MATRIX
               DO KMW = 1,NCELL
                 CALL mxSetCell(CELL_PTR, KMW, SPTR(KMW))
               END DO
-
+C
             CASE (1)
               DO KMW = 1,NCELL
                 CALL mxSetCell(CELL_PTR, KMW, SPTR_1(KMW))
               END DO
-
+C
             CASE (2)
               DO KMW = 1,NCELL
                 CALL mxSetCell(CELL_PTR, KMW, SPTR_2(KMW))
               END DO
-
+C
           END SELECT
           plhs(2) = CELL_PTR ! ASSIGN POINTER TO OUTPUT ARGUMENT #2
-
+C
         ELSE IF (INT(S) == 1) THEN
           CELL_PTR = mxCreateCellMatrix(N1, N1)
           plhs(2) = CELL_PTR ! ASSIGN POINTER TO OUTPUT ARGUMENT #2
-
+C
         ELSE ! OUTPUT ERROR STRING IF NOT SUCCESSFUL
           SELECT CASE (INT(S))
             CASE (0)
               plhs(2) = mxCreateString('Unknown error.')
-
+C
             CASE (-1)
               plhs(2) = mxCreateString('Empty filepath input.')
-
+C
             CASE (-2)
               plhs(2) = mxCreateString('Could not read filepath.')
-
+C
             CASE (-3)
               plhs(2) = mxCreateString('File does not exist.')
-
+C
             CASE (-4)
               plhs(2) = mxCreateString('Too few inputs.')
-
+C
             CASE (-5)
               plhs(2) = mxCreateString('Input is not of type char.')
-
+C
             CASE (-6)
               plhs(2) = mxCreateString('Filepath is ill-formed.')
-
+C
             CASE (-7)
               plhs(2) = mxCreateString('2 output arguments are needed.')
-
+C
             CASE (-9)
               plhs(2) = mxCreateString('Error while reading file.')
-
+C              
+            CASE (-10)
+              plhs(2) = mxCreateString('Error when switching to 58b')  
+C              
+            CASE (-11)
+              plhs(2) = mxCreateString('Some values are outside allowed
+     & bounds.')  
+C
             CASE (-12)
               plhs(2) = mxCreateString('Arithmetic overflow.')
-
+C
             CASE DEFAULT
               plhs(2) = mxCreateString('Read error: check IOSTAT code.')
-
+C
           END SELECT
         END IF
-
+C        
       END IF
 C
 C
