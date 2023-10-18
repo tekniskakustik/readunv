@@ -106,6 +106,12 @@
 % -------------------------------------------------------------------------
 
 
+% try reading only metadata from a test file (UNV-58)
+[success, datacell] = readunv(['.', filesep, 'testdata', filesep, 'test3.unv'], 1);
+if success ~= 1
+    fprintf('metadata_read: error code %i\n', success)
+end
+
 
 % read data from a test file
 [success, datacell] = readunv(['.', filesep, 'testdata', filesep, 'test3.unv']);
