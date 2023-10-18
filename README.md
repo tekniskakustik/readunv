@@ -3,7 +3,7 @@
 Supported datasets:\
 58\
 58b\
-82\
+82 (read-only)\
 151\
 164\
 1806 (read-only)\

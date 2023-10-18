@@ -87,8 +87,8 @@ C     ------------------------------------------------------------------
      3                                       151,
      4                                       164,
      5                                       1806,
-     6                                       2400, 
-     7                                       2411/) 
+     6                                       2400,
+     7                                       2411/)
       INTEGER*4            :: DATASETNUM, PREV_DATASETNUM
       LOGICAL*1            :: USE_BINARY
       CHARACTER(LEN=6)     :: DATASET_STR
@@ -96,6 +96,7 @@ C     DATASET 58/58b:
       CHARACTER(LEN=1)     :: F02
       CHARACTER(LEN=13)    :: ENDIAN_STR
       CHARACTER(LEN=80)    :: ID1, ID2, ID3, ID5
+      CHARACTER(LEN=80)    :: ID0 ! ID0 IS A TEMP. VAR.
       CHARACTER(LEN=120)   :: ID4 ! EXTENDED TO 120 DUE TO SIEMENS TESTLAB BEHAVIOUR
       CHARACTER(LEN=10)    :: F65, F68
       CHARACTER(LEN=20)    :: F85, F86
@@ -268,7 +269,7 @@ C - DATASET 82 ---------------------------------------------------------
 C ----------------------------------------------------------------------
       CASE (82)
         CALL READ_82(LUN, ID_PTR, FNAME, FNUM, NFIELDS, S)
-        IF (S /= 1) GO TO 10      
+        IF (S /= 1) GO TO 10
 C
 C
 C - DATASET 151 --------------------------------------------------------
@@ -358,18 +359,18 @@ C       RECORD 9
 C
 C       RECORD 10
 5810    FORMAT(I10, 3I5, 2(1X, A20))
-        READ(LUN, 5810, END=10,ERR=9) F101, F102, F103, F104, F105, F106
+        READ(LUN, 5810,END=10,ERR=9) F101, F102, F103, F104, F105, F106
 C
 C       RECORD 11
 5811    FORMAT(I10, 3I5, 2(1X, A20))
-        READ(LUN, 5811, END=10,ERR=9) F111, F112, F113, F114, F115, F116
+        READ(LUN, 5811,END=10,ERR=9) F111, F112, F113, F114, F115, F116
 C
 C
 C ----- DETERMINE NUMBER OF DATA VALUES, AND ABSCISSA TYPE -------------
         ORD_TYPE = DBLE(F71) ! ORDINATE DATA TYPE NUMBER
-        ISEVEN = DBLE(F73)      ! IS X/ABSCISSA NON-REGULAR (UNEVEN) OR REGULAR (EVEN)
-        ABSC_N = DBLE(F72)     ! NUMBER OF X-VALUES
-        NVAL = INT8(ABSC_N)    ! NUMBER OF DATA VALUES
+        ISEVEN = DBLE(F73)   ! IS X/ABSCISSA NON-REGULAR (UNEVEN) OR REGULAR (EVEN)
+        ABSC_N = DBLE(F72)   ! NUMBER OF X-VALUES
+        NVAL = INT8(F72)     ! NUMBER OF DATA VALUES
 C ----------------------------------------------------------------------
 C
 C
@@ -410,26 +411,25 @@ C           FOR SMALL DX:S APPLY ROUNDING, WHEN ABSCISSA IS TIME
         IF (ORD_TYPE > 4.5) THEN ! IS COMPLEX
           CASENUM = CASENUM + 2
         END IF
-
+C
         IF (ORD_TYPE == 4 .OR. ORD_TYPE == 6) THEN ! IS DOUBLE
           CASENUM = CASENUM + 4
         END IF
-
-
-
+C
+C
 C       FIX TEXT ALIGNMENT
         ID1 = ADJUSTL(ID1)
         ID2 = ADJUSTL(ID2)
         ID3 = ADJUSTL(ID3)
         ID4 = ADJUSTL(ID4)
         ID5 = ADJUSTL(ID5)
-
+C
         CALL REMOVE_NON_ASCII(ID1, LEN_TRIM(ID1))
         CALL REMOVE_NON_ASCII(ID2, LEN_TRIM(ID2))
         CALL REMOVE_NON_ASCII(ID3, LEN_TRIM(ID3))
         CALL REMOVE_NON_ASCII(ID4, LEN_TRIM(ID4))
         CALL REMOVE_NON_ASCII(ID5, LEN_TRIM(ID5))
-
+C
         F65 =  ADJUSTL(F65)
         F68 =  ADJUSTL(F68)
         F85 =  ADJUSTL(F85)
@@ -441,43 +441,43 @@ C       FIX TEXT ALIGNMENT
         F106 = ADJUSTL(F106)
         F115 = ADJUSTL(F115)
         F116 = ADJUSTL(F116)
-
-
-
+C
+C
+C
         IF (USE_BINARY) THEN ! BINARY FORMAT
-
+C
           IF (F05 /= 11) THEN ! 58b FORMAT STIPULATES EXACTLY 11 LINES
             S = -6 ! ILL-FORMED FILE
             GO TO 10
           END IF
-
+C
           DATATYPE = 'BINARY'
-
+C
           INQUIRE(LUN, POS=RECPOS)
           CLOSE(LUN, STATUS='KEEP')
-
+C
 C         DETERMINE BINARY FORMAT
           SELECT CASE (F04)
             CASE (1) ! "DEC VMS"
               ENDIAN_STR = 'VAXD'
-
+C
             CASE (2) ! "IEEE 754 (UNIX)"
               IF (F03 == 2) THEN
                 ENDIAN_STR = 'BIG_ENDIAN'
               ELSE
                 ENDIAN_STR = 'LITTLE_ENDIAN'
               END IF
-
+C
             CASE (3) ! "IBM 5/370"
               ENDIAN_STR = 'IBM'
-
+C
             CASE DEFAULT
               S = -6 ! ILL-FORMED HEADER
               GO TO 10
-
+C
           END SELECT
-
-
+C
+C
           OPEN (
      &     NEWUNIT  = LUN_BIN,
      &     FILE     = FILEPATH,
@@ -487,8 +487,8 @@ C         DETERMINE BINARY FORMAT
      &     ACTION   = 'READ',
      &     CONVERT  = ADJUSTL(ENDIAN_STR),
      &     ACCESS   = 'STREAM')
-
-
+C
+C
           IF (VAL_INT /= 0) THEN
             IF (VAL_INT == 1) THEN ! REMAP IOSTAT ERROR CODE 1 TO -12
               S = -12
@@ -497,12 +497,18 @@ C         DETERMINE BINARY FORMAT
             END IF
             GO TO 10
           END IF
-
-
+C
+C
+C         CREATE SIMPLE SCALAR DATA IF ONLY METADATA IS READ
+          IF (SKIP_DATA > 0.5) THEN
+            ID_PTR(2) = mxCreateDoubleScalar(0.0_8) ! CREATE FAKE OUTPUT FOR X/ABSCISSA
+            ID_PTR(3) = mxCreateDoubleScalar(0.0_8) ! CREATE FAKE OUTPUT FOR DATA
+          END IF
+C
 C         --------------------------------------------------------------
           SELECT CASE (CASENUM)
 C         --------------------------------------------------------------
-
+C
 C           ------------------------------------------------------------
             CASE (1) ! REAL, SINGLE, EVEN SPACING
 
@@ -512,16 +518,16 @@ C           ------------------------------------------------------------
                 DEALLOCATE(Y_RS)
                 ALLOCATE(Y_RS(NVAL))
               END IF
-
+C
               READ(LUN_BIN, POS=RECPOS, ERR=9) (Y_RS(I), I=1,NVAL)
-
-              IF (SKIP_DATA < 1) THEN
+C
+              IF (SKIP_DATA < 0.5) THEN
                 YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, FLAG_R)
                 CALL mxCopyReal4ToPtr(Y_RS, mxGetSingles(YPTR), NVAL)
                 ID_PTR(3) = YPTR
               END IF
-
-
+C
+C
 C           ------------------------------------------------------------
             CASE (2) ! REAL, SINGLE, UNEVEN SPACING
 
@@ -535,7 +541,7 @@ C           ------------------------------------------------------------
               READ(LUN_BIN, POS=RECPOS, ERR=9)
      &          (XDATA(I), Y_RS(I), I=1,NVAL)
 
-              IF (SKIP_DATA < 1) THEN
+              IF (SKIP_DATA < 0.5) THEN
                 YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, FLAG_R)
                 CALL mxCopyReal4ToPtr(Y_RS, mxGetSingles(YPTR), NVAL)
                 ID_PTR(3) = YPTR
@@ -554,7 +560,7 @@ C           ------------------------------------------------------------
 
               READ(LUN_BIN, POS=RECPOS, ERR=9) (Y_CS(I), I=1,NVAL)
 
-              IF (SKIP_DATA < 1) THEN
+              IF (SKIP_DATA < 0.5) THEN
                 YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, FLAG_C)
                 CALL mxCopyComplex8ToPtr(Y_CS, mxGetComplexSingles(YPTR)
      &            , NVAL)
@@ -575,7 +581,7 @@ C           ------------------------------------------------------------
               READ(LUN_BIN, POS=RECPOS, ERR=9)
      &          (XDATA(I), Y_CS(I), I = 1,NVAL)
 
-              IF (SKIP_DATA < 1) THEN
+              IF (SKIP_DATA < 0.5) THEN
                 YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, FLAG_C)
                 CALL mxCopyComplex8ToPtr(Y_CS, mxGetComplexSingles(YPTR)
      &            , NVAL)
@@ -595,7 +601,7 @@ C           ------------------------------------------------------------
 
               READ(LUN_BIN, POS=RECPOS, ERR=9) (Y_RD(I), I=1,NVAL)
 
-              IF (SKIP_DATA < 1) THEN
+              IF (SKIP_DATA < 0.5) THEN
                 YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, FLAG_R)
                 CALL mxCopyReal8ToPtr(Y_RD, mxGetDoubles(YPTR), NVAL)
                 ID_PTR(3) = YPTR
@@ -615,7 +621,7 @@ C           ------------------------------------------------------------
               READ(LUN_BIN, POS=RECPOS, ERR=9)
      &          (XDATA(I), Y_RD(I), I=1,NVAL)
 
-              IF (SKIP_DATA < 1) THEN
+              IF (SKIP_DATA < 0.5) THEN
                 YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, FLAG_R)
                 CALL mxCopyReal8ToPtr(Y_RD, mxGetDoubles(YPTR), NVAL)
                 ID_PTR(3) = YPTR
@@ -634,7 +640,7 @@ C           ------------------------------------------------------------
 
               READ(LUN_BIN, POS=RECPOS, ERR=9) (Y_CD(I), I=1,NVAL)
 
-              IF (SKIP_DATA < 1) THEN
+              IF (SKIP_DATA < 0.5) THEN
                 YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, FLAG_C)
                 CALL mxCopyComplex16ToPtr(Y_CD,mxGetComplexDoubles(YPTR)
      &            , NVAL)
@@ -654,7 +660,7 @@ C           ------------------------------------------------------------
               READ(LUN_BIN, POS=RECPOS, ERR=9)
      &          (XDATA(I), Y_CD(I), I=1,NVAL)
 
-              IF (SKIP_DATA < 1) THEN
+              IF (SKIP_DATA < 0.5) THEN
                 YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, FLAG_C)
                 CALL mxCopyComplex16ToPtr(Y_CD,mxGetComplexDoubles(YPTR)
      &            , NVAL)
@@ -690,42 +696,51 @@ C         MOVE NEW FILE UNIT TO PREVIOUS POSITION
             S = -10
             GO TO 10
           END IF
-
-
-
+C
+C
+C
         ELSE IF (SKIP_DATA > 0.5) THEN ! SKIP READING DATA, JUST METADATA
+C
+          DATATYPE = 'ASCII'
+C
+          ID_PTR(2) = mxCreateDoubleScalar(0.0_8) ! CREATE FAKE OUTPUT FOR X/ABSCISSA
+          ID_PTR(3) = mxCreateDoubleScalar(0.0_8) ! CREATE FAKE OUTPUT FOR DATA
 
-          ID_PTR(2) = mxCreateDoubleScalar(1.0_8) ! CREATE FAKE OUTPUT FOR X/ABSCISSA
-          ID_PTR(3) = mxCreateDoubleScalar(1.0_8) ! CREATE FAKE OUTPUT FOR DATA
-
+          INQUIRE(LUN, POS=RECPOS)
 
 C         SKIP DATA
           SELECT CASE (CASENUM)
             CASE (1) ! REAL, SINGLE, EVEN SPACING
-              VAL_INT = FSEEK(LUN, INT4(NVAL*4-6*4), 1)
+              RECPOS = RECPOS + INT8(NVAL*13.33_8)
 
             CASE (2)  ! REAL, SINGLE, UNEVEN SPACING
-              VAL_INT = FSEEK(LUN, INT4(NVAL*2*4-6*4), 1)
+              RECPOS = RECPOS + INT8(NVAL*2_8*13.33_8)
 
             CASE (3)  ! COMPLEX, SINGLE, EVEN SPACING
-              VAL_INT = FSEEK(LUN, INT4(NVAL*2*4-6*4), 1)
+              RECPOS = RECPOS + INT8(NVAL*2_8*13.33_8)
 
             CASE (4)  ! COMPLEX, SINGLE, UNEVEN SPACING
-              VAL_INT = FSEEK(LUN, INT4(NVAL*3*4-6*4), 1)
+              RECPOS = RECPOS + INT8(NVAL*3_8*13.33_8)
 
             CASE (5)  ! REAL, DOUBLE, EVEN SPACING
-              VAL_INT = FSEEK(LUN, INT4(NVAL*8-4*8), 1)
+              RECPOS = RECPOS + INT8(NVAL*20_8)
 
             CASE (6)  ! REAL, DOUBLE, UNEVEN SPACING
-              VAL_INT = FSEEK(LUN, INT4(NVAL*8*2-4*8), 1)
+              RECPOS = RECPOS + INT8(NVAL*33.33_8)
 
             CASE (7)  ! COMPLEX, DOUBLE, EVEN SPACING
-              VAL_INT = FSEEK(LUN, INT4(NVAL*8*2-4*8), 1)
+              RECPOS = RECPOS + INT8(NVAL*40_8)
 
             CASE (8)  ! COMPLEX, DOUBLE, UNEVEN SPACING
-              VAL_INT = FSEEK(LUN, INT4(NVAL*8*3-4*8), 1)
+              RECPOS = RECPOS + INT8(NVAL*53.33_8)
 
           END SELECT
+
+          READ(LUN, '(A80)', END=10, ERR=9, POS=RECPOS) ID0
+
+          DO WHILE (ID0 /= '    -1')
+            READ(LUN, '(A80)', END=10, ERR=9) ID0
+          END DO
 
 
 
@@ -1033,23 +1048,23 @@ C       RECORD 11
         ID_PTR(48) = mxCreateString(F116)              ! Z-Axis units label
 
 C       MISC
-        ID_PTR(49) = mxCreateString(DATATYPE)          ! Function Type
+        ID_PTR(49) = mxCreateString(TRIM(DATATYPE))    ! Function Type
 
-      
-      
+
+
       CASE (-1)
         ! DO NOTHING
-      
-      
-      
+
+
+
       CASE DEFAULT
         DATASET_STR = ''
-        
-        DO WHILE (DATASET_STR /= '    -1')       
-          READ(LUN, '(A6)', END=10, ERR=9) DATASET_STR        
+
+        DO WHILE (DATASET_STR /= '    -1')
+          READ(LUN, '(A6)', END=10, ERR=9) DATASET_STR
         END DO
-      
-      
+
+
       END SELECT ! END OF DATA SET NUMBER SWITCH
 
 
@@ -1109,38 +1124,34 @@ C       CHECK IF STRUCT POINTER ARRAYS NEEDS TO BE RESIZED
             DO K = 1,FNUM
               CALL mxSetField(SPTR_2(NCELL),N1,FNAME(K),ID_PTR(K))
             END DO
-
+C
         END SELECT
-
+C
       END IF
-
-
-
+C
+C
 C ----------------------------------------------------------------------
       END DO ! END OF WHILE LOOP
 C ----------------------------------------------------------------------
-
-
+C
+C
       GO TO 10 ! SKIP ERROR LABEL 9 => NORMAL EXIT
-
-
-
+C
+C
 C --- FINISHED READING -------------------------------------------------
 C ----------------------------------------------------------------------
-
-
-
+C
+C
 C --- RETURN ARGUMENTS AND CLOSE FILE AND VARIABLES
-
+C
 C     ERROR EXIT
 9     S = -9
-C       NCELL = NCELL - 1 ! DECREASE CELL COUNT BY ONE, SINCE THE LAST ONE FAILED
-
+C
 10    CONTINUE ! NORMAL EXIT
-
+C
       plhs(1) = mxCreateDoubleScalar(S) ! CREATE FIRST RETURN ARGUMENT: STATE
-
-
+C
+C
 C     DEALLOCATE ALLOCATED VARIABLES
       IF (ALLOCATED(FILEPATH)) DEALLOCATE(FILEPATH)
       IF (ALLOCATED(XDATA)) DEALLOCATE(XDATA)
@@ -1149,8 +1160,8 @@ C     DEALLOCATE ALLOCATED VARIABLES
       IF (ALLOCATED(Y_CS)) DEALLOCATE(Y_CS)
       IF (ALLOCATED(Y_CD)) DEALLOCATE(Y_CD)
       IF (ALLOCATED(Y_CD)) DEALLOCATE(Y_CD)
-
-
+C
+C
 C     IF LUN HAVE BEEN INITIALISED
       IF (LUN /= 0) THEN
         INQUIRE(UNIT=LUN, OPENED=OK) ! CHECK IF FILE UNIT IS OPEN
@@ -1165,8 +1176,8 @@ C     IF LUN_BIN HAVE BEEN INITIALISED
           CLOSE(LUN_BIN, STATUS='KEEP') ! CLOSE IF OPEN
         END IF
       END IF
-
-
+C
+C
 C     CREATE AND ASSIGN CELL MATRIX
       IF (nlhs > 1) THEN
         IF (NCELL > 0) THEN
@@ -1176,80 +1187,87 @@ C     CREATE AND ASSIGN CELL MATRIX
               DO KMW = 1,NCELL
                 CALL mxSetCell(CELL_PTR, KMW, SPTR(KMW))
               END DO
-
+C
             CASE (1)
               DO KMW = 1,NCELL
                 CALL mxSetCell(CELL_PTR, KMW, SPTR_1(KMW))
               END DO
-
+C
             CASE (2)
               DO KMW = 1,NCELL
                 CALL mxSetCell(CELL_PTR, KMW, SPTR_2(KMW))
               END DO
-
+C
           END SELECT
           plhs(2) = CELL_PTR ! ASSIGN POINTER TO OUTPUT ARGUMENT #2
-
+C
         ELSE IF (INT(S) == 1) THEN
           CELL_PTR = mxCreateCellMatrix(N1, N1)
           plhs(2) = CELL_PTR ! ASSIGN POINTER TO OUTPUT ARGUMENT #2
-
+C
         ELSE ! OUTPUT ERROR STRING IF NOT SUCCESSFUL
           SELECT CASE (INT(S))
             CASE (0)
               plhs(2) = mxCreateString('Unknown error.')
-
+C
             CASE (-1)
               plhs(2) = mxCreateString('Empty filepath input.')
-
+C
             CASE (-2)
               plhs(2) = mxCreateString('Could not read filepath.')
-
+C
             CASE (-3)
               plhs(2) = mxCreateString('File does not exist.')
-
+C
             CASE (-4)
               plhs(2) = mxCreateString('Too few inputs.')
-
+C
             CASE (-5)
               plhs(2) = mxCreateString('Input is not of type char.')
-
+C
             CASE (-6)
               plhs(2) = mxCreateString('Filepath is ill-formed.')
-
+C
             CASE (-7)
               plhs(2) = mxCreateString('2 output arguments are needed.')
-
+C
             CASE (-9)
               plhs(2) = mxCreateString('Error while reading file.')
-
+C              
+            CASE (-10)
+              plhs(2) = mxCreateString('Error when switching to 58b')  
+C              
+            CASE (-11)
+              plhs(2) = mxCreateString('Some values are outside allowed
+     & bounds.')  
+C
             CASE (-12)
               plhs(2) = mxCreateString('Arithmetic overflow.')
-
+C
             CASE DEFAULT
               plhs(2) = mxCreateString('Read error: check IOSTAT code.')
-
+C
           END SELECT
         END IF
-
+C        
       END IF
-
-
+C
+C
 C     IF DYNAMIC STRUCT RE-ALLOCATION HAVE BEEN USED -> DEALLOCATE DYNAMIC STRUCT POINTERS
       IF (USE_ALLOCATION > 0) THEN
         IF (ALLOCATED(SPTR_1)) DEALLOCATE(SPTR_1)
         IF (ALLOCATED(SPTR_2)) DEALLOCATE(SPTR_2)
       END IF
-
-
-
+C
+C
+C
       RETURN
       END
-
-
-
+C
+C
 C ----------------------------------------------------------------------
 C --- END OF PROGRAM ---------------------------------------------------
 C ----------------------------------------------------------------------
-
-
+C
+C
+C
