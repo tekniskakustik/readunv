@@ -28,6 +28,7 @@ C       = -7,  TWO OUTPUT ARGUMENTS ARE REQUIRED
 C       = -8,  DEPRECATED, AND NOT THROWN ANY MORE
 C       = -9,  ERROR WHILE READING FILE
 C       = -10, ERROR IN BINARY/ASCII READ TRANSITION
+C       = -11, VALUE OUTSIDE OF ALLOWED BOUNDS
 C       = -12, FLOATING POINT ARITHMETIC OVERFLOW (FROM IOSTAT)
 C       = >1,  ERROR CODE FROM IOSTAT WHEN OPENING FILE
 C
@@ -71,22 +72,23 @@ C     MEX. DERIVED TYPES
       mwSize, PARAMETER                    :: N1 = 1
 C
 C     DATABLOCK RELATED VARIABLES
-      INTEGER*4, PARAMETER :: MAXRECORDS = 4096
+      INTEGER*4, PARAMETER :: MAXRECORDS  = 4096
       INTEGER*4, PARAMETER :: RECORD_STEP = 16384
-      INTEGER*4, PARAMETER :: NFIELDS = 49 ! MAXIMUM NUMBER OF FIELDS IN USE, ADJUST AS NEEDED
+      INTEGER*4, PARAMETER :: NFIELDS     = 49 ! MAXIMUM NUMBER OF FIELDS IN USE, ADJUST AS NEEDED
       mwPointer            :: SPTR(MAXRECORDS)
       mwPointer            :: ID_PTR(NFIELDS)
       CHARACTER*32         :: FNAME(NFIELDS) ! LENGTH OF LONGEST FIELDNAME (32), ADJUST AS NEEDED
 C
 C     UNV DATASET RELATED VARIABLES
 C     ------------------------------------------------------------------
-      INTEGER*4, PARAMETER :: DATASETS(6) = (/ ! SUPPORTED DATASET TYPES
-     1                                       58, 
-     2                                       151,
-     3                                       164,
-     4                                       1806,
-     5                                       2400, 
-     6                                       2411/) 
+      INTEGER*4, PARAMETER :: DATASETS(7) = (/ ! SUPPORTED DATASET TYPES
+     1                                       58,
+     2                                       82,
+     3                                       151,
+     4                                       164,
+     5                                       1806,
+     6                                       2400, 
+     7                                       2411/) 
       INTEGER*4            :: DATASETNUM, PREV_DATASETNUM
       LOGICAL*1            :: USE_BINARY
       CHARACTER(LEN=6)     :: DATASET_STR
@@ -260,6 +262,13 @@ C
 C - HANDLE DATABLOCK ACCORDING TO DATASET NUMBER -----------------------
 C ----------------------------------------------------------------------
       SELECT CASE (DATASETNUM)
+C
+C
+C - DATASET 82 ---------------------------------------------------------
+C ----------------------------------------------------------------------
+      CASE (82)
+        CALL READ_82(LUN, ID_PTR, FNAME, FNUM, NFIELDS, S)
+        IF (S /= 1) GO TO 10      
 C
 C
 C - DATASET 151 --------------------------------------------------------

@@ -18,7 +18,7 @@ C     FUNCTIONS
       mwPointer :: mxCreateDoubleScalar
 
 C     DATASET 164 VARIABLES:
-      REAL*8, PARAMETER :: DATASETNUM = 164
+      REAL*8, PARAMETER :: DATASETNUM = 164.0_8
       CHARACTER(LEN=22) :: UNITSSTR
       CHARACTER(LEN=20) :: REC_1_2
       INTEGER*4         :: REC_1_1, REC_1_3

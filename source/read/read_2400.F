@@ -28,8 +28,8 @@ C     SUPPORT VARIABLES
       INTEGER              :: I
 
 C     DATASET 2400 VARIABLES:
-      REAL*8, PARAMETER :: DATASETNUM = 2400
-      CHARACTER(LEN=40) :: REC_2_1, REC_3_1
+      REAL*8, PARAMETER :: DATASETNUM = 2400.0_8
+      CHARACTER(LEN=80) :: REC_2_1, REC_3_1
       INTEGER*4         :: REC_1_1, REC_1_4, REC_5_1, REC_5_2
       INTEGER*4         :: REC_5_3, REC_5_4, REC_5_5
       INTEGER*2         :: REC_1_2, REC_1_3, REC_4_1(32)
@@ -48,12 +48,14 @@ C     RECORD 1
       READ(LUN,24001,ERR=9) REC_1_1, REC_1_2, REC_1_3, REC_1_4
 
 C     RECORD 2
-24002 FORMAT(40A2)
+24002 FORMAT(A80)
       READ(LUN,24002,ERR=9) REC_2_1
+      CALL REMOVE_NON_ASCII(REC_2_1, LEN_TRIM(REC_2_1)) ! REMOVE UN-SUPPORTED CHARACTERS
 
 C     RECORD 3
-24003 FORMAT(40A2)
+24003 FORMAT(A80)
       READ(LUN,24003,ERR=9) REC_3_1
+      CALL REMOVE_NON_ASCII(REC_3_1, LEN_TRIM(REC_3_1)) ! REMOVE UN-SUPPORTED CHARACTERS
 
 C     RECORD 4
 24004 FORMAT(32I2)
@@ -98,7 +100,7 @@ C     RECORD 6
 
 
 C     COPY DATA TO OUTPUT POINTERS
-      ID_PTR(1) = mxCreateDoubleScalar(DATASETNUM)     ! Dataset number
+      ID_PTR(1)  = mxCreateDoubleScalar(DATASETNUM)     ! Dataset number
 
 C     RECORD 1
       ID_PTR(2)  = mxCreateDoubleScalar(DBLE(REC_1_1)) ! Model UID
@@ -107,10 +109,10 @@ C     RECORD 1
       ID_PTR(5)  = mxCreateDoubleScalar(DBLE(REC_1_4)) ! Version number
 
 C     RECORD 2
-      ID_PTR(6) = mxCreateString(REC_2_1)              ! Entity name
+      ID_PTR(6)  = mxCreateString(REC_2_1)              ! Entity name
 
 C     RECORD 3
-      ID_PTR(7) = mxCreateString(REC_3_1)              ! Part number
+      ID_PTR(7)  = mxCreateString(REC_3_1)              ! Part number
 
 C     RECORD 4
       CID = mxClassIDFromClassName('int8') ! MX FLAG FOR INT8
