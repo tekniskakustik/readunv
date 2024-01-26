@@ -1,6 +1,6 @@
 #include "fintrf.h"
-
-
+C
+C
 C ----------------------------------------------------------------------
 C
 C     [STATE, DATACELL] = READUNV(FILEPATH, SKIP_DATA)
@@ -46,6 +46,7 @@ C
 C     FUNCTIONS
       mwPointer :: mxCreateString
       mwPointer :: mxCreateDoubleScalar
+      mwPointer :: mxCreateDoubleMatrix
       mwPointer :: mxGetDoubles
       mwPointer :: mxGetSingles
       mwPointer :: mxGetComplexDoubles
@@ -65,7 +66,7 @@ C
 C     MEX. DERIVED TYPES
       mwSize                               :: STRLEN, NVAL, KMW, NCELL
       mwPointer                            :: CELL_PTR, YPTR
-      INTEGER*4                            :: CID_S, CID_D
+      INTEGER*4                            :: CID_S
       INTEGER*4, PARAMETER                 :: FLAG_R = 0
       INTEGER*4, PARAMETER                 :: FLAG_C = 1
       mwPointer, DIMENSION(:), ALLOCATABLE :: SPTR_1, SPTR_2 ! USE WHEN NUM. OF DATA RECORDS > MAXRECORDS
@@ -146,13 +147,12 @@ C     INITIALISE (NON-PARAMETRIC) VARIABLES
       USE_ALLOCATION = 0            ! USE DYNAMIC ALLOCATION OF OUTPUT CELL ARRAY, DEFAULT IS OFF; IS TRIGGERED WHEN NUMBER OF RECORDS EXCEEDS "MAXRECORDS"
       PREV_DATASETNUM = 0           ! PREVIOUS DATASETNUM IN LOOP, USED TO MINIMISE UNNECESSARY RE-DEFINITIONS
       CID_S = mxClassIDFromClassName('single') ! MX FLAG FOR SINGLE PRECISION
-      CID_D = mxClassIDFromClassName('double') ! MX FLAG FOR DOUBLE PRECISION
 C
 C
 C     ------------------------------------------------------------------
 C     CHECK INPUT ARGUMENTS
 C     ------------------------------------------------------------------
-
+C
 C     AT LEAST ONE INPUT ARGUMENT (FILEPATH) IS REQUIRED
       IF (nrhs < 1) THEN
         S = -4
@@ -164,50 +164,50 @@ C     AT LEAST ONE INPUT ARGUMENT (FILEPATH) IS REQUIRED
           SKIP_DATA = 0 ! READ ALL DATA
         END IF
       END IF
-
-
+C
+C
 C     CHECK IF TWO OUTPUT ARGUMENTS ARE USED, IF NOT -> ERROR
       IF (nlhs /= 2) THEN
         S = -7
         GO TO 10 ! EXIT
       END IF
-
-
+C
+C
 C     CHECK IF INPUT ARGUMENT IS OF CHAR TYPE
       OK = mxIsChar(prhs(1))
       IF (NOT(OK)) THEN ! CHAR TYPE IS REQUIRED
         S = -5
         GO TO 10 ! EXIT
       END IF
-
-
+C
+C
 C     GET LENGTH OF INPUT STRING
       STRLEN = mxGetN(prhs(1))
       IF (STRLEN < 1) THEN ! EMPTY FILEPATH -> ERROR
         S = -1
         GO TO 10 ! EXIT
       END IF
-
-
+C
+C
 C     ALLOCATE FILEPATH FOR REQUIRED LENGTH
       ALLOCATE(CHARACTER(LEN=STRLEN) :: FILEPATH)
-
-
+C
+C
 C     COPY INPUT STRING TO FILEPATH
       NOK = mxGetString(prhs(1), FILEPATH, STRLEN)
       IF (NOK /= 0) THEN ! COPYING FAILED
         S = -2
         GO TO 10
       END IF
-
-
+C
+C
 C     CHECK IF FILEPATH EXIST
       INQUIRE(FILE=FILEPATH, EXIST=VAL_BOOL)
       IF (NOT(VAL_BOOL)) THEN
         S = -3
         GO TO 10
       END IF
-
+C
 C     ------------------------------------------------------------------
 C     ------------------------------------------------------------------
 C
@@ -407,7 +407,7 @@ C           FOR SMALL DX:S APPLY ROUNDING, WHEN ABSCISSA IS TIME
           ABSC_D = 0.0_8
           CASENUM = CASENUM + 1 ! IS UNEVEN X-DATA
         END IF
-
+C
         IF (ORD_TYPE > 4.5) THEN ! IS COMPLEX
           CASENUM = CASENUM + 2
         END IF
@@ -511,7 +511,7 @@ C         --------------------------------------------------------------
 C
 C           ------------------------------------------------------------
             CASE (1) ! REAL, SINGLE, EVEN SPACING
-
+C
               IF (NOT(ALLOCATED(Y_RS))) THEN
                 ALLOCATE(Y_RS(NVAL))
               ELSE IF(SIZE(Y_RS) /= NVAL) THEN
@@ -530,155 +530,155 @@ C
 C
 C           ------------------------------------------------------------
             CASE (2) ! REAL, SINGLE, UNEVEN SPACING
-
+C
               IF (NOT(ALLOCATED(Y_RS))) THEN
                 ALLOCATE(Y_RS(NVAL))
               ELSE IF(SIZE(Y_RS) /= NVAL) THEN
                 DEALLOCATE(Y_RS)
                 ALLOCATE(Y_RS(NVAL))
               END IF
-
+C
               READ(LUN_BIN, POS=RECPOS, ERR=9)
      &          (XDATA(I), Y_RS(I), I=1,NVAL)
-
+C
               IF (SKIP_DATA < 0.5) THEN
                 YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, FLAG_R)
                 CALL mxCopyReal4ToPtr(Y_RS, mxGetSingles(YPTR), NVAL)
                 ID_PTR(3) = YPTR
               END IF
-
-
+C
+C
 C           ------------------------------------------------------------
             CASE (3) ! COMPLEX, SINGLE, EVEN SPACING
-
+C
               IF (NOT(ALLOCATED(Y_CS))) THEN
                 ALLOCATE(Y_CS(NVAL))
               ELSE IF(SIZE(Y_CS) /= NVAL) THEN
                 DEALLOCATE(Y_CS)
                 ALLOCATE(Y_CS(NVAL))
               END IF
-
+C
               READ(LUN_BIN, POS=RECPOS, ERR=9) (Y_CS(I), I=1,NVAL)
-
+C
               IF (SKIP_DATA < 0.5) THEN
                 YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, FLAG_C)
                 CALL mxCopyComplex8ToPtr(Y_CS, mxGetComplexSingles(YPTR)
      &            , NVAL)
                 ID_PTR(3) = YPTR
               END IF
-
-
+C
+C
 C           ------------------------------------------------------------
             CASE (4) ! COMPLEX, SINGLE, UNEVEN SPACING
-
+C
               IF (NOT(ALLOCATED(Y_CS))) THEN
                 ALLOCATE(Y_CS(NVAL))
               ELSE IF(SIZE(Y_CS) /= NVAL) THEN
                 DEALLOCATE(Y_CS)
                 ALLOCATE(Y_CS(NVAL))
               END IF
-
+C
               READ(LUN_BIN, POS=RECPOS, ERR=9)
      &          (XDATA(I), Y_CS(I), I = 1,NVAL)
-
+C
               IF (SKIP_DATA < 0.5) THEN
                 YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, FLAG_C)
                 CALL mxCopyComplex8ToPtr(Y_CS, mxGetComplexSingles(YPTR)
      &            , NVAL)
                 ID_PTR(3) = YPTR
               END IF
-
-
+C
+C
 C           ------------------------------------------------------------
             CASE (5) ! REAL, DOUBLE, EVEN SPACING
-
+C
               IF (NOT(ALLOCATED(Y_RD))) THEN
                 ALLOCATE(Y_RD(NVAL))
               ELSE IF(SIZE(Y_RD) /= NVAL) THEN
                 DEALLOCATE(Y_RD)
                 ALLOCATE(Y_RD(NVAL))
               END IF
-
+C
               READ(LUN_BIN, POS=RECPOS, ERR=9) (Y_RD(I), I=1,NVAL)
-
+C
               IF (SKIP_DATA < 0.5) THEN
-                YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, FLAG_R)
+                YPTR = mxCreateDoubleMatrix(NVAL, N1, FLAG_R)
                 CALL mxCopyReal8ToPtr(Y_RD, mxGetDoubles(YPTR), NVAL)
                 ID_PTR(3) = YPTR
               END IF
-
-
+C
+C
 C           ------------------------------------------------------------
             CASE (6) ! REAL, DOUBLE, UNEVEN SPACING
-
+C
               IF (NOT(ALLOCATED(Y_RD))) THEN
                 ALLOCATE(Y_RD(NVAL))
               ELSE IF(SIZE(Y_RD) /= NVAL) THEN
                 DEALLOCATE(Y_RD)
                 ALLOCATE(Y_RD(NVAL))
               END IF
-
+C
               READ(LUN_BIN, POS=RECPOS, ERR=9)
      &          (XDATA(I), Y_RD(I), I=1,NVAL)
-
+C
               IF (SKIP_DATA < 0.5) THEN
-                YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, FLAG_R)
+                YPTR = mxCreateDoubleMatrix(NVAL, N1, FLAG_R)
                 CALL mxCopyReal8ToPtr(Y_RD, mxGetDoubles(YPTR), NVAL)
                 ID_PTR(3) = YPTR
               END IF
-
-
+C
+C
 C           ------------------------------------------------------------
             CASE (7) ! COMPLEX, DOUBLE, EVEN SPACING
-
+C
               IF (NOT(ALLOCATED(Y_CD))) THEN
                 ALLOCATE(Y_CD(NVAL))
               ELSE IF(SIZE(Y_CD) /= NVAL) THEN
                 DEALLOCATE(Y_CD)
                 ALLOCATE(Y_CD(NVAL))
               END IF
-
+C
               READ(LUN_BIN, POS=RECPOS, ERR=9) (Y_CD(I), I=1,NVAL)
-
+C
               IF (SKIP_DATA < 0.5) THEN
-                YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, FLAG_C)
+                YPTR = mxCreateDoubleMatrix(NVAL, N1, FLAG_C)
                 CALL mxCopyComplex16ToPtr(Y_CD,mxGetComplexDoubles(YPTR)
      &            , NVAL)
                 ID_PTR(3) = YPTR
               END IF
-
+C
 C           ------------------------------------------------------------
             CASE (8) ! COMPLEX, DOUBLE, UNEVEN SPACING
-
+C
               IF (NOT(ALLOCATED(Y_CD))) THEN
                 ALLOCATE(Y_CD(NVAL))
               ELSE IF(SIZE(Y_CD) /= NVAL) THEN
                 DEALLOCATE(Y_CD)
                 ALLOCATE(Y_CD(NVAL))
               END IF
-
+C
               READ(LUN_BIN, POS=RECPOS, ERR=9)
      &          (XDATA(I), Y_CD(I), I=1,NVAL)
-
+C
               IF (SKIP_DATA < 0.5) THEN
-                YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, FLAG_C)
+                YPTR = mxCreateDoubleMatrix(NVAL, N1, FLAG_C)
                 CALL mxCopyComplex16ToPtr(Y_CD,mxGetComplexDoubles(YPTR)
      &            , NVAL)
                 ID_PTR(3) = YPTR
               END IF
-
+C
 C         --------------------------------------------------------------
           END SELECT ! END OF CASENUM SWITCH
 C         --------------------------------------------------------------
-
-
-
+C
+C
+C
 C         GET CURRENT POSITION OF BINARY FILE UNIT
           INQUIRE(LUN_BIN, POS=RECPOS)
-
+C
 C         CLOSE FILE UNIT FOR BINARY READ
           CLOSE(LUN_BIN, STATUS='KEEP')
-
+C
           OPEN (
      &     NEWUNIT  = LUN,
      &     FILE     = FILEPATH,
@@ -689,7 +689,7 @@ C         CLOSE FILE UNIT FOR BINARY READ
      &     ACCESS   = 'STREAM',
      &     ENCODING = 'DEFAULT',
      &     FORM     = 'FORMATTED')
-
+C
 C         MOVE NEW FILE UNIT TO PREVIOUS POSITION
           VAL_INT = FSEEK(LUN, RECPOS+1, 1)
           IF (VAL_INT /= 0) THEN
@@ -705,226 +705,226 @@ C
 C
           ID_PTR(2) = mxCreateDoubleScalar(0.0_8) ! CREATE FAKE OUTPUT FOR X/ABSCISSA
           ID_PTR(3) = mxCreateDoubleScalar(0.0_8) ! CREATE FAKE OUTPUT FOR DATA
-
+C
           INQUIRE(LUN, POS=RECPOS)
-
+C
 C         SKIP DATA
           SELECT CASE (CASENUM)
             CASE (1) ! REAL, SINGLE, EVEN SPACING
               RECPOS = RECPOS + INT8(NVAL*13.33_8)
-
+C
             CASE (2)  ! REAL, SINGLE, UNEVEN SPACING
               RECPOS = RECPOS + INT8(NVAL*2_8*13.33_8)
-
+C
             CASE (3)  ! COMPLEX, SINGLE, EVEN SPACING
               RECPOS = RECPOS + INT8(NVAL*2_8*13.33_8)
-
+C
             CASE (4)  ! COMPLEX, SINGLE, UNEVEN SPACING
               RECPOS = RECPOS + INT8(NVAL*3_8*13.33_8)
-
+C
             CASE (5)  ! REAL, DOUBLE, EVEN SPACING
               RECPOS = RECPOS + INT8(NVAL*20_8)
-
+C
             CASE (6)  ! REAL, DOUBLE, UNEVEN SPACING
               RECPOS = RECPOS + INT8(NVAL*33.33_8)
-
+C
             CASE (7)  ! COMPLEX, DOUBLE, EVEN SPACING
               RECPOS = RECPOS + INT8(NVAL*40_8)
-
+C
             CASE (8)  ! COMPLEX, DOUBLE, UNEVEN SPACING
               RECPOS = RECPOS + INT8(NVAL*53.33_8)
-
+C
           END SELECT
-
+C
           READ(LUN, '(A80)', END=10, ERR=9, POS=RECPOS) ID0
-
+C
           DO WHILE (ID0 /= '    -1')
             READ(LUN, '(A80)', END=10, ERR=9) ID0
           END DO
-
-
-
+C
+C
+C
         ELSE ! READ ASCII DATA
-
-
+C
+C
 C       ----------------------------------------------------------------
 C       RECORD 12 - ASCII
 C       ----------------------------------------------------------------
 C       READ DATA ACCORDING TO THE EIGHT CASES
-
+C
         DATATYPE = 'ASCII'
-
+C
         SELECT CASE (CASENUM)
 C        ---------------------------------------------------------------
          CASE(1) ! REAL, SINGLE, EVEN SPACING
-
+C
           IF (NOT(ALLOCATED(Y_RS))) THEN
             ALLOCATE(Y_RS(NVAL))
           ELSE IF(SIZE(Y_RS) /= NVAL) THEN
             DEALLOCATE(Y_RS)
             ALLOCATE(Y_RS(NVAL))
           END IF
-
+C
 1001      FORMAT(6ES13.5)
           READ(LUN, 1001, END=9, ERR=9) (Y_RS(I), I=1,NVAL)
-
+C
           YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, FLAG_R)
           CALL mxCopyReal4ToPtr(Y_RS, mxGetSingles(YPTR), NVAL)
           ID_PTR(3) = YPTR
-
-
+C
+C
 C        ---------------------------------------------------------------
          CASE(2) ! REAL, SINGLE, UNEVEN SPACING
-
+C
           IF (NOT(ALLOCATED(Y_RS))) THEN
             ALLOCATE(Y_RS(NVAL))
           ELSE IF(SIZE(Y_RS) /= NVAL) THEN
             DEALLOCATE(Y_RS)
             ALLOCATE(Y_RS(NVAL))
           END IF
-
+C
 1002      FORMAT(6ES13.5)
           READ(LUN, 1002, END=9, ERR=9) (XDATA(I), Y_RS(I), I=1,NVAL)
-
+C
           YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, FLAG_R)
           CALL mxCopyReal4ToPtr(Y_RS, mxGetSingles(YPTR), NVAL)
           ID_PTR(3) = YPTR
-
-
+C
+C
 C        ---------------------------------------------------------------
          CASE(3) ! COMPLEX, SINGLE, EVEN SPACING
-
+C
           IF (NOT(ALLOCATED(Y_CS))) THEN
             ALLOCATE(Y_CS(NVAL))
           ELSE IF(SIZE(Y_CS) /= NVAL) THEN
             DEALLOCATE(Y_CS)
             ALLOCATE(Y_CS(NVAL))
           END IF
-
+C
 1003      FORMAT(6ES13.5)
           READ(LUN, 1003, END=9, ERR=9) (Y_CS(I), I=1,NVAL)
-
+C
           YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, FLAG_C)
           CALL mxCopyComplex8ToPtr(Y_CS, mxGetComplexSingles(YPTR),NVAL)
           ID_PTR(3) = YPTR
-
-
+C
+C
 C        ---------------------------------------------------------------
          CASE(4) ! COMPLEX, SINGLE, UNEVEN SPACING
-
+C
           IF (NOT(ALLOCATED(Y_CS))) THEN
             ALLOCATE(Y_CS(NVAL))
           ELSE IF(SIZE(Y_CS) /= NVAL) THEN
             DEALLOCATE(Y_CS)
             ALLOCATE(Y_CS(NVAL))
           END IF
-
+C
 1004      FORMAT(6ES13.5)
           READ(LUN, 1004, END=9, ERR=9) (XDATA(I), Y_CS(I), I = 1,NVAL)
-
+C
           YPTR = mxCreateNumericMatrix(NVAL, N1, CID_S, FLAG_C)
           CALL mxCopyComplex8ToPtr(Y_CS, mxGetComplexSingles(YPTR),NVAL)
           ID_PTR(3) = YPTR
-
-
+C
+C
 C        ---------------------------------------------------------------
          CASE(5) ! REAL, DOUBLE, EVEN SPACING
-
+C
           IF (NOT(ALLOCATED(Y_RD))) THEN
             ALLOCATE(Y_RD(NVAL))
           ELSE IF(SIZE(Y_RD) /= NVAL) THEN
             DEALLOCATE(Y_RD)
             ALLOCATE(Y_RD(NVAL))
           END IF
-
+C
 1005      FORMAT(4ES20.12)
           READ(LUN, 1005, END=9, ERR=9) (Y_RD(I), I=1,NVAL)
-
-          YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, FLAG_R)
+C
+          YPTR = mxCreateDoubleMatrix(NVAL, N1, FLAG_R)
           CALL mxCopyReal8ToPtr(Y_RD, mxGetDoubles(YPTR), NVAL)
           ID_PTR(3) = YPTR
-
-
+C
+C
 C        ---------------------------------------------------------------
          CASE(6) ! REAL, DOUBLE, UNEVEN SPACING
-
+C
           IF (NOT(ALLOCATED(Y_RD))) THEN
             ALLOCATE(Y_RD(NVAL))
           ELSE IF(SIZE(Y_RD) /= NVAL) THEN
             DEALLOCATE(Y_RD)
             ALLOCATE(Y_RD(NVAL))
           END IF
-
+C
 1006      FORMAT(2(ES13.5, ES20.12))
           READ(LUN, 1006, END=9, ERR=9) (XDATA(I), Y_RD(I), I=1,NVAL)
-
-          YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, FLAG_R)
+C
+          YPTR = mxCreateDoubleMatrix(NVAL, N1, FLAG_R)
           CALL mxCopyReal8ToPtr(Y_RD, mxGetDoubles(YPTR), NVAL)
           ID_PTR(3) = YPTR
-
-
+C
+C
 C        ---------------------------------------------------------------
          CASE(7) ! COMPLEX, DOUBLE, EVEN SPACING
-
+C
           IF (NOT(ALLOCATED(Y_CD))) THEN
             ALLOCATE(Y_CD(NVAL))
           ELSE IF(SIZE(Y_CD) /= NVAL) THEN
             DEALLOCATE(Y_CD)
             ALLOCATE(Y_CD(NVAL))
           END IF
-
+C
 1007      FORMAT(4ES20.12)
           READ(LUN, 1007, END=9, ERR=9) (Y_CD(I), I=1,NVAL)
-
-          YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, FLAG_C)
+C
+          YPTR = mxCreateDoubleMatrix(NVAL, N1, FLAG_C)
           CALL mxCopyComplex16ToPtr(Y_CD,mxGetComplexDoubles(YPTR),NVAL)
           ID_PTR(3) = YPTR
-
-
+C
+C
 C        ---------------------------------------------------------------
          CASE(8) ! COMPLEX, DOUBLE, UNEVEN SPACING
-
+C
           IF (NOT(ALLOCATED(Y_CD))) THEN
             ALLOCATE(Y_CD(NVAL))
           ELSE IF(SIZE(Y_CD) /= NVAL) THEN
             DEALLOCATE(Y_CD)
             ALLOCATE(Y_CD(NVAL))
           END IF
-
+C
 1008      FORMAT(ES13.5, 2ES20.12)
           READ(LUN, 1008, END=9, ERR=9) (XDATA(I), Y_CD(I), I=1,NVAL)
-
-          YPTR = mxCreateNumericMatrix(NVAL, N1, CID_D, FLAG_C)
+C
+          YPTR = mxCreateDoubleMatrix(NVAL, N1, FLAG_C)
           CALL mxCopyComplex16ToPtr(Y_CD,mxGetComplexDoubles(YPTR),NVAL)
           ID_PTR(3) = YPTR
-
-
+C
+C
 C       ----------------------------------------------------------------
         END SELECT ! END OF CASENUM SWITCH
 C       ----------------------------------------------------------------
-
-
+C
+C
         END IF ! END OF BINARY/ASCII SWITCH
-
-
-
+C
+C
+C
         IF (PREV_DATASETNUM /= DATASETNUM) THEN
-
+C
           FNUM = 49
-
+C
 C         DATA
           FNAME(1) =  'datasetType'
           FNAME(2) =  'x'
           FNAME(3) =  'data'
           FNAME(49) = 'dataType' ! BINARY OR ASCII
-
+C
 C         RECORD 1-5
           FNAME(4) =  'ID1'
           FNAME(5) =  'ID2'
           FNAME(6) =  'date'
           FNAME(7) =  'ID4'
           FNAME(8) =  'ID5'
-
+C
 C         RECORD 6
           FNAME(9) =  'functionType'
           FNAME(10) = 'functionID'
@@ -936,7 +936,7 @@ C         RECORD 6
           FNAME(16) = 'refEntName'
           FNAME(17) = 'refNode'
           FNAME(18) = 'refDir'
-
+C
 C         RECORD 7
           FNAME(19) = 'dataFormatType'
           FNAME(20) = 'numValues'
@@ -944,7 +944,7 @@ C         RECORD 7
           FNAME(22) = 'x0'
           FNAME(23) = 'dx'
           FNAME(24) = 'zAxisValue'
-
+C
 C         RECORD 8
           FNAME(25) = 'abscDataType'
           FNAME(26) = 'abscLengthUnitsExponent'
@@ -952,7 +952,7 @@ C         RECORD 8
           FNAME(28) = 'abscTempUnitsExponent'
           FNAME(29) = 'abscAxisLabel'
           FNAME(30) = 'abscAxisUnitLabel'
-
+C
 C         RECORD 9
           FNAME(31) = 'ordNumDataType'
           FNAME(32) = 'ordNumLengthUnitsExponent'
@@ -960,7 +960,7 @@ C         RECORD 9
           FNAME(34) = 'ordNumTempUnitsExponent'
           FNAME(35) = 'ordNumAxisLabel'
           FNAME(36) = 'ordNumAxisUnitLabel'
-
+C
 C         RECORD 10
           FNAME(37) = 'ordDenomDataType'
           FNAME(38) = 'ordDenomLengthUnitsExponent'
@@ -968,7 +968,7 @@ C         RECORD 10
           FNAME(40) = 'ordDenomTempUnitsExponent'
           FNAME(41) = 'ordDenomAxisLabel'
           FNAME(42) = 'ordDenomAxisUnitLabel'
-
+C
 C         RECORD 11
           FNAME(43) = 'zDataType'
           FNAME(44) = 'zLengthUnitsExponent'
@@ -976,25 +976,25 @@ C         RECORD 11
           FNAME(46) = 'zTempUnitsExponent'
           FNAME(47) = 'zAxisLabel'
           FNAME(48) = 'zAxisUnitLabel'
-
+C
           ID_PTR(1) = mxCreateDoubleScalar(DBLE(DATASETNUM)) ! Dataset number
-
+C
         END IF
-
-
+C
+C
         IF (SKIP_DATA < 0.5 .AND. ALLOCATED(XDATA)) THEN
 C         COPY XDATA TO SINGLE OUTPUT MATRIX
           ID_PTR(2) = mxCreateNumericMatrix(NVAL, N1, CID_S, FLAG_R)
           CALL mxCopyReal4ToPtr(XDATA, mxGetSingles(ID_PTR(2)), NVAL)
         END IF
-
+C
 C       RECORD 1-5
         ID_PTR(4) = mxCreateString(ID1)                ! ID Line 1
         ID_PTR(5) = mxCreateString(ID2)                ! ID Line 2
         ID_PTR(6) = mxCreateString(ID3)                ! ID Line 3 (date)
         ID_PTR(7) = mxCreateString(ID4)                ! ID Line 4
         ID_PTR(8) = mxCreateString(ID5)                ! ID Line 5
-
+C
 C       RECORD 6
         ID_PTR(9) =  mxCreateDoubleScalar(DBLE(F61))   ! Function Type
         ID_PTR(10) = mxCreateDoubleScalar(DBLE(F62))   ! Function Identification Number
@@ -1006,7 +1006,7 @@ C       RECORD 6
         ID_PTR(16) = mxCreateString(F68)               ! Reference Entity Name
         ID_PTR(17) = mxCreateDoubleScalar(DBLE(F69))   ! Reference Node
         ID_PTR(18) = mxCreateDoubleScalar(DBLE(F610))  ! Reference Direction
-
+C
 C       RECORD 7
         ID_PTR(19) = mxCreateDoubleScalar(ORD_TYPE) ! Ordinate Data Type
         ID_PTR(20) = mxCreateDoubleScalar(ABSC_N)      ! Number of data pairs for uneven abscissa...
@@ -1014,7 +1014,7 @@ C       RECORD 7
         ID_PTR(22) = mxCreateDoubleScalar(ABSC_0)      ! Abscissa minimum (0 if spacing uneven)
         ID_PTR(23) = mxCreateDoubleScalar(ABSC_D)      ! Abscissa increment (0 if spacing uneven)
         ID_PTR(24) = mxCreateDoubleScalar(DBLE(F76))   ! Z-axis value (0 if unused)
-
+C
 C       RECORD 8
         ID_PTR(25) = mxCreateDoubleScalar(DBLE(F81))   ! Abscissa Data Type
         ID_PTR(26) = mxCreateDoubleScalar(DBLE(F82))   ! Length units exponent
@@ -1022,7 +1022,7 @@ C       RECORD 8
         ID_PTR(28) = mxCreateDoubleScalar(DBLE(F84))   ! Temperature units exponent
         ID_PTR(29) = mxCreateString(F85)               ! Axis label
         ID_PTR(30) = mxCreateString(F86)               ! Axis units label
-
+C
 C       RECORD 9
         ID_PTR(31) = mxCreateDoubleScalar(DBLE(F91))   ! Ordinate Data Type
         ID_PTR(32) = mxCreateDoubleScalar(DBLE(F92))   ! Ordinate length units exponent
@@ -1030,7 +1030,7 @@ C       RECORD 9
         ID_PTR(34) = mxCreateDoubleScalar(DBLE(F94))   ! Ordinate temperature units exponent
         ID_PTR(35) = mxCreateString(F95)               ! Ordinate axis label
         ID_PTR(36) = mxCreateString(F96)               ! Ordinate axis units label
-
+C
 C       RECORD 10
         ID_PTR(37) = mxCreateDoubleScalar(DBLE(F101))  ! Ordinate Denominator Data Type
         ID_PTR(38) = mxCreateDoubleScalar(DBLE(F102))  ! Ordinate Denominator length units exponent
@@ -1038,7 +1038,7 @@ C       RECORD 10
         ID_PTR(40) = mxCreateDoubleScalar(DBLE(F104))  ! Ordinate Denominator temperature units exponent
         ID_PTR(41) = mxCreateString(F105)              ! Ordinate Denominator axis label
         ID_PTR(42) = mxCreateString(F106)              ! Ordinate Denominator axis units label
-
+C
 C       RECORD 11
         ID_PTR(43) = mxCreateDoubleScalar(DBLE(F111))  ! Z-Axis Data Type
         ID_PTR(44) = mxCreateDoubleScalar(DBLE(F112))  ! Z-Axis length units exponent
@@ -1046,79 +1046,79 @@ C       RECORD 11
         ID_PTR(46) = mxCreateDoubleScalar(DBLE(F114))  ! Z-Axis temperature units exponent
         ID_PTR(47) = mxCreateString(F115)              ! Z-Axis label
         ID_PTR(48) = mxCreateString(F116)              ! Z-Axis units label
-
+C
 C       MISC
         ID_PTR(49) = mxCreateString(TRIM(DATATYPE))    ! Function Type
-
-
-
+C
+C
+C
       CASE (-1)
         ! DO NOTHING
-
-
-
+C
+C
+C
       CASE DEFAULT
         DATASET_STR = ''
-
+C
         DO WHILE (DATASET_STR /= '    -1')
           READ(LUN, '(A6)', END=10, ERR=9) DATASET_STR
         END DO
-
-
+C
+C
       END SELECT ! END OF DATA SET NUMBER SWITCH
-
-
+C
+C
       PREV_DATASETNUM = DATASETNUM ! STORE FOR CACHING POSSIBILITES
-
-
+C
+C
 C     CREATE AND COPY STRUCT TO CELL ARRAY, IF DATASET NUMBER IS SUPPORTED
       IF (ANY(DATASETNUM == DATASETS)) THEN
-
+C
         S = 1 ! -> SUCCESS = TRUE
-
+C
         NCELL = NCELL + 1 ! INCREMENT CELL DATA RECORD COUNTER WITH ONE
-
-
+C
+C
 C       CHECK IF STRUCT POINTER ARRAYS NEEDS TO BE RESIZED
         IF (NCELL > MAXREC_LOC) THEN
           MAXREC_LOC = MAXREC_LOC + RECORD_STEP
-
+C
           SELECT CASE (USE_ALLOCATION)
            CASE (0)
             USE_ALLOCATION = 1 ! USE SPTR_1
             ALLOCATE(SPTR_1(MAXREC_LOC)) ! RESIZE SPTR_1
             SPTR_1(1:NCELL-1) = SPTR(:) ! COPY STATICALLY SIZED SPTR CONTENT TO SPTR_1
-
+C
            CASE (1)
             USE_ALLOCATION = 2 ! USE SPTR_2
             ALLOCATE(SPTR_2(MAXREC_LOC)) ! RESIZE SPTR_2
             SPTR_2(1:NCELL-1) = SPTR_1(:) ! COPY SPTR_1 CONTENT TO SPTR_2
             DEALLOCATE(SPTR_1)
-
+C
            CASE (2)
             USE_ALLOCATION = 1 ! USE SPTR_1
             ALLOCATE(SPTR_1(MAXREC_LOC)) ! RESIZE SPTR_1
             SPTR_1(1:NCELL-1) = SPTR_2(:) ! COPY SPTR_2 CONTENT TO SPTR_1
             DEALLOCATE(SPTR_2)
-
+C
           END SELECT
-
+C
         END IF
-
-
+C
+C
         SELECT CASE (USE_ALLOCATION)
           CASE (0)
             SPTR(NCELL)=mxCreateStructMatrix(N1,N1,FNUM,FNAME(1:FNUM))
             DO K = 1,FNUM
               CALL mxSetField(SPTR(NCELL),N1,FNAME(K),ID_PTR(K))
             END DO
-
+C
           CASE (1)
             SPTR_1(NCELL)=mxCreateStructMatrix(N1,N1,FNUM,FNAME(1:FNUM))
             DO K = 1,FNUM
               CALL mxSetField(SPTR_1(NCELL),N1,FNAME(K),ID_PTR(K))
             END DO
-
+C
           CASE (2)
             SPTR_2(NCELL)=mxCreateStructMatrix(N1,N1,FNUM,FNAME(1:FNUM))
             DO K = 1,FNUM

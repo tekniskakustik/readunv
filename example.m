@@ -35,7 +35,7 @@
 % ----------------------------------------------------------------------
 %
 %
-%     [STATE CASENUM] = WRITEUNV(FILEPATH, STRUCT, WRITEMODE, IDX)
+%     [STATE, CASENUM] = WRITEUNV(FILEPATH, STRUCT, WRITEMODE, IDX)
 %
 %
 % --- SYNTAX EXAMPLES --------------------------------------------------
@@ -84,6 +84,8 @@
 %       = -2,  COULD NOT READ FILEPATH
 %       = -3,  UNKNOWN WRITEMODE
 %       = -4,  TOO FEW INPUTS
+%       = -5,  "datasetType" IS INVALID OR MISSING
+%       = -6,  UNSUPPORTED DATASET
 %       = -7,  EXPECTED STRUCT INPUT IS NOT A STRUCTURE
 %       = -9,  FILE LUN IS NOT OPEN
 %       = -10, DATA IS NOT AN ARRAY, OR WRONGLY SIZED
@@ -96,7 +98,7 @@
 %       = -17, "ordNumDataType" IS INVALID
 %       = -18, INVALID "fileType" IN UNV-151
 %       = -19, INVALID "unitsCode" IN UNV-164
-%       = -20, INVALID DIRECTION NUMBER IN UNV-58, VALID RANGE: [-6 6]
+%       = -20, INVALID DIRECTION NUMBER IN UNV-58, VALID RANGE: [-6, 6]
 %       = >1,  ERROR CODE FROM IOSTAT WHEN OPENING FILE
 %
 %     CASENUM:  CASENUM TO USE WHEN STREAMING DATA [DOUBLE]
@@ -117,6 +119,10 @@ end
 [success, datacell] = readunv(['.', filesep, 'testdata', filesep, 'test3.unv']);
 
 
+% try replacing headers with templates
+datacell{2} = createTemplate(151);
+datacell{2} = createTemplate(164);
+
 
 % write all data to new file
 for setCount = 1:length(datacell)
@@ -125,11 +131,12 @@ for setCount = 1:length(datacell)
     else
         writeAction = 0; % append
     end
-    success = writeunv(['.', filesep, 'example1.unv'], datacell{setCount}, writeAction);
-    if ~success
+    [success, errstr] = writeunv(['.', filesep, 'example1.unv'], datacell{setCount}, writeAction);
+    if success ~= 1
         fprintf('1: set %i failed\n', setCount)
         fprintf('1: error code %i\n', success)
-        break
+        disp(errstr)
+        return
     end
 end
 
@@ -139,7 +146,6 @@ end
 C = createTemplate(58);
 C.data = rand(3, 1);
 C.x = 1:3;
-C.evenSpacing = 1;
 C.x0 = 1;
 C.dx = 1;
 success = writeunv('test_template.unv', C, 1);
