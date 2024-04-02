@@ -9,7 +9,7 @@
 % NB: -R2018a flag is required
 if ispc
     
-    mex -R2018a COMPFLAGS='$COMPFLAGS /Qdiag-disable:10448 /warn:unused /O2 /QaxAVX2' readunv.F .\source\read\*.F -output readunv
+    mex -R2018a COMPFLAGS='$COMPFLAGS /Qdiag-disable:10448 /warn:unused /O2' readunv.F .\source\read\*.F -output readunv
     mex -R2018a COMPFLAGS='$COMPFLAGS /Qdiag-disable:10448 /warn:unused /O2 /QaxAVX2 /assume:buffered_io /Qunroll-aggressive' writeunv.F .\source\write\*.F  -output writeunv
 
 elseif ismac
