@@ -9,17 +9,17 @@
 % NB: -R2018a flag is required
 if ispc
     
-    mex -R2018a COMPFLAGS='$COMPFLAGS /Qdiag-disable:10448 /warn:unused /O2 /QaxAVX2 /assume:buffered_io /Qunroll-aggressive' readunv.F .\source\read\*.F -output readunv
+    mex -R2018a COMPFLAGS='$COMPFLAGS /Qdiag-disable:10448 /warn:unused /O2 /QaxAVX2' readunv.F .\source\read\*.F -output readunv
     mex -R2018a COMPFLAGS='$COMPFLAGS /Qdiag-disable:10448 /warn:unused /O2 /QaxAVX2 /assume:buffered_io /Qunroll-aggressive' writeunv.F .\source\write\*.F  -output writeunv
 
 elseif ismac
 
-    mex -R2018a FOPTIMFLAGS='$FOPTIMFLAGS -warn unused -O2 -axAVX2 -assume buffered_io -unroll-aggressive' readunv.F ./source/read/*.F -output readunv
+    mex -R2018a FOPTIMFLAGS='$FOPTIMFLAGS -warn unused -O2' readunv.F ./source/read/*.F -output readunv
     mex -R2018a FOPTIMFLAGS='$FOPTIMFLAGS -warn unused -O2 -axAVX2 -assume buffered_io -unroll-aggressive' writeunv.F ./source/write/*.F  -output writeunv
 
 else % linux
 
-    mex FC='ifort' -R2018a FOPTIMFLAGS='$FOPTIMFLAGS -O2 -i8 -axAVX2 -assume buffered_io -unroll-aggressive' readunv.F ./source/read/*.F -output readunv
+    mex FC='ifort' -R2018a FOPTIMFLAGS='$FOPTIMFLAGS -O2 -i8' readunv.F ./source/read/*.F -output readunv
     mex FC='ifort' -R2018a FOPTIMFLAGS='$FOPTIMFLAGS -O2 -i8 -axAVX2 -assume buffered_io -unroll-aggressive' writeunv.F ./source/write/*.F  -output writeunv
 
 end
