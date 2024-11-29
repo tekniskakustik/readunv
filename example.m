@@ -120,12 +120,12 @@ end
 
 
 % try replacing headers with templates
-datacell{2} = createTemplate(151);
+datacell{1} = createTemplate(151);
 datacell{2} = createTemplate(164);
 
 
 % write all data to new file
-for setCount = 1:length(datacell)
+for setCount = 1:numel(datacell)
     if setCount == 1
         writeAction = 1; % replace (default if nargin == 2)
     else
@@ -139,7 +139,6 @@ for setCount = 1:length(datacell)
         return
     end
 end
-
 
 
 % test to write a file from scratch
