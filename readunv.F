@@ -61,9 +61,6 @@ C     FUNCTIONS
       INTEGER*4 :: mxIsEmpty
       REAL*8    :: mxGetScalar
       INTEGER*4 :: mxClassIDFromClassName
-	  ! INTEGER*4 :: mexPrintf
-	  Character (LEN=16) mxtext
-	  INTEGER*8 :: FTELLI8
       INTEGER*4 :: FSEEK
 C
 C     MEX. DERIVED TYPES
@@ -123,7 +120,8 @@ C     ------------------------------------------------------------------
 C
       REAL*8               :: S ! STATE FLAG
       INTEGER              :: I, K, FNUM, MAXREC_LOC, SKIP_DATA
-	  INTEGER*8            :: LUN, RECPOS, LUN_BIN
+      INTEGER              :: LUN, LUN_BIN
+      INTEGER*8            :: RECPOS
       INTEGER*4            :: VAL_INT, OK, NOK
       INTEGER*1            :: USE_ALLOCATION ! DYNAMIC ALLOCATION FLAG
       LOGICAL              :: VAL_BOOL ! LOGICAL STATUS VALUE, E.G. FOR FUNCTION STATE RETURNS
@@ -141,16 +139,16 @@ C     ------------------------------------------------------------------
 C
 C
 C     INITIALISE (NON-PARAMETRIC) VARIABLES
-      LUN = 0                       ! FILE UNIT NUMBER, IF STILL ZERO AT END OF PROGRAM => LUN NOT PROPERLY ASSIGNED
-      LUN_BIN = 0                   ! FILE UNIT NUMBER, USED FOR BINARY READ (58b)
-      NCELL = 0                     ! CELL COUNTER
-      S = 0                         ! OUTPUT STATE
-      USE_BINARY = .FALSE.          ! DATA IS WRITTEN AS BINARY
-      SKIP_DATA = 0                 ! SKIP READING DATA, DEFAULT IS FALSE (ZERO)
-      MAXREC_LOC = MAXRECORDS       ! MAXIMUM NUMBER OF RECORDS CURRENTLY
-      USE_ALLOCATION = 0            ! USE DYNAMIC ALLOCATION OF OUTPUT CELL ARRAY, DEFAULT IS OFF; IS TRIGGERED WHEN NUMBER OF RECORDS EXCEEDS "MAXRECORDS"
-      PREV_DATASETNUM = 0           ! PREVIOUS DATASETNUM IN LOOP, USED TO MINIMISE UNNECESSARY RE-DEFINITIONS
-      CID_S = mxClassIDFromClassName('single') ! MX FLAG FOR SINGLE PRECISION
+      LUN             = 0                                ! FILE UNIT NUMBER, IF STILL ZERO AT END OF PROGRAM => LUN NOT PROPERLY ASSIGNED
+      LUN_BIN         = 0                                ! FILE UNIT NUMBER, USED FOR BINARY READ (58b)
+      NCELL           = 0                                ! CELL COUNTER
+      S               = 0                                ! OUTPUT STATE
+      USE_BINARY      = .FALSE.                          ! DATA IS WRITTEN AS BINARY
+      SKIP_DATA       = 0                                ! SKIP READING DATA, DEFAULT IS FALSE (ZERO)
+      MAXREC_LOC      = MAXRECORDS                       ! MAXIMUM NUMBER OF RECORDS CURRENTLY
+      USE_ALLOCATION  = 0                                ! USE DYNAMIC ALLOCATION OF OUTPUT CELL ARRAY, DEFAULT IS OFF; IS TRIGGERED WHEN NUMBER OF RECORDS EXCEEDS "MAXRECORDS"
+      PREV_DATASETNUM = 0                                ! PREVIOUS DATASETNUM IN LOOP, USED TO MINIMISE UNNECESSARY RE-DEFINITIONS
+      CID_S           = mxClassIDFromClassName('single') ! MX FLAG FOR SINGLE PRECISION
 C
 C
 C     ------------------------------------------------------------------
@@ -695,20 +693,12 @@ C
      &     FORM     = 'FORMATTED')
 C
 C         MOVE NEW FILE UNIT TO PREVIOUS POSITION
-          VAL_INT = FSEEK(LUN, RECPOS+1, 0)
+          DO WHILE (RECPOS > 2147483647) ! FSEEK HAS A 2^31-1 LIMIT (INTEGER*4)
+            VAL_INT = FSEEK(LUN, 2147483647, 1)
+            RECPOS = RECPOS - 2147483647
+          END DO
+          VAL_INT = FSEEK(LUN, RECPOS+1, 1)
           IF (VAL_INT /= 0) THEN
-			write(mxtext,'(i16)') RECPOS+1
-			CALL mexPrintf('FSEEK_TEST')
-			CALL mexPrintf('\n')
-			CALL mexPrintf(mxtext)
-			write(mxtext,'(i16)') VAL_INT
-			CALL mexPrintf('\n')
-			CALL mexPrintf(mxtext)
-			VAL_INT = FSEEK(LUN, RECPOS+1, 0)
-			RECPOS = FTELLI8(LUN)
-			write(mxtext,'(i16)') RECPOS
-			CALL mexPrintf(mxtext)
-			CALL mexPrintf('\n')
             S = -10
             GO TO 10
           END IF

@@ -125,20 +125,13 @@ datacell{2} = createTemplate(164);
 
 
 % write all data to new file
-idx = 6;
-for setCount = 1:numel(datacell)+1e4
+for setCount = 1:numel(datacell)
     if setCount == 1
         writeAction = 1; % replace (default if nargin == 2)
     else
-        writeAction = 2; % append
+        writeAction = 0; % append
     end
-    if setCount <= numel(datacell)
-        y = datacell{setCount};
-    else
-        y = datacell{end};
-        y.dataType = 'BINARY';
-    end
-    [success, errstr] = writeunv(['.', filesep, 'example1.unv'], y, writeAction, idx);
+    [success, errstr] = writeunv(['.', filesep, 'example1.unv'], datacell{setCount}, writeAction);
     if success ~= 1
         fprintf('1: set %i failed\n', setCount)
         fprintf('1: error code %i\n', success)
@@ -146,7 +139,6 @@ for setCount = 1:numel(datacell)+1e4
         return
     end
 end
-writeunv(); % close all files
 
 
 % test to write a file from scratch
