@@ -120,18 +120,25 @@ end
 
 
 % try replacing headers with templates
-datacell{2} = createTemplate(151);
+datacell{1} = createTemplate(151);
 datacell{2} = createTemplate(164);
 
 
 % write all data to new file
-for setCount = 1:length(datacell)
+idx = 6;
+for setCount = 1:numel(datacell)+1e4
     if setCount == 1
         writeAction = 1; % replace (default if nargin == 2)
     else
-        writeAction = 0; % append
+        writeAction = 2; % append
     end
-    [success, errstr] = writeunv(['.', filesep, 'example1.unv'], datacell{setCount}, writeAction);
+    if setCount <= numel(datacell)
+        y = datacell{setCount};
+    else
+        y = datacell{end};
+        y.dataType = 'BINARY';
+    end
+    [success, errstr] = writeunv(['.', filesep, 'example1.unv'], y, writeAction, idx);
     if success ~= 1
         fprintf('1: set %i failed\n', setCount)
         fprintf('1: error code %i\n', success)
@@ -139,7 +146,7 @@ for setCount = 1:length(datacell)
         return
     end
 end
-
+writeunv(); % close all files
 
 
 % test to write a file from scratch

@@ -61,6 +61,9 @@ C     FUNCTIONS
       INTEGER*4 :: mxIsEmpty
       REAL*8    :: mxGetScalar
       INTEGER*4 :: mxClassIDFromClassName
+	  ! INTEGER*4 :: mexPrintf
+	  Character (LEN=16) mxtext
+	  INTEGER*8 :: FTELLI8
       INTEGER*4 :: FSEEK
 C
 C     MEX. DERIVED TYPES
@@ -119,8 +122,9 @@ C     DATASET 58/58b:
 C     ------------------------------------------------------------------
 C
       REAL*8               :: S ! STATE FLAG
-      INTEGER              :: I, K, FNUM, MAXREC_LOC, SKIP_DATA, RECPOS
-      INTEGER*4            :: VAL_INT, OK, NOK, LUN, LUN_BIN
+      INTEGER              :: I, K, FNUM, MAXREC_LOC, SKIP_DATA
+	  INTEGER*8            :: LUN, RECPOS, LUN_BIN
+      INTEGER*4            :: VAL_INT, OK, NOK
       INTEGER*1            :: USE_ALLOCATION ! DYNAMIC ALLOCATION FLAG
       LOGICAL              :: VAL_BOOL ! LOGICAL STATUS VALUE, E.G. FOR FUNCTION STATE RETURNS
 C
@@ -691,8 +695,20 @@ C
      &     FORM     = 'FORMATTED')
 C
 C         MOVE NEW FILE UNIT TO PREVIOUS POSITION
-          VAL_INT = FSEEK(LUN, RECPOS+1, 1)
+          VAL_INT = FSEEK(LUN, RECPOS+1, 0)
           IF (VAL_INT /= 0) THEN
+			write(mxtext,'(i16)') RECPOS+1
+			CALL mexPrintf('FSEEK_TEST')
+			CALL mexPrintf('\n')
+			CALL mexPrintf(mxtext)
+			write(mxtext,'(i16)') VAL_INT
+			CALL mexPrintf('\n')
+			CALL mexPrintf(mxtext)
+			VAL_INT = FSEEK(LUN, RECPOS+1, 0)
+			RECPOS = FTELLI8(LUN)
+			write(mxtext,'(i16)') RECPOS
+			CALL mexPrintf(mxtext)
+			CALL mexPrintf('\n')
             S = -10
             GO TO 10
           END IF
