@@ -37,7 +37,15 @@ C
 C
       SUBROUTINE mexFunction(nlhs, plhs, nrhs, prhs)
 C
+C
+C --- GET KIND PARAMETER FROM FORTRAN 2008 STANDARD
+      USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY: REAL64, INT64
+C
+C
+C --- VARIABLE DEFINITIONS ---------------------------------------------
       IMPLICIT NONE
+	  INTEGER, PARAMETER :: DP = REAL64
+	  INTEGER, PARAMETER :: IP = INT64
 C
 C     GATEWAY VARIABLES
       mwPointer :: plhs(*), prhs(*)
@@ -142,9 +150,9 @@ C     INITIALISE (NON-PARAMETRIC) VARIABLES
       LUN             = 0                                ! FILE UNIT NUMBER, IF STILL ZERO AT END OF PROGRAM => LUN NOT PROPERLY ASSIGNED
       LUN_BIN         = 0                                ! FILE UNIT NUMBER, USED FOR BINARY READ (58b)
       NCELL           = 0                                ! CELL COUNTER
-      S               = 0                                ! OUTPUT STATE
+      S               = 0.0_DP                           ! OUTPUT STATE
       USE_BINARY      = .FALSE.                          ! DATA IS WRITTEN AS BINARY
-      SKIP_DATA       = 0                                ! SKIP READING DATA, DEFAULT IS FALSE (ZERO)
+      SKIP_DATA       = 0.0_DP                           ! SKIP READING DATA, DEFAULT IS FALSE (ZERO)
       MAXREC_LOC      = MAXRECORDS                       ! MAXIMUM NUMBER OF RECORDS CURRENTLY
       USE_ALLOCATION  = 0                                ! USE DYNAMIC ALLOCATION OF OUTPUT CELL ARRAY, DEFAULT IS OFF; IS TRIGGERED WHEN NUMBER OF RECORDS EXCEEDS "MAXRECORDS"
       PREV_DATASETNUM = 0                                ! PREVIOUS DATASETNUM IN LOOP, USED TO MINIMISE UNNECESSARY RE-DEFINITIONS
@@ -157,20 +165,20 @@ C     ------------------------------------------------------------------
 C
 C     AT LEAST ONE INPUT ARGUMENT (FILEPATH) IS REQUIRED
       IF (nrhs < 1) THEN
-        S = -4
+        S = -4.0_DP
         GO TO 10 ! EXIT
       ELSE IF (nrhs > 1) THEN ! CHECK WHETHER ONLY HEADERS SHOULD BE READ OR NOT, DEFAULT IS FULL READ.
         IF (NOT(mxIsEmpty(prhs(2))) .AND. mxIsDouble(prhs(2))) THEN ! INPUT MUST BE OF KIND DOUBLE
-          SKIP_DATA = DBLE(mxGetScalar(prhs(2))) ! GET SCALAR DOUBLE VALUE (FIRST VALUE IS READ IF MATRIX)
+          SKIP_DATA = mxGetScalar(prhs(2)) ! GET SCALAR DOUBLE VALUE (FIRST VALUE IS READ IF MATRIX)
         ELSE
-          SKIP_DATA = 0 ! READ ALL DATA
+          SKIP_DATA = 0.0_DP ! READ ALL DATA
         END IF
       END IF
 C
 C
 C     CHECK IF TWO OUTPUT ARGUMENTS ARE USED, IF NOT -> ERROR
       IF (nlhs /= 2) THEN
-        S = -7
+        S = -7.0_DP
         GO TO 10 ! EXIT
       END IF
 C
@@ -178,7 +186,7 @@ C
 C     CHECK IF INPUT ARGUMENT IS OF CHAR TYPE
       OK = mxIsChar(prhs(1))
       IF (NOT(OK)) THEN ! CHAR TYPE IS REQUIRED
-        S = -5
+        S = -5.0_DP
         GO TO 10 ! EXIT
       END IF
 C
@@ -186,7 +194,7 @@ C
 C     GET LENGTH OF INPUT STRING
       STRLEN = mxGetN(prhs(1))
       IF (STRLEN < 1) THEN ! EMPTY FILEPATH -> ERROR
-        S = -1
+        S = -1.0_DP
         GO TO 10 ! EXIT
       END IF
 C
@@ -198,7 +206,7 @@ C
 C     COPY INPUT STRING TO FILEPATH
       NOK = mxGetString(prhs(1), FILEPATH, STRLEN)
       IF (NOK /= 0) THEN ! COPYING FAILED
-        S = -2
+        S = -2.0_DP
         GO TO 10
       END IF
 C
@@ -206,7 +214,7 @@ C
 C     CHECK IF FILEPATH EXIST
       INQUIRE(FILE=FILEPATH, EXIST=VAL_BOOL)
       IF (NOT(VAL_BOOL)) THEN
-        S = -3
+        S = -3.0_DP
         GO TO 10
       END IF
 C
@@ -230,7 +238,7 @@ C
 C     CHECK IF FILE OPENING FAILED -> RETURN IOSTAT CODE
       IF (VAL_INT /= 0) THEN
         IF (VAL_INT == 1) THEN ! REMAP IOSTAT ERROR CODE 1 TO -12
-          S = -12
+          S = -12.0_DP
         ELSE
           S = VAL_INT
         END IF
@@ -242,7 +250,7 @@ C     READ FIRST LINE IN FILE
 01    FORMAT(I6)
       READ(LUN, 01, END=10,ERR=9) DATASETNUM
       IF (DATASETNUM /= -1) THEN ! MUST BEGIN WITH -1
-        S = -6
+        S = -6.0_DP
         GO TO 10
       END IF
 C
@@ -370,9 +378,9 @@ C
 C
 C ----- DETERMINE NUMBER OF DATA VALUES, AND ABSCISSA TYPE -------------
         ORD_TYPE = DBLE(F71) ! ORDINATE DATA TYPE NUMBER
-        ISEVEN = DBLE(F73)   ! IS X/ABSCISSA NON-REGULAR (UNEVEN) OR REGULAR (EVEN)
-        ABSC_N = DBLE(F72)   ! NUMBER OF X-VALUES
-        NVAL = INT8(F72)     ! NUMBER OF DATA VALUES
+        ISEVEN   = DBLE(F73)   ! IS X/ABSCISSA NON-REGULAR (UNEVEN) OR REGULAR (EVEN)
+        ABSC_N   = DBLE(F72)   ! NUMBER OF X-VALUES
+        NVAL     = INT8(F72)     ! NUMBER OF DATA VALUES
 C ----------------------------------------------------------------------
 C
 C
@@ -394,9 +402,9 @@ C
           IF (ABSC_D < 1E-3 .AND. F81 == 17) THEN
 C           FOR SMALL DX:S APPLY ROUNDING, WHEN ABSCISSA IS TIME
             IF (ABSC_D < 1E-4) THEN
-              ABSC_D = 2.0_8/KIDNNT(2.0_8/ABSC_D)
+              ABSC_D = 2.0_DP/KIDNNT(2.0_DP/ABSC_D)
             ELSE
-              ABSC_D = 10.0_8/KIDNNT(10.0_8/ABSC_D)
+              ABSC_D = 10.0_DP/KIDNNT(10.0_DP/ABSC_D)
             END IF
           END IF
           IF (SKIP_DATA < 0.5) THEN
@@ -405,8 +413,8 @@ C           FOR SMALL DX:S APPLY ROUNDING, WHEN ABSCISSA IS TIME
             END DO
           END IF
         ELSE
-          ABSC_0 = 0.0_8
-          ABSC_D = 0.0_8
+          ABSC_0 = 0.0_DP
+          ABSC_D = 0.0_DP
           CASENUM = CASENUM + 1 ! IS UNEVEN X-DATA
         END IF
 C
@@ -449,7 +457,7 @@ C
         IF (USE_BINARY) THEN ! BINARY FORMAT
 C
           IF (F05 /= 11) THEN ! 58b FORMAT STIPULATES EXACTLY 11 LINES
-            S = -6 ! ILL-FORMED FILE
+            S = -6.0_DP ! ILL-FORMED FILE
             GO TO 10
           END IF
 C
@@ -474,7 +482,7 @@ C
               ENDIAN_STR = 'IBM'
 C
             CASE DEFAULT
-              S = -6 ! ILL-FORMED HEADER
+              S = -6.0_DP ! ILL-FORMED HEADER
               GO TO 10
 C
           END SELECT
@@ -493,7 +501,7 @@ C
 C
           IF (VAL_INT /= 0) THEN
             IF (VAL_INT == 1) THEN ! REMAP IOSTAT ERROR CODE 1 TO -12
-              S = -12
+              S = -12.0_DP
             ELSE
               S = VAL_INT
             END IF
@@ -503,8 +511,8 @@ C
 C
 C         CREATE SIMPLE SCALAR DATA IF ONLY METADATA IS READ
           IF (SKIP_DATA > 0.5) THEN
-            ID_PTR(2) = mxCreateDoubleScalar(0.0_8) ! CREATE FAKE OUTPUT FOR X/ABSCISSA
-            ID_PTR(3) = mxCreateDoubleScalar(0.0_8) ! CREATE FAKE OUTPUT FOR DATA
+            ID_PTR(2) = mxCreateDoubleScalar(0.0_DP) ! CREATE FAKE OUTPUT FOR X/ABSCISSA
+            ID_PTR(3) = mxCreateDoubleScalar(0.0_DP) ! CREATE FAKE OUTPUT FOR DATA
           END IF
 C
 C         --------------------------------------------------------------
@@ -699,7 +707,7 @@ C         MOVE NEW FILE UNIT TO PREVIOUS POSITION
           END DO
           VAL_INT = FSEEK(LUN, RECPOS+1, 1)
           IF (VAL_INT /= 0) THEN
-            S = -10
+            S = -10.0_DP
             GO TO 10
           END IF
 C
@@ -709,36 +717,36 @@ C
 C
           DATATYPE = 'ASCII'
 C
-          ID_PTR(2) = mxCreateDoubleScalar(0.0_8) ! CREATE FAKE OUTPUT FOR X/ABSCISSA
-          ID_PTR(3) = mxCreateDoubleScalar(0.0_8) ! CREATE FAKE OUTPUT FOR DATA
+          ID_PTR(2) = mxCreateDoubleScalar(0.0_DP) ! CREATE FAKE OUTPUT FOR X/ABSCISSA
+          ID_PTR(3) = mxCreateDoubleScalar(0.0_DP) ! CREATE FAKE OUTPUT FOR DATA
 C
           INQUIRE(LUN, POS=RECPOS)
 C
 C         SKIP DATA
           SELECT CASE (CASENUM)
             CASE (1) ! REAL, SINGLE, EVEN SPACING
-              RECPOS = RECPOS + INT8(NVAL*13.33_8)
+              RECPOS = RECPOS + INT8(NVAL*(40.0_DP/3.0_DP))
 C
             CASE (2)  ! REAL, SINGLE, UNEVEN SPACING
-              RECPOS = RECPOS + INT8(NVAL*2_8*13.33_8)
+              RECPOS = RECPOS + INT8(NVAL*(80.0_DP/3.0_DP))
 C
             CASE (3)  ! COMPLEX, SINGLE, EVEN SPACING
-              RECPOS = RECPOS + INT8(NVAL*2_8*13.33_8)
+              RECPOS = RECPOS + INT8(NVAL*(80.0_DP/3.0_DP))
 C
             CASE (4)  ! COMPLEX, SINGLE, UNEVEN SPACING
-              RECPOS = RECPOS + INT8(NVAL*3_8*13.33_8)
+              RECPOS = RECPOS + INT8(NVAL*(120.0_DP/3.0_DP))
 C
             CASE (5)  ! REAL, DOUBLE, EVEN SPACING
-              RECPOS = RECPOS + INT8(NVAL*20_8)
+              RECPOS = RECPOS + INT8(NVAL*20_IP)
 C
             CASE (6)  ! REAL, DOUBLE, UNEVEN SPACING
-              RECPOS = RECPOS + INT8(NVAL*33.33_8)
+              RECPOS = RECPOS + INT8(NVAL*(100.0_DP/3.0_DP))
 C
             CASE (7)  ! COMPLEX, DOUBLE, EVEN SPACING
-              RECPOS = RECPOS + INT8(NVAL*40_8)
+              RECPOS = RECPOS + INT8(NVAL*40_IP)
 C
             CASE (8)  ! COMPLEX, DOUBLE, UNEVEN SPACING
-              RECPOS = RECPOS + INT8(NVAL*53.33_8)
+              RECPOS = RECPOS + INT8(NVAL*(160.0_DP/3.0_DP))
 C
           END SELECT
 C
@@ -1080,7 +1088,7 @@ C
 C     CREATE AND COPY STRUCT TO CELL ARRAY, IF DATASET NUMBER IS SUPPORTED
       IF (ANY(DATASETNUM == DATASETS)) THEN
 C
-        S = 1 ! -> SUCCESS = TRUE
+        S = 1.0_DP ! -> SUCCESS = TRUE
 C
         NCELL = NCELL + 1 ! INCREMENT CELL DATA RECORD COUNTER WITH ONE
 C
@@ -1151,7 +1159,7 @@ C
 C --- RETURN ARGUMENTS AND CLOSE FILE AND VARIABLES
 C
 C     ERROR EXIT
-9     S = -9
+9     S = -9.0_DP
 C
 10    CONTINUE ! NORMAL EXIT
 C
