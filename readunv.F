@@ -1247,13 +1247,13 @@ C
 C
             CASE (-9)
               plhs(2) = mxCreateString('Error while reading file.')
-C              
+C
             CASE (-10)
-              plhs(2) = mxCreateString('Error when switching to 58b')  
-C              
+              plhs(2) = mxCreateString('Error when switching to 58b')
+C
             CASE (-11)
               plhs(2) = mxCreateString('Some values are outside allowed
-     & bounds.')  
+     & bounds.')
 C
             CASE (-12)
               plhs(2) = mxCreateString('Arithmetic overflow.')
@@ -1263,7 +1263,7 @@ C
 C
           END SELECT
         END IF
-C        
+C
       END IF
 C
 C

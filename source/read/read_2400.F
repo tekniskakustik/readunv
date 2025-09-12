@@ -40,7 +40,7 @@ C     ------------------------------------------------------------------
 
 
       FNUM = 14 ! NUMBER OF FIELDS IN DATASET 2400
-C     IF FNUM > NFIELDS => SEVERE ERROR (NOT CHECKED)      
+C     IF FNUM > NFIELDS => SEVERE ERROR (NOT CHECKED)
 
 
 C     RECORD 1

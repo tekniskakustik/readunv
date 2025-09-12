@@ -30,7 +30,7 @@ C     ------------------------------------------------------------------
 
 
       FNUM = 16 ! NUMBER OF FIELDS IN DATASET 1806
-C     IF FNUM > NFIELDS => SEVERE ERROR (NOT CHECKED)           
+C     IF FNUM > NFIELDS => SEVERE ERROR (NOT CHECKED)
 
 C     RECORD 1
 18061 FORMAT(10A2)

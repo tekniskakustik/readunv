@@ -58,12 +58,12 @@ classdef dataset_58
     properties (SetAccess = private)
         dataFormatType                              % Record 7, Field 1,   "Ordinate Data Type", note: determined by data
         numValues                                   % Record 7, Field 2,   "Number of data pairs for uneven abscissa spacing, or number of data values for even abscissa spacing", note: determined by data
-        evenSpacing                 = []            % Record 7, Field 3,   "Abscissa Spacing", 0 = uneven, 1 = even, note: required!
+        evenSpacing double          = []            % Record 7, Field 3,   "Abscissa Spacing", 0 = uneven, 1 = even, note: required!
     end
 
     methods
         function obj = dataset_58()
-            obj.date = datestr(datenummx(clock));
+            obj.date = datestr(datenummx(clock)); %#ok<CLOCK>
         end
 
         function delete(~)
@@ -84,17 +84,17 @@ classdef dataset_58
                     if isscalar(value)
                         obj.x0 = value(1); %#ok<MCSUP>
                         obj.dx = 1; %#ok<MCSUP>
-                    elseif numel(unique(diff(value))) == 1
-                        % obj.evenSpacing = true; %#ok<MCSUP>
+                    elseif isscalar(unique(diff(value)))
+                        obj.evenSpacing = 1; %#ok<MCSUP>
                         obj.x0 = value(1); %#ok<MCSUP>
                         obj.dx = value(2)-value(1); %#ok<MCSUP>
-                    else                        
+                    else
                         obj.x0 = 0; %#ok<MCSUP>
                         obj.dx = 0; %#ok<MCSUP>
-                        % obj.evenSpacing = false; %#ok<MCSUP>
+                        obj.evenSpacing = 0; %#ok<MCSUP>
                     end
                 else
-                    obj.evenSpacing = true; %#ok<MCSUP>
+                    obj.evenSpacing = 1; %#ok<MCSUP>
                 end
             end
         end
@@ -312,7 +312,7 @@ classdef dataset_58
             else
                 obj.dx = value;
 
-                obj.evenSpacing = value ~= 0; %#ok<MCSUP>
+                obj.evenSpacing = double(value ~= 0); %#ok<MCSUP>
             end
         end
 
@@ -556,7 +556,7 @@ classdef dataset_58
                 obj.zAxisLabel = value(1:min(end, 20));
             end
         end
-        
+
         % zAxisUnitLabel
         function obj = set.zAxisUnitLabel(obj, value)
             if ~ischar(value)

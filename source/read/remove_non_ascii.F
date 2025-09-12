@@ -10,5 +10,4 @@
         END DO
 
       END SUBROUTINE REMOVE_NON_ASCII
-      
-      
+

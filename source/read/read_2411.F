@@ -27,7 +27,7 @@ C
 C
 C     IN/OUT ARGUMENTS
       INTEGER,      INTENT(OUT)               :: FNUM
-      INTEGER*4,    INTENT(IN)                :: LUN, NFIELDS      
+      INTEGER*4,    INTENT(IN)                :: LUN, NFIELDS
       REAL*8,       INTENT(OUT)               :: S
       CHARACTER*32, INTENT(OUT)               :: FNAME(NFIELDS)
       mwPointer,    INTENT(OUT)               :: ID_PTR(NFIELDS)
@@ -155,7 +155,7 @@ C
 C
 C --- RECORD 2
       M = 3
-C     node coordinates in the part coordinate system      
+C     node coordinates in the part coordinate system
       ID_PTR(6) = mxCreateDoubleMatrix(M, N, CXFLAG)
       CALL mxCopyReal8ToPtr(REC_2(:, 1:N), mxGetDoubles(ID_PTR(6)), M*N)
 C

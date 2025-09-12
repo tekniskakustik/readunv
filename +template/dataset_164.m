@@ -15,7 +15,7 @@ classdef dataset_164
         force               = 1     % 2.2, force factor to SI
         temperature         = 1     % 2.3, temperature factor to SI
         temperatureOffset   = 0     % 2.4, temperature offset to SI
-    end    
+    end
 
     methods
         function obj = dataset_164()
@@ -28,7 +28,7 @@ classdef dataset_164
     end
 
     methods % set methods
-        
+
         % unitsCode
         function obj = set.unitsCode(obj, value)
             if ~isnumeric(value) || ~isscalar(value) || value < 1 || value > 9
