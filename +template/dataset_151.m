@@ -21,7 +21,7 @@ classdef dataset_151
         unvProgram              = char.empty()  % 6,    program which created universal file
         fileCreatedDate         = char.empty()  % 7.1,  date universal file written (DD-MMM-YY)
         fileCreatedTime         = char.empty()  % 7.2,  time universal file written (HH:MM:SS)
-    end    
+    end
 
     methods
         function obj = dataset_151()

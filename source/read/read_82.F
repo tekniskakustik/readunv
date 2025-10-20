@@ -10,10 +10,10 @@ C                        Field 1 -    trace line number
 C                        Field 2 -    number of nodes defining trace line
 C                                     (maximum of 250)
 C                        Field 3 -    color
-C 
+C
 C              Record 2: FORMAT(80A1)
 C                        Field 1 -    Identification line
-C 
+C
 C              Record 3: FORMAT(8I10)
 C                        Field 1 -    nodes defining trace line
 C                                =    > 0 draw line to node
@@ -28,7 +28,7 @@ C                        125 nodes.
 C                     5) Supertab only uses the first 40 characters of the
 C                        identification line for a name.
 C                     6) Repeat Datasets for each Trace_Line
-C 
+C
 C ----------------------------------------------------------------------
 C
 C
@@ -69,7 +69,7 @@ C     ------------------------------------------------------------------
 C
 C
       FNUM = 6 ! NUMBER OF FIELDS IN DATASET 82
-C     IF FNUM > NFIELDS => SEVERE ERROR (NOT CHECKED)      
+C     IF FNUM > NFIELDS => SEVERE ERROR (NOT CHECKED)
 C
 C
 C     RECORD 1
@@ -105,7 +105,7 @@ C     RECORD 2
 C
 C     RECORD 3
       FNAME(6) = 'nodes'
-C ----------------------------------------------------------------------      
+C ----------------------------------------------------------------------
 C ----------------------------------------------------------------------
 C
 C
@@ -119,9 +119,9 @@ C
 C --- RECORD 1
 C     Model UID
       ID_PTR(2) = mxCreateDoubleScalar(DBLE(REC_1(1)))
-C     Entity type      
+C     Entity type
       ID_PTR(3) = mxCreateDoubleScalar(DBLE(REC_1(2)))
-C     Entity subtype      
+C     Entity subtype
       ID_PTR(4) = mxCreateDoubleScalar(DBLE(REC_1(3)))
 C
 C

@@ -31,7 +31,7 @@ C     ------------------------------------------------------------------
 C
 C
 C     NUMBER OF FIELDS IN DATASET 151, IF FNUM > NFIELDS => SEVERE ERROR (NOT CHECKED)
-      FNUM = 14 
+      FNUM = 14
 C
 C
 C --- READ DATA --------------------------------------------------------
@@ -99,7 +99,7 @@ C
 C     DATASET NUMBER
       ID_PTR(1)  = mxCreateDoubleScalar(DATASETNUM)
 C
-C     RECORDS 1-3      
+C     RECORDS 1-3
       ID_PTR(2)  = mxCreateString(ID1)                 ! ID Line 1, model file name
       ID_PTR(3)  = mxCreateString(ID2)                 ! ID Line 2, model file description
       ID_PTR(4)  = mxCreateString(ID3)                 ! ID Line 3, program which created DB
@@ -134,7 +134,7 @@ C
 C
 C
       END SUBROUTINE
-C      
+C
 C     ------------------------------------------------------------------
 C     ------------------------------------------------------------------
 C
