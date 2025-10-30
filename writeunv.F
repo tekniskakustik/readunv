@@ -899,23 +899,23 @@ C       1.2
         IF (NOT(ISVALID_CHAR(PTR))) THEN
           SELECT CASE (DS164F11)
             CASE (1)
-              DS164F12 = 'Meter (newton)'
+              DS164F12 = 'SI: Meter (N)'
             CASE (2)
-              DS164F12 = 'Foot (pound f)'
+              DS164F12 = 'BG: Foot (lbf)'
             CASE (3)
-              DS164F12 = 'Meter (kilogram f)'
+              DS164F12 = 'MG: Meter (kgf)'
             CASE (4)
-              DS164F12 = 'Foot (poundal)'
+              DS164F12 = 'BA: Foot (pdl)'
             CASE (5)
-              DS164F12 = 'mm (milli newton)'
+              DS164F12 = 'MM: mm (mN)'
             CASE (6)
-              DS164F12 = 'cm (centi newton)'
+              DS164F12 = 'CM: cm (cN)'
             CASE (7)
-              DS164F12 = 'Inch (pound f)'
+              DS164F12 = 'IN: Inch (lbf)'
             CASE (8)
-              DS164F12 = 'mm (kilogram f)'
+              DS164F12 = 'GM: mm (kgf)'
             CASE (9)
-              DS164F12 = 'USER_DEFINED'
+              DS164F12 = 'US: USER_DEFINED'
           END SELECT
         ELSE
           NOK = mxGetString(PTR, DS164F12, 20)
