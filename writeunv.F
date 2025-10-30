@@ -737,10 +737,10 @@ C
 C       RECORD 3, ID LINE 3, program which created DB
         PTR = GETPTR(prhs(2), ISSTRUCT, 'databaseProgram')
         IF (NOT(ISVALID_CHAR(PTR))) THEN
-          ID3 = 'WHTA WRITEUNV'
+          ID3 = 'WRITEUNV BY NVH GROUP'
         ELSE
           NOK = mxGetString(PTR, ID3, 80)
-          IF (ADJUSTL(ID3) == ' ') ID3 = 'WHTA WRITEUNV'
+          IF (ADJUSTL(ID3) == ' ') ID3 = 'WRITEUNV BY NVH GROUP'
         END IF
 C
 C       RECORD 4
@@ -807,10 +807,10 @@ C
 C       RECORD 6, ID LINE 6, program which created unv-file
         PTR = GETPTR(prhs(2), ISSTRUCT, 'unvProgram')
         IF (NOT(ISVALID_CHAR(PTR))) THEN
-          ID4 = 'WHTA WRITEUNV'
+          ID4 = 'WRITEUNV BY NVH GROUP'
         ELSE
           NOK = mxGetString(PTR, ID4, 80)
-          IF (ADJUSTL(ID3) == ' ') ID4 = 'WHTA WRITEUNV'
+          IF (ADJUSTL(ID3) == ' ') ID4 = 'WRITEUNV BY NVH GROUP'
         END IF
 C
 C       RECORD 7

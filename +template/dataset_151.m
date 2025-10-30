@@ -25,7 +25,7 @@ classdef dataset_151
 
     methods
         function obj = dataset_151()
-            t = datenummx(clock);
+            t = datenummx(clock); %#ok<CLOCK>
             current_date = datestr(t, 'DD-mmm-YY');
             current_time = datestr(t, 13);
 
