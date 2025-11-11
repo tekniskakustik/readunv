@@ -130,17 +130,17 @@ C
       REAL*4    :: F74, F75, F76
       REAL*8    :: S
       REAL*8    :: DS164F21, DS164F22, DS164F23, DS164F24
-      INTEGER*1, SAVE :: REMPTS(MAXIDX) = 0
+      INTEGER*1, SAVE :: REMPTS(MAXIDX)   = 0
       INTEGER*1, SAVE :: REC0BYTE(MAXIDX) = 0
-      INTEGER*2, SAVE :: LUN(MAXIDX) = 0
-      INTEGER*8, SAVE :: REC7POS(MAXIDX) = 0
-      INTEGER*8, SAVE :: REC0POS(MAXIDX) = 0
-      INTEGER*8, SAVE :: NUMPTS(MAXIDX) = 0
-      REAL*4, DIMENSION(:), ALLOCATABLE     :: XDATA
-      REAL*8, DIMENSION(:), ALLOCATABLE     :: XDATA_D
-      REAL*4, DIMENSION(:), ALLOCATABLE     :: Y_RS
-      REAL*8, DIMENSION(:), ALLOCATABLE     :: Y_RD
-      COMPLEX*8, DIMENSION(:), ALLOCATABLE  :: Y_CS
+      INTEGER*2, SAVE :: LUN(MAXIDX)      = 0
+      INTEGER*8, SAVE :: REC7POS(MAXIDX)  = 0
+      INTEGER*8, SAVE :: REC0POS(MAXIDX)  = 0
+      INTEGER*8, SAVE :: NUMPTS(MAXIDX)   = 0
+      REAL*4,     DIMENSION(:), ALLOCATABLE :: XDATA
+      REAL*8,     DIMENSION(:), ALLOCATABLE :: XDATA_D
+      REAL*4,     DIMENSION(:), ALLOCATABLE :: Y_RS
+      REAL*8,     DIMENSION(:), ALLOCATABLE :: Y_RD
+      COMPLEX*8,  DIMENSION(:), ALLOCATABLE :: Y_CS
       COMPLEX*16, DIMENSION(:), ALLOCATABLE :: Y_CD
       CHARACTER(LEN=:), ALLOCATABLE         :: FILEPATH
       CHARACTER(LEN=1)   :: F02
@@ -348,8 +348,10 @@ C
               GO TO 10
             END IF
 C
-C           FINISH LAST LINE
-            WRITE(LUN(LIDX),'(1X)',ERR=9)
+C           FINISH LAST LINE, IF NOT BINARY
+            IF (REC0POS(LIDX) == 0) THEN
+              WRITE(LUN(LIDX),'(1X)',ERR=9)
+            END IF
 C
 C           WRITE UNV TERMINATOR, -1
             WRITE(LUN(LIDX),'(I6)') -1
@@ -590,7 +592,7 @@ C
 C               WRITE 1:END-1 COMPLETE LINES, WITH ADVANCE
                 IF (STEP > 0) THEN
                   WRITE(LUN(LIDX), 1005, ERR=9, ADVANCE='YES')
-     &            (Y_RD(I+N), I = 1,STEP)
+     &              (Y_RD(I+N), I = 1,STEP)
                 END IF
 C
                 N = N + STEP
@@ -1615,35 +1617,36 @@ C
            CASE (1) ! REAL SINGLE DATA, EVEN X-DATA
             IF (NOT(USE_BINARY)) THEN
 1001          FORMAT(6ES13.5)
-              WRITE(LUN(LIDX),1001,ERR=9) (Y_RS(I), I=1,NVAL)
+              WRITE(LUN(LIDX), 1001,ERR=9) (Y_RS(I), I=1,NVAL)
             ELSE
-              WRITE(LUN(LIDX),'(<NVAL>A4)',ERR=9) (Y_RS(I), I=1,NVAL)
+              WRITE(LUN(LIDX),'(<NVAL>A4)', ERR=9, ADVANCE='NO') 
+     &          (Y_RS(I), I=1,NVAL)
             END IF
 C
            CASE (2) ! REAL SINGLE DATA, UNEVEN X-DATA
             IF (NOT(USE_BINARY)) THEN
 1002          FORMAT(6ES13.5)
-              WRITE(LUN(LIDX),1002,ERR=9) (XDATA(I), Y_RS(I), I=1,NVAL)
+              WRITE(LUN(LIDX), 1002,ERR=9) (XDATA(I), Y_RS(I), I=1,NVAL)
             ELSE
-              WRITE(LUN(LIDX),'(<NVAL>(A4,A4))',ERR=9)
+              WRITE(LUN(LIDX),'(<NVAL>(A4,A4))', ERR=9, ADVANCE='NO')
      &          (XDATA(I), Y_RS(I), I=1,NVAL)
             END IF
 C
            CASE (3) ! COMPLEX SINGLE DATA, EVEN X-DATA
             IF (NOT(USE_BINARY)) THEN
 1003          FORMAT(6ES13.5)
-              WRITE(LUN(LIDX),1003,ERR=9) (Y_CS(I), I=1,NVAL)
+              WRITE(LUN(LIDX), 1003,ERR=9) (Y_CS(I), I=1,NVAL)
             ELSE
-              WRITE(LUN(LIDX),'(<NVAL>(A4,A4))',ERR=9)
+              WRITE(LUN(LIDX),'(<NVAL>(A4,A4))', ERR=9, ADVANCE='NO')
      &          (Y_CS(I), I=1,NVAL)
             END IF
 C
            CASE (4) ! COMPLEX SINGLE DATA, UNEVEN X-DATA
             IF (NOT(USE_BINARY)) THEN
 1004          FORMAT(6ES13.5)
-              WRITE(LUN(LIDX),1004,ERR=9) (XDATA(I), Y_CS(I), I=1,NVAL)
+              WRITE(LUN(LIDX), 1004,ERR=9) (XDATA(I), Y_CS(I), I=1,NVAL)
             ELSE
-              WRITE(LUN(LIDX),'(<NVAL>(A4,A4,A4))',ERR=9)
+              WRITE(LUN(LIDX),'(<NVAL>(A4,A4,A4))', ERR=9, ADVANCE='NO')
      &          (XDATA(I), Y_CS(I), I=1,NVAL)
             END IF
 C
@@ -1652,33 +1655,34 @@ C
 1005          FORMAT(4ES20.12)
               WRITE(LUN(LIDX), 1005, ERR=9) (Y_RD(I), I=1,NVAL)
             ELSE
-              WRITE(LUN(LIDX),'(<NVAL>A8)',ERR=9) (Y_RD(I), I=1,NVAL)
+              WRITE(LUN(LIDX),'(<NVAL>A8)', ERR=9, ADVANCE='NO')
+     &          (Y_RD(I), I=1,NVAL)
             END IF
 C
            CASE (6) ! REAL DOUBLE DATA, UNEVEN X-DATA
             IF (NOT(USE_BINARY)) THEN
 1006          FORMAT(2(ES13.5, ES20.12))
-              WRITE(LUN(LIDX),1006,ERR=9) (XDATA(I), Y_RD(I), I=1,NVAL)
+              WRITE(LUN(LIDX), 1006,ERR=9) (XDATA(I), Y_RD(I), I=1,NVAL)
             ELSE
-              WRITE(LUN(LIDX),'(<NVAL>(A4, A8))',ERR=9)
+              WRITE(LUN(LIDX),'(<NVAL>(A4, A8))', ERR=9, ADVANCE='NO')
      &          (XDATA(I), Y_RD(I), I=1,NVAL)
             END IF
 C
            CASE (7) ! COMPLEX DOUBLE DATA, EVEN X-DATA
             IF (NOT(USE_BINARY)) THEN
 1007          FORMAT(4ES20.12)
-              WRITE(LUN(LIDX),1007,ERR=9) (Y_CD(I), I=1,NVAL)
+              WRITE(LUN(LIDX), 1007,ERR=9) (Y_CD(I), I=1,NVAL)
             ELSE
-              WRITE(LUN(LIDX),'(<NVAL>(A8,A8))',ERR=9)
+              WRITE(LUN(LIDX),'(<NVAL>(A8,A8))', ERR=9, ADVANCE='NO')
      &         (Y_CD(I), I=1,NVAL)
             END IF
 C
            CASE (8) ! COMPLEX DOUBLE DATA, UNEVEN X-DATA
             IF (NOT(USE_BINARY)) THEN
 1008          FORMAT(ES13.5, 2ES20.12)
-              WRITE(LUN(LIDX),1008,ERR=9) (XDATA(I), Y_CD(I), I=1,NVAL)
+              WRITE(LUN(LIDX), 1008,ERR=9) (XDATA(I), Y_CD(I), I=1,NVAL)
             ELSE
-              WRITE(LUN(LIDX),'(<NVAL>(A4,A8,A8))',ERR=9)
+              WRITE(LUN(LIDX),'(<NVAL>(A4,A8,A8))', ERR=9, ADVANCE='NO')
      &          (XDATA(I), Y_CD(I), I=1,NVAL)
             END IF
 C
