@@ -44,8 +44,8 @@ C
 C
 C --- VARIABLE DEFINITIONS ---------------------------------------------
       IMPLICIT NONE
-	  INTEGER, PARAMETER :: DP = REAL64
-	  INTEGER, PARAMETER :: IP = INT64
+      INTEGER, PARAMETER :: DP = REAL64
+      INTEGER, PARAMETER :: IP = INT64
 C
 C     GATEWAY VARIABLES
       mwPointer :: plhs(*), prhs(*)
@@ -72,13 +72,13 @@ C     FUNCTIONS
       INTEGER*4 :: FSEEK
 C
 C     MEX. DERIVED TYPES
-      mwSize                               :: STRLEN, NVAL, KMW, NCELL
-      mwPointer                            :: CELL_PTR, YPTR
       INTEGER*4                            :: CID_S
       INTEGER*4, PARAMETER                 :: FLAG_R = 0
       INTEGER*4, PARAMETER                 :: FLAG_C = 1
-      mwPointer, DIMENSION(:), ALLOCATABLE :: SPTR_1, SPTR_2 ! USE WHEN NUM. OF DATA RECORDS > MAXRECORDS
+      mwSize                               :: STRLEN, NVAL, KMW, NCELL
       mwSize, PARAMETER                    :: N1 = 1
+      mwPointer                            :: CELL_PTR, YPTR
+      mwPointer, DIMENSION(:), ALLOCATABLE :: SPTR_1, SPTR_2 ! USE WHEN NUM. OF DATA RECORDS > MAXRECORDS
 C
 C     DATABLOCK RELATED VARIABLES
       INTEGER*4, PARAMETER :: MAXRECORDS  = 4096
@@ -378,9 +378,9 @@ C
 C
 C ----- DETERMINE NUMBER OF DATA VALUES, AND ABSCISSA TYPE -------------
         ORD_TYPE = DBLE(F71) ! ORDINATE DATA TYPE NUMBER
-        ISEVEN   = DBLE(F73)   ! IS X/ABSCISSA NON-REGULAR (UNEVEN) OR REGULAR (EVEN)
-        ABSC_N   = DBLE(F72)   ! NUMBER OF X-VALUES
-        NVAL     = INT8(F72)     ! NUMBER OF DATA VALUES
+        ISEVEN   = DBLE(F73) ! IS X/ABSCISSA NON-REGULAR (UNEVEN) OR REGULAR (EVEN)
+        ABSC_N   = DBLE(F72) ! NUMBER OF X-VALUES
+        NVAL     = INT8(F72) ! NUMBER OF DATA VALUES
 C ----------------------------------------------------------------------
 C
 C
@@ -427,30 +427,48 @@ C
         END IF
 C
 C
-C       FIX TEXT ALIGNMENT
-        ID1 = ADJUSTL(ID1)
-        ID2 = ADJUSTL(ID2)
-        ID3 = ADJUSTL(ID3)
-        ID4 = ADJUSTL(ID4)
-        ID5 = ADJUSTL(ID5)
 C
+C ----- FIX TEXT ALIGNMENT & NON-ASCII CHARACTERS ----------------------
+        ID1 = ADJUSTL(ID1)
         CALL REMOVE_NON_ASCII(ID1, LEN_TRIM(ID1))
+C
+        ID2 = ADJUSTL(ID2)
         CALL REMOVE_NON_ASCII(ID2, LEN_TRIM(ID2))
+C
+        ID3 = ADJUSTL(ID3)
         CALL REMOVE_NON_ASCII(ID3, LEN_TRIM(ID3))
+C
+        ID4 = ADJUSTL(ID4)
         CALL REMOVE_NON_ASCII(ID4, LEN_TRIM(ID4))
+C
+        ID5 = ADJUSTL(ID5)
         CALL REMOVE_NON_ASCII(ID5, LEN_TRIM(ID5))
 C
-        F65 =  ADJUSTL(F65)
-        F68 =  ADJUSTL(F68)
-        F85 =  ADJUSTL(F85)
-        F86 =  ADJUSTL(F86)
-        F95 =  ADJUSTL(F95)
-        F86 =  ADJUSTL(F86)
-        F96 =  ADJUSTL(F96)
+        F65 = ADJUSTL(F65)
+        F68 = ADJUSTL(F68)
+        CALL REMOVE_NON_ASCII(F65, LEN_TRIM(F65))
+        CALL REMOVE_NON_ASCII(F68, LEN_TRIM(F68))
+C
+        F85 = ADJUSTL(F85)
+        F86 = ADJUSTL(F86)
+        CALL REMOVE_NON_ASCII(F85, LEN_TRIM(F85))
+        CALL REMOVE_NON_ASCII(F86, LEN_TRIM(F86))
+C
+        F95 = ADJUSTL(F95)
+        F96 = ADJUSTL(F96)
+        CALL REMOVE_NON_ASCII(F95, LEN_TRIM(F95))
+        CALL REMOVE_NON_ASCII(F96, LEN_TRIM(F96))
+C
         F105 = ADJUSTL(F105)
         F106 = ADJUSTL(F106)
+        CALL REMOVE_NON_ASCII(F105, LEN_TRIM(F105))
+        CALL REMOVE_NON_ASCII(F106, LEN_TRIM(F106))
+C
         F115 = ADJUSTL(F115)
         F116 = ADJUSTL(F116)
+        CALL REMOVE_NON_ASCII(F115, LEN_TRIM(F115))
+        CALL REMOVE_NON_ASCII(F116, LEN_TRIM(F116))
+C ----------------------------------------------------------------------
 C
 C
 C
@@ -1168,12 +1186,12 @@ C
 C
 C     DEALLOCATE ALLOCATED VARIABLES
       IF (ALLOCATED(FILEPATH)) DEALLOCATE(FILEPATH)
-      IF (ALLOCATED(XDATA)) DEALLOCATE(XDATA)
-      IF (ALLOCATED(Y_RS)) DEALLOCATE(Y_RS)
-      IF (ALLOCATED(Y_RD)) DEALLOCATE(Y_RD)
-      IF (ALLOCATED(Y_CS)) DEALLOCATE(Y_CS)
-      IF (ALLOCATED(Y_CD)) DEALLOCATE(Y_CD)
-      IF (ALLOCATED(Y_CD)) DEALLOCATE(Y_CD)
+      IF (ALLOCATED(XDATA))    DEALLOCATE(XDATA)
+      IF (ALLOCATED(Y_RS))     DEALLOCATE(Y_RS)
+      IF (ALLOCATED(Y_RD))     DEALLOCATE(Y_RD)
+      IF (ALLOCATED(Y_CS))     DEALLOCATE(Y_CS)
+      IF (ALLOCATED(Y_CD))     DEALLOCATE(Y_CD)
+      IF (ALLOCATED(Y_CD))     DEALLOCATE(Y_CD)
 C
 C
 C     IF LUN HAVE BEEN INITIALISED

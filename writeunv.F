@@ -1619,7 +1619,7 @@ C
 1001          FORMAT(6ES13.5)
               WRITE(LUN(LIDX), 1001,ERR=9) (Y_RS(I), I=1,NVAL)
             ELSE
-              WRITE(LUN(LIDX),'(<NVAL>A4)', ERR=9, ADVANCE='NO') 
+              WRITE(LUN(LIDX),'(<NVAL>A4)', ERR=9, ADVANCE='NO')
      &          (Y_RS(I), I=1,NVAL)
             END IF
 C

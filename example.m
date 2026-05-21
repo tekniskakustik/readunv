@@ -125,13 +125,14 @@ datacell{2} = createTemplate(164);
 
 
 % write all data to new file
+filepath = 'example1.unv';
 for setCount = 1:numel(datacell)
     if setCount == 1
         writeAction = 1; % replace (default if nargin == 2)
     else
         writeAction = 0; % append
     end
-    [success, errstr] = writeunv(['.', filesep, 'example1.unv'], datacell{setCount}, writeAction);
+    [success, errstr] = writeunv(filepath, datacell{setCount}, writeAction);
     if success ~= 1
         fprintf('1: set %i failed\n', setCount)
         fprintf('1: error code %i\n', success)
@@ -139,28 +140,21 @@ for setCount = 1:numel(datacell)
         return
     end
 end
-
-
-% test to write a file from scratch
-C = createTemplate(58);
-C.data = rand(3, 1);
-C.x = 1:3;
-C.x0 = 1;
-C.dx = 1;
-success = writeunv('test_template.unv', C, 1);
+delete(filepath)
 
 
 
 % write all data to new file, but keep file open between calls
 idx = 7; % index number to use between calls, in order to keep multiple files open simultaneously, any number between 1 and 512 (MAXIDX)
          % include idx to keep file open
+filepath = 'example2.unv';
 for setCount = 1:length(datacell)
     if setCount == 1
         writeAction = 1; % replace file on first call
     else
         writeAction = 2; % add to open file
     end
-    [success, errstr] = writeunv(['.', filesep, 'example2.unv'], datacell{setCount}, writeAction, idx);
+    [success, errstr] = writeunv(filepath, datacell{setCount}, writeAction, idx);
     if success ~= 1
         fprintf('2: set %i failed\n', setCount)
         fprintf('2: error code %i\n', success)
@@ -169,18 +163,20 @@ for setCount = 1:length(datacell)
     end
 end
 writeunv(); % close all files
+delete(filepath)
+
 
 fprintf('\n')
+
 
 % single-precision streaming
 disp('ascii streaming (single):')
 fprintf('%12s %20s %20s \n', 'step size', 'max. error', 'num. lines')
+filepath = 'example3.unv';
+idx = 5; % index number to use between calls, in order to keep multiple files open simultaneously, any number between 1 and 512 (MAXIDX)
 for stp = 1:42 % try streaming with different step sizes
-
     % write header data to new file, but keep file open between calls
-    % add data (58) from one set in chunks (streaming) and terminate when done
-    idx = 5; % index number to use between calls, in order to keep multiple files open simultaneously, any number between 1 and 512 (MAXIDX)
-    filepath = ['.', filesep, 'example3.unv'];
+    % add data (58) from one set in chunks (streaming) and terminate when done   
     writeunv(filepath, datacell{1}, 1, idx); % 151 header
     writeunv([], datacell{2}, 2, idx); % 164 header
     S = datacell{3};
@@ -216,18 +212,20 @@ for stp = 1:42 % try streaming with different step sizes
     end
 
 end
+delete(filepath)
+
 
 fprintf('\n')
+
 
 % double-precision streaming
 disp('ascii streaming (double):')
 fprintf('%12s %20s %20s \n', 'step size', 'max. error', 'num. lines')
+idx = 5; % index number to use between calls, in order to keep multiple files open simultaneously, any number between 1 and 512 (MAXIDX)
+filepath = 'example4.unv';
 for stp = 1:21 % try streaming with different step sizes
-
     % write header data to new file, but keep file open between calls
     % add data (58) from one set in chunks (streaming) and terminate when done
-    idx = 5; % index number to use between calls, in order to keep multiple files open simultaneously, any number between 1 and 512 (MAXIDX)
-    filepath = ['.', filesep, 'example4.unv'];
     writeunv(filepath, datacell{1}, 1, idx); % 151 header
     writeunv([], datacell{2}, 2, idx); % 164 header
     S = datacell{3};
@@ -262,17 +260,19 @@ for stp = 1:21 % try streaming with different step sizes
     else
         disp([int2str(stp), ' ', int2str(numLines), ' ascii stream failed'])
     end
-
 end
+delete(filepath)
+
 
 fprintf('\n')
+
 
 % single-precision streaming, binary
 disp('binary streaming (single):')
 fprintf('%12s %20s \n', 'step size', 'max. error')
-for stp = 1:42 % try streaming with different step sizes
-    idx = 5; % index number to use between calls, in order to keep multiple files open simultaneously, any number between 1 and 512 (MAXIDX)
-    filepath = ['.', filesep, 'example5.unv'];
+idx = 5; % index number to use between calls, in order to keep multiple files open simultaneously, any number between 1 and 512 (MAXIDX)
+filepath = 'example5.unv';
+for stp = 1:42 % try streaming with different step sizes    
     writeunv(filepath, datacell{1}, 1, idx); % 151 header
     writeunv([], datacell{2}, 2, idx); % 164 header
     S = datacell{3};
@@ -299,15 +299,18 @@ for stp = 1:42 % try streaming with different step sizes
         disp([int2str(stp), 'binary stream failed'])
     end
 end
+delete(filepath)
+
 
 fprintf('\n')
+
 
 % double-precision streaming, binary
 disp('binary streaming (double):')
 fprintf('%12s %20s \n', 'step size', 'max. error')
-for stp = 1:21 % try streaming with different step sizes
-    idx = 5; % index number to use between calls, in order to keep multiple files open simultaneously, any number between 1 and 512 (MAXIDX)
-    filepath = ['.', filesep, 'example6.unv'];
+idx = 5; % index number to use between calls, in order to keep multiple files open simultaneously, any number between 1 and 512 (MAXIDX)
+filepath = 'example6.unv';
+for stp = 1:21 % try streaming with different step sizes    
     writeunv(filepath, datacell{1}, 1, idx); % 151 header
     writeunv([], datacell{2}, 2, idx); % 164 header
     S = datacell{3};
@@ -334,5 +337,24 @@ for stp = 1:21 % try streaming with different step sizes
         disp([int2str(stp), ' binary stream failed'])
     end
 end
+delete(filepath)
+
+
+
+% test to write a file from scratch
+C = createTemplate(58);
+C.data = rand(3, 1);
+C.x = 1:3;
+C.x0 = 1;
+C.dx = 1;
+filepath = 'test_template.unv';
+success = writeunv(filepath, C, 1);
+if success ~= 1
+    fprintf('7: failed\n')
+    fprintf('7: error code %i\n', success)
+    disp(errstr)
+    return
+end
+delete(filepath)
 
 
