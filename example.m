@@ -58,6 +58,9 @@
 %       WRITEUNV(-1, DATA, 3, IDX)
 %         TERMINATE FILE <IDX>, AND WRITE NUMBER OF VALUES INTO HEADER, DATA IS IGNORED
 %
+%       WRITEUNV(IDX)
+%         CLOSE OPEN FILE, <IDX>
+%
 %       WRITEUNV()
 %         CLOSE ALL OPEN FILES AND ZERO LUN/FILEHANDLES
 %
@@ -83,7 +86,7 @@
 %       = -1,  ERROR WRITING FIELDS/DATA
 %       = -2,  COULD NOT READ FILEPATH
 %       = -3,  UNKNOWN WRITEMODE
-%       = -4,  TOO FEW INPUTS
+%       = -4,  TOO FEW INPUTS, OR FILE LUN ARGUMENT IS INVALID
 %       = -5,  "datasetType" IS INVALID OR MISSING
 %       = -6,  UNSUPPORTED DATASET
 %       = -7,  EXPECTED STRUCT INPUT IS NOT A STRUCTURE
@@ -145,7 +148,7 @@ delete(filepath)
 
 
 % write all data to new file, but keep file open between calls
-idx = 7; % index number to use between calls, in order to keep multiple files open simultaneously, any number between 1 and 512 (MAXIDX)
+idx = randi([1, 512], 1); % index number to use between calls, in order to keep multiple files open simultaneously, any number between 1 and 512 (MAXIDX)
          % include idx to keep file open
 filepath = 'example2.unv';
 for setCount = 1:length(datacell)
@@ -162,7 +165,13 @@ for setCount = 1:length(datacell)
         break
     end
 end
-writeunv(); % close all files
+[success, errstr] = writeunv(idx); % close <idx> file
+if success ~= 1
+    fprintf('1: set %i failed\n', setCount)
+    fprintf('1: error code %i\n', success)
+    disp(errstr)
+    return
+end
 delete(filepath)
 
 
@@ -358,3 +367,9 @@ end
 delete(filepath)
 
 
+clear data
+clear datacell
+clear filepath
+clear S
+clear textdata
+clear y

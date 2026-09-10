@@ -28,6 +28,9 @@ C
 C       WRITEUNV(-1, DATA, 3, IDX)
 C         TERMINATE FILE <IDX>, AND WRITE NUMBER OF VALUES INTO HEADER, DATA IS IGNORED
 C
+C       WRITEUNV(IDX)
+C         CLOSE OPEN FILE, <IDX>
+C
 C       WRITEUNV()
 C         CLOSE ALL OPEN FILES AND ZERO LUN/FILEHANDLES
 C
@@ -53,7 +56,7 @@ C       =  0,  UNKNOWN ERROR
 C       = -1,  ERROR WRITING FIELDS/DATA
 C       = -2,  COULD NOT READ FILEPATH
 C       = -3,  UNKNOWN WRITEMODE
-C       = -4,  TOO FEW INPUTS
+C       = -4,  TOO FEW INPUTS, OR FILE LUN ARGUMENT IS INVALID
 C       = -5,  "datasetType" IS INVALID OR MISSING
 C       = -6,  UNSUPPORTED DATASET
 C       = -7,  EXPECTED STRUCT INPUT IS NOT A STRUCTURE
@@ -189,8 +192,25 @@ C ----------------------------------------------------------------------
 C
         GO TO 10 ! GO TO END SECTION
 C
-      ELSEIF (nrhs < 2) THEN ! TOO FEW INPUTS
-        S = -4.0
+      ELSEIF (nrhs < 2) THEN ! SINGLE SCALAR CALL, IF NOT SCALAR -> ERROR
+        NVAL = mxGetNumberOfElements(prhs(1))
+        IF (NVAL /= 1) THEN
+          S = -4.0
+          GO TO 10 ! GO TO END SECTION
+        END IF
+        LIDX = mxGetScalar(prhs(1))
+        IF (LIDX > 0 .AND. LIDX <= MAXIDX) THEN
+          INQUIRE(UNIT=LUN(LIDX), OPENED=OK)
+          IF (NOT(OK)) THEN
+            S = -9.0
+          ELSE
+            CLOSE(LUN(LIDX), STATUS='KEEP')
+            LUN(LIDX) = 0
+            S = 1.0
+          END IF
+        ELSE
+          S = -4.0
+        END IF
 C
         GO TO 10 ! GO TO END SECTION
 C

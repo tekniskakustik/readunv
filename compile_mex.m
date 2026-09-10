@@ -1,8 +1,8 @@
 
 
 % Tested with:
-% Windows: Matlab R2024b update 9, Intel Fortran Compiler (ifort) version 2021.13.1, Visual Studio 2022 (17.14.32) Windows 11 25H2 Build 26200.8457
-% Linux:   Matlab R2024b update 7, Intel Fortran Compiler (ifort) version 2021.10.0, GCC 15.1.1                    Clear Linux 43760
+% Windows: Matlab R2024b update 9, Intel Fortran Compiler (ifort) version 2021.13.1, Visual Studio 2022 (17.14.38) Windows 11 25H2 Build 26200.9278
+% Linux:   Matlab R2024b update 9, Intel Fortran Compiler (ifort) version 2021.10.0, GCC 15.1.1                    Clear Linux 43760
 % Mac:     Not tested
 
 
@@ -19,8 +19,8 @@ elseif ismac
 
 else % linux
 
-    mex FC='ifort' -R2018a FOPTIMFLAGS='$FOPTIMFLAGS -O2 -i8' readunv.F ./source/read/*.F -output readunv
-    mex FC='ifort' -R2018a FOPTIMFLAGS='$FOPTIMFLAGS -O2 -i8 -axAVX2 -assume buffered_io -unroll-aggressive' writeunv.F ./source/write/*.F  -output writeunv
+    mex FC='ifort' -R2018a FOPTIMFLAGS='$FOPTIMFLAGS -O2 -i8 -diag-disable=10448' readunv.F ./source/read/*.F -output readunv
+    mex FC='ifort' -R2018a FOPTIMFLAGS='$FOPTIMFLAGS -O2 -i8 -axAVX2 -assume buffered_io -unroll-aggressive -diag-disable=10448' writeunv.F ./source/write/*.F  -output writeunv
 
 end
 
