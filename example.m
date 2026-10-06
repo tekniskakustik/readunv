@@ -148,7 +148,7 @@ delete(filepath)
 
 
 % write all data to new file, but keep file open between calls
-idx = randi([1, 512], 1); % index number to use between calls, in order to keep multiple files open simultaneously, any number between 1 and 512 (MAXIDX)
+idx = randi([1, 1024], 1); % index number to use between calls, in order to keep multiple files open simultaneously, any number between 1 and 1024 (MAXIDX)
          % include idx to keep file open
 filepath = 'example2.unv';
 for setCount = 1:length(datacell)
@@ -182,7 +182,7 @@ fprintf('\n')
 disp('ascii streaming (single):')
 fprintf('%12s %20s %20s \n', 'step size', 'max. error', 'num. lines')
 filepath = 'example3.unv';
-idx = 5; % index number to use between calls, in order to keep multiple files open simultaneously, any number between 1 and 512 (MAXIDX)
+idx = 5; % index number to use between calls, in order to keep multiple files open simultaneously, any number between 1 and 1024 (MAXIDX)
 for stp = 1:42 % try streaming with different step sizes
     % write header data to new file, but keep file open between calls
     % add data (58) from one set in chunks (streaming) and terminate when done   
@@ -230,7 +230,7 @@ fprintf('\n')
 % double-precision streaming
 disp('ascii streaming (double):')
 fprintf('%12s %20s %20s \n', 'step size', 'max. error', 'num. lines')
-idx = 5; % index number to use between calls, in order to keep multiple files open simultaneously, any number between 1 and 512 (MAXIDX)
+idx = 5; % index number to use between calls, in order to keep multiple files open simultaneously, any number between 1 and 1024 (MAXIDX)
 filepath = 'example4.unv';
 for stp = 1:21 % try streaming with different step sizes
     % write header data to new file, but keep file open between calls
@@ -279,7 +279,7 @@ fprintf('\n')
 % single-precision streaming, binary
 disp('binary streaming (single):')
 fprintf('%12s %20s \n', 'step size', 'max. error')
-idx = 5; % index number to use between calls, in order to keep multiple files open simultaneously, any number between 1 and 512 (MAXIDX)
+idx = 5; % index number to use between calls, in order to keep multiple files open simultaneously, any number between 1 and 1024 (MAXIDX)
 filepath = 'example5.unv';
 for stp = 1:42 % try streaming with different step sizes    
     writeunv(filepath, datacell{1}, 1, idx); % 151 header
@@ -317,7 +317,7 @@ fprintf('\n')
 % double-precision streaming, binary
 disp('binary streaming (double):')
 fprintf('%12s %20s \n', 'step size', 'max. error')
-idx = 5; % index number to use between calls, in order to keep multiple files open simultaneously, any number between 1 and 512 (MAXIDX)
+idx = 5; % index number to use between calls, in order to keep multiple files open simultaneously, any number between 1 and 1024 (MAXIDX)
 filepath = 'example6.unv';
 for stp = 1:21 % try streaming with different step sizes    
     writeunv(filepath, datacell{1}, 1, idx); % 151 header
